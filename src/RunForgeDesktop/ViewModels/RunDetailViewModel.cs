@@ -648,6 +648,24 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         await Shell.Current.GoToAsync(nameof(InterpretabilityPage), parameters);
     }
 
+    [RelayCommand]
+    private async Task NavigateToEditorAsync()
+    {
+        if (string.IsNullOrEmpty(RunId) || string.IsNullOrEmpty(RunDir))
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId },
+            { "runName", RunName ?? RunId },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(RequestEditorPage), parameters);
+    }
+
     #endregion
 
     #region Commands - Live Log

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.RequestEditorPage"
+             x:DataType="vm:RequestEditorViewModel"
+             Title="Edit Request">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                <Label Text="Edit Run Request"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#E0E0E0}" />
+                <Label Text="{Binding RunName, StringFormat='Editing: {0}'}"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+            </VerticalStackLayout>
+
+            <!-- Mode Toggle -->
+            <Frame Grid.Column="1"
+                   BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#333333}"
+                   BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                   CornerRadius="4"
+                   Padding="4"
+                   Margin="0,0,8,0">
+                <HorizontalStackLayout Spacing="0">
+                    <Button Text="Normal"
+                            Command="{Binding ToggleModeCommand}"
+                            BackgroundColor="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}, ConverterParameter={StaticResource Primary}, FallbackValue=Transparent}"
+                            TextColor="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}, ConverterParameter=White, FallbackValue=#666666}"
+                            CornerRadius="4"
+                            Padding="12,6"
+                            FontSize="12"
+                            IsEnabled="{Binding IsAdvancedMode}" />
+                    <Button Text="Advanced"
+                            Command="{Binding ToggleModeCommand}"
+                            BackgroundColor="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}, ConverterParameter=Transparent, FallbackValue={StaticResource Primary}}"
+                            TextColor="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}, ConverterParameter=#666666, FallbackValue=White}"
+                            CornerRadius="4"
+                            Padding="12,6"
+                            FontSize="12"
+                            IsEnabled="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}}" />
+                </HorizontalStackLayout>
+            </Frame>
+
+            <!-- Unsaved indicator -->
+            <Label Grid.Column="2"
+                   Text="●  Unsaved changes"
+                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                   FontSize="12"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding HasChanges}" />
+        </Grid>
+
+        <!-- Content -->
+        <ScrollView Grid.Row="1">
+            <Grid>
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+
+                <!-- Validation Error Banner -->
+                <Frame IsVisible="{Binding ValidationError, Converter={StaticResource StringToBoolConverter}}"
+                       BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#3E2723}"
+                       BorderColor="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}"
+                       CornerRadius="4"
+                       Padding="12"
+                       Margin="0,0,0,16"
+                       VerticalOptions="Start"
+                       ZIndex="100">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Validation Error"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}" />
+                        <Label Text="{Binding ValidationError}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Normal Mode Form -->
+                <VerticalStackLayout Spacing="16"
+                                     IsVisible="{Binding IsAdvancedMode, Converter={StaticResource InverseBoolConverter}}">
+
+                    <!-- Rerun From (read-only display) -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A237E}"
+                           BorderColor="{AppThemeBinding Light=#90CAF9, Dark=#3F51B5}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding RerunFrom, Converter={StaticResource StringToBoolConverter}}">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0"
+                                   Text="⟳"
+                                   FontSize="18"
+                                   TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}"
+                                   Margin="0,0,12,0" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="Rerun from parent"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}" />
+                                <Label Text="{Binding RerunFrom}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Frame>
+
+                    <!-- Basic Settings -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="16">
+                            <Label Text="Basic Settings"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Run Name (optional) -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Run Name (optional)"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Entry Text="{Binding RunName}"
+                                       Placeholder="My Training Run"
+                                       BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                       PlaceholderColor="{AppThemeBinding Light=#999999, Dark=#666666}" />
+                            </VerticalStackLayout>
+
+                            <!-- Preset -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Preset"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Picker ItemsSource="{Binding PresetOptions}"
+                                        SelectedItem="{Binding Preset}"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Label Text="fast = quick iteration, balanced = default, thorough = best quality"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Model Settings -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="16">
+                            <Label Text="Model"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Model Family -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Model Family"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Picker ItemsSource="{Binding ModelFamilyOptions}"
+                                        SelectedItem="{Binding ModelFamily}"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Dataset Settings -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="16">
+                            <Label Text="Dataset"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Dataset Path -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Dataset Path"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Entry Grid.Column="0"
+                                           Text="{Binding DatasetPath}"
+                                           Placeholder="data/dataset.csv"
+                                           BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                           TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                           PlaceholderColor="{AppThemeBinding Light=#999999, Dark=#666666}" />
+                                    <Button Grid.Column="1"
+                                            Text="Browse"
+                                            Command="{Binding BrowseDatasetCommand}"
+                                            BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                                            TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                            CornerRadius="4"
+                                            Padding="12,8"
+                                            FontSize="12" />
+                                </Grid>
+                                <Label Text="Workspace-relative path to CSV, Parquet, or JSON file"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                            </VerticalStackLayout>
+
+                            <!-- Label Column -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Label Column"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Entry Text="{Binding LabelColumn}"
+                                       Placeholder="target"
+                                       BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                       PlaceholderColor="{AppThemeBinding Light=#999999, Dark=#666666}" />
+                                <Label Text="Name of the column containing labels/targets"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Device Settings -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="16">
+                            <Label Text="Device"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Device Type -->
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Device Type"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Picker ItemsSource="{Binding DeviceTypeOptions}"
+                                        SelectedItem="{Binding DeviceType}"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Notes -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Notes (optional)"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                            <Editor Text="{Binding Notes}"
+                                    Placeholder="Add notes about this run..."
+                                    HeightRequest="100"
+                                    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                    TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                    PlaceholderColor="{AppThemeBinding Light=#999999, Dark=#666666}" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+
+                <!-- Advanced Mode (JSON Editor) -->
+                <VerticalStackLayout Spacing="16"
+                                     IsVisible="{Binding IsAdvancedMode}">
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Raw JSON"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Button Grid.Column="1"
+                                        Text="Format"
+                                        Command="{Binding FormatJsonCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                                <Button Grid.Column="2"
+                                        Text="Revert"
+                                        Command="{Binding RevertChangesCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        IsVisible="{Binding HasChanges}" />
+                            </Grid>
+
+                            <Frame BackgroundColor="{AppThemeBinding Light=#1E1E1E, Dark=#0D0D0D}"
+                                   BorderColor="{AppThemeBinding Light=#333333, Dark=#1A1A1A}"
+                                   CornerRadius="4"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Editor Text="{Binding RawJson}"
+                                        FontFamily="Consolas, Courier New, monospace"
+                                        FontSize="12"
+                                        TextColor="{AppThemeBinding Light=#CCCCCC, Dark=#AAAAAA}"
+                                        BackgroundColor="Transparent"
+                                        HeightRequest="400"
+                                        AutoSize="TextChanges" />
+                            </Frame>
+
+                            <Label Text="Edit the request.json directly. Use Normal mode for a guided experience."
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+            </Grid>
+        </ScrollView>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,16,0,0">
+            <!-- Status message -->
+            <Label Grid.Column="0"
+                   Text="{Binding StatusMessage}"
+                   FontSize="13"
+                   TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                   VerticalOptions="Center"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}" />
+
+            <Button Grid.Column="1"
+                    Text="Cancel"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                    TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                    CornerRadius="4"
+                    Padding="20,10"
+                    Margin="0,0,8,0" />
+
+            <Button Grid.Column="2"
+                    Text="Save"
+                    Command="{Binding SaveRequestCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                    TextColor="White"
+                    CornerRadius="4"
+                    Padding="20,10"
+                    Margin="0,0,8,0"
+                    IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}" />
+
+            <Button Grid.Column="3"
+                    Text="Save &amp; Close"
+                    Command="{Binding SaveAndCloseCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}"
+                    TextColor="White"
+                    CornerRadius="4"
+                    Padding="20,10"
+                    IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}" />
+        </Grid>
+
+        <!-- Saving overlay -->
+        <Grid Grid.RowSpan="3"
+              IsVisible="{Binding IsSaving}"
+              BackgroundColor="#80000000">
+            <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                   CornerRadius="8"
+                   Padding="24"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="12">
+                    <ActivityIndicator IsRunning="True"
+                                       Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+                    <Label Text="Saving..."
+                           FontSize="16"
+                           TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Frame>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

@@ -393,13 +393,23 @@
                            IsVisible="{Binding Request, Converter={StaticResource ObjectToBoolConverter}}">
                         <VerticalStackLayout Spacing="12">
                             <!-- Header with action buttons -->
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
                                 <Label Grid.Column="0"
                                        Text="Run Request"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
                                 <Button Grid.Column="1"
+                                        Text="Edit"
+                                        Command="{Binding NavigateToEditorCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}"
+                                        TextColor="White"
+                                        CornerRadius="4"
+                                        FontSize="12"
+                                        Padding="12,6"
+                                        ToolTipProperties.Text="Edit request configuration"
+                                        IsVisible="{Binding CanExecute}" />
+                                <Button Grid.Column="2"
                                         Text="View JSON"
                                         Command="{Binding ViewRequestJsonCommand}"
                                         BackgroundColor="Transparent"
@@ -407,7 +417,7 @@
                                         FontSize="12"
                                         Padding="8,4"
                                         ToolTipProperties.Text="View formatted JSON" />
-                                <Button Grid.Column="2"
+                                <Button Grid.Column="3"
                                         Text="Copy"
                                         Command="{Binding CopyRequestJsonCommand}"
                                         BackgroundColor="Transparent"
@@ -415,7 +425,7 @@
                                         FontSize="12"
                                         Padding="8,4"
                                         ToolTipProperties.Text="Copy JSON to clipboard" />
-                                <Button Grid.Column="3"
+                                <Button Grid.Column="4"
                                         Text="Open File"
                                         Command="{Binding OpenRawFileCommand}"
                                         CommandParameter="request.json"
