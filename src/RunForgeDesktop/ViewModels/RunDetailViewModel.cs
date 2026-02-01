@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Models;
 using RunForgeDesktop.Core.Services;
+using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -129,5 +130,23 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
                 // Silently ignore if we can't open
             }
         }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToInterpretabilityAsync()
+    {
+        if (string.IsNullOrEmpty(RunId) || string.IsNullOrEmpty(RunDir))
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId },
+            { "runName", RunName ?? RunId },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(InterpretabilityPage), parameters);
     }
 }

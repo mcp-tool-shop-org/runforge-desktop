@@ -9,15 +9,26 @@
     <Grid RowDefinitions="Auto,*" Padding="16">
 
         <!-- Header -->
-        <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,16">
-            <Label Text="{Binding RunName}"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#E0E0E0}" />
-            <Label Text="{Binding RunId}"
-                   FontSize="14"
-                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-        </VerticalStackLayout>
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                <Label Text="{Binding RunName}"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#E0E0E0}" />
+                <Label Text="{Binding RunId}"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text="Interpretability"
+                    Command="{Binding NavigateToInterpretabilityCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                    TextColor="White"
+                    CornerRadius="4"
+                    Padding="16,8"
+                    VerticalOptions="Center" />
+        </Grid>
 
         <!-- Content -->
         <ScrollView Grid.Row="1">

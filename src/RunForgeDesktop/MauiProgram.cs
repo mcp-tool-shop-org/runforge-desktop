@@ -22,15 +22,18 @@ public static class MauiProgram
         builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
         builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
         builder.Services.AddSingleton<IRunDetailService, RunDetailService>();
+        builder.Services.AddSingleton<IInterpretabilityService, InterpretabilityService>();
 
         // Register view models
         builder.Services.AddTransient<RunsListViewModel>();
         builder.Services.AddTransient<RunDetailViewModel>();
+        builder.Services.AddTransient<InterpretabilityViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RunsListPage>();
         builder.Services.AddTransient<RunDetailPage>();
+        builder.Services.AddTransient<InterpretabilityPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
