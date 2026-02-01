@@ -29,15 +29,36 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
 
-            <Button Grid.Column="1"
-                    Text="Open JSON"
-                    Command="{Binding OpenRawJsonCommand}"
-                    BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
-                    TextColor="White"
-                    CornerRadius="4"
-                    Padding="16,8"
-                    VerticalOptions="Center" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                <Button Text="Export CSV"
+                        Command="{Binding ExportToCsvCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}"
+                        TextColor="White"
+                        CornerRadius="4"
+                        Padding="16,8" />
+                <Button Text="Open JSON"
+                        Command="{Binding OpenRawJsonCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                        TextColor="White"
+                        CornerRadius="4"
+                        Padding="16,8" />
+            </HorizontalStackLayout>
         </Grid>
+
+        <!-- Status message bar -->
+        <Frame Grid.Row="0"
+               IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+               BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B5E20}"
+               BorderColor="{AppThemeBinding Light=#4CAF50, Dark=#81C784}"
+               CornerRadius="4"
+               Padding="8"
+               Margin="0,80,0,0"
+               VerticalOptions="Start">
+            <Label Text="{Binding StatusMessage}"
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light=#2E7D32, Dark=#A5D6A7}"
+                   HorizontalOptions="Center" />
+        </Frame>
 
         <!-- Content -->
         <ScrollView Grid.Row="1">

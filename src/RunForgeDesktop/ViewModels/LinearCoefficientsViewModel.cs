@@ -12,12 +12,16 @@ public partial class LinearCoefficientsViewModel : ObservableObject, IQueryAttri
 {
     private readonly IInterpretabilityService _interpretabilityService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IExportService _exportService;
 
     [ObservableProperty]
     private bool _isLoading;
 
     [ObservableProperty]
     private string? _errorMessage;
+
+    [ObservableProperty]
+    private string? _statusMessage;
 
     [ObservableProperty]
     private string? _runId;
@@ -48,10 +52,12 @@ public partial class LinearCoefficientsViewModel : ObservableObject, IQueryAttri
 
     public LinearCoefficientsViewModel(
         IInterpretabilityService interpretabilityService,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        IExportService exportService)
     {
         _interpretabilityService = interpretabilityService;
         _workspaceService = workspaceService;
+        _exportService = exportService;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -236,6 +242,46 @@ public partial class LinearCoefficientsViewModel : ObservableObject, IQueryAttri
             {
                 // Silently ignore
             }
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportToCsvAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir) || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            return;
+        }
+
+        StatusMessage = null;
+
+        try
+        {
+            var suggestedName = $"linear_coefficients_{RunId ?? "run"}.csv";
+            var outputPath = await Services.FileSavePickerService.SaveCsvFileAsync(suggestedName);
+
+            if (string.IsNullOrEmpty(outputPath))
+            {
+                return; // User cancelled
+            }
+
+            var result = await _exportService.ExportLinearCoefficientsToCsvAsync(
+                _workspaceService.CurrentWorkspacePath,
+                RunDir,
+                outputPath);
+
+            if (result.IsSuccess)
+            {
+                StatusMessage = $"Exported to {Path.GetFileName(outputPath)} ({result.BytesWritten:N0} bytes)";
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Export failed: {ex.Message}";
         }
     }
 }

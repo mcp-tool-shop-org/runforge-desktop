@@ -23,6 +23,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
         builder.Services.AddSingleton<IRunDetailService, RunDetailService>();
         builder.Services.AddSingleton<IInterpretabilityService, InterpretabilityService>();
+        builder.Services.AddSingleton<IExportService, ExportService>();
 
         // Register view models
         builder.Services.AddTransient<RunsListViewModel>();
