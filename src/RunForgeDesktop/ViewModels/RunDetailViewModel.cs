@@ -19,6 +19,8 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     private readonly IWorkspaceService _workspaceService;
     private readonly ILiveLogService _liveLogService;
     private readonly IRunTimelineService _timelineService;
+    private readonly ICliExecutionService _cliExecutionService;
+    private readonly IRunCreationService _runCreationService;
 
     private CancellationTokenSource? _monitoringCts;
     private bool _disposed;
@@ -106,6 +108,18 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
 
     [ObservableProperty]
     private bool _logSizeWarningDismissed;
+
+    [ObservableProperty]
+    private bool _isExecuting;
+
+    [ObservableProperty]
+    private string? _executionStatus;
+
+    [ObservableProperty]
+    private bool _isCliAvailable;
+
+    [ObservableProperty]
+    private string? _cliUnavailableReason;
 
     /// <summary>
     /// Stale threshold in seconds (configurable).
@@ -284,18 +298,49 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         }
     }
 
+    /// <summary>
+    /// Whether the run can be executed (is a draft with no result).
+    /// </summary>
+    public bool CanExecute =>
+        !IsExecuting &&
+        IsCliAvailable &&
+        Request is not null &&
+        Result is null;
+
+    /// <summary>
+    /// Whether the run can be rerun (has a result).
+    /// </summary>
+    public bool CanRerun =>
+        !IsExecuting &&
+        Request is not null &&
+        Result is not null;
+
     #endregion
 
     public RunDetailViewModel(
         IRunDetailService runDetailService,
         IWorkspaceService workspaceService,
         ILiveLogService liveLogService,
-        IRunTimelineService timelineService)
+        IRunTimelineService timelineService,
+        ICliExecutionService cliExecutionService,
+        IRunCreationService runCreationService)
     {
         _runDetailService = runDetailService;
         _workspaceService = workspaceService;
         _liveLogService = liveLogService;
         _timelineService = timelineService;
+        _cliExecutionService = cliExecutionService;
+        _runCreationService = runCreationService;
+
+        // Check CLI availability on construction
+        _ = CheckCliAvailabilityAsync();
+    }
+
+    private async Task CheckCliAvailabilityAsync()
+    {
+        IsCliAvailable = await _cliExecutionService.CheckCliAvailabilityAsync();
+        CliUnavailableReason = _cliExecutionService.CliUnavailableReason;
+        OnPropertyChanged(nameof(CanExecute));
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -372,6 +417,17 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     partial void OnLogSizeWarningDismissedChanged(bool value)
     {
         OnPropertyChanged(nameof(ShowLogSizeWarning));
+    }
+
+    partial void OnIsExecutingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExecute));
+        OnPropertyChanged(nameof(CanRerun));
+    }
+
+    partial void OnIsCliAvailableChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExecute));
     }
 
     #endregion
@@ -685,6 +741,124 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     private void DismissStuckWarning()
     {
         ShowStuckWarning = false;
+    }
+
+    #endregion
+
+    #region Commands - Execution
+
+    [RelayCommand(CanExecute = nameof(CanExecute))]
+    private async Task ExecuteRunAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir) || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            StatusMessage = "Invalid run or workspace";
+            return;
+        }
+
+        IsExecuting = true;
+        ExecutionStatus = "Starting...";
+
+        try
+        {
+            // Clear existing log tail
+            LogTailLines.Clear();
+
+            // Initialize timeline for new execution
+            TimelineState = _timelineService.CreateTimeline();
+
+            // Start monitoring before execution
+            await StartMonitoringAsync();
+
+            // Execute via CLI
+            var result = await _cliExecutionService.ExecuteRunAsync(
+                _workspaceService.CurrentWorkspacePath,
+                RunDir,
+                onOutput: line =>
+                {
+                    // Output is handled by monitoring, but update status
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        ExecutionStatus = $"Running... ({LogTailLines.Count} lines)";
+                    });
+                });
+
+            // Handle result
+            if (result.WasCancelled)
+            {
+                StatusMessage = "Execution cancelled";
+                ExecutionStatus = "Cancelled";
+            }
+            else if (result.Succeeded)
+            {
+                StatusMessage = $"Execution completed in {result.DurationMs}ms";
+                ExecutionStatus = "Completed";
+
+                // Reload run details to get result.json
+                await LoadRunDetailAsync();
+            }
+            else
+            {
+                StatusMessage = $"Execution failed: {result.ErrorMessage}";
+                ExecutionStatus = $"Failed (exit code {result.ExitCode})";
+
+                // Still reload to get any partial result
+                await LoadRunDetailAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Execution error: {ex.Message}";
+            ExecutionStatus = "Error";
+        }
+        finally
+        {
+            IsExecuting = false;
+            _ = ClearStatusAfterDelayAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void CancelExecution()
+    {
+        _cliExecutionService.CancelCurrentExecution();
+        ExecutionStatus = "Cancelling...";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRerun))]
+    private async Task RerunAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir) || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            StatusMessage = "Invalid run or workspace";
+            return;
+        }
+
+        try
+        {
+            // Clone the run
+            var newRunDir = await _runCreationService.CloneForRerunAsync(
+                _workspaceService.CurrentWorkspacePath,
+                RunDir,
+                $"{RunName ?? RunId} (rerun)");
+
+            StatusMessage = "Created rerun. Opening...";
+
+            // Navigate to the new run
+            var newRunId = newRunDir.Split('/')[^1];
+            var parameters = new Dictionary<string, object>
+            {
+                { "runId", newRunId },
+                { "runName", $"{RunName ?? RunId} (rerun)" },
+                { "runDir", newRunDir }
+            };
+
+            await Shell.Current.GoToAsync($"../{nameof(RunDetailPage)}", parameters);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to create rerun: {ex.Message}";
+        }
     }
 
     #endregion
