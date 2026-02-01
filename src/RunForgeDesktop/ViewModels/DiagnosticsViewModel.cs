@@ -11,6 +11,7 @@ namespace RunForgeDesktop.ViewModels;
 public partial class DiagnosticsViewModel : ObservableObject
 {
     private readonly IWorkspaceService _workspaceService;
+    private readonly IRunIndexService _runIndexService;
 
     [ObservableProperty]
     private string _appVersion = string.Empty;
@@ -45,28 +46,44 @@ public partial class DiagnosticsViewModel : ObservableObject
     [ObservableProperty]
     private string _lastRefresh = string.Empty;
 
-    public DiagnosticsViewModel(IWorkspaceService workspaceService)
+    [ObservableProperty]
+    private string? _statusMessage;
+
+    public DiagnosticsViewModel(IWorkspaceService workspaceService, IRunIndexService runIndexService)
     {
         _workspaceService = workspaceService;
+        _runIndexService = runIndexService;
         LoadDiagnostics();
     }
 
     [RelayCommand]
     private void LoadDiagnostics()
     {
+        StatusMessage = null;
+
         // App version
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version;
-        AppVersion = version?.ToString() ?? "Unknown";
+        AppVersion = version is not null
+            ? $"v{version.Major}.{version.Minor}.{version.Build}"
+            : "Unknown";
 
         // Framework version
-        FrameworkVersion = Environment.Version.ToString();
+        FrameworkVersion = $".NET {Environment.Version}";
 
-        // OS version
-        OsVersion = $"{Environment.OSVersion.Platform} {Environment.OSVersion.Version}";
+        // OS version - more detailed
+        var osVersion = Environment.OSVersion;
+        var windowsBuild = osVersion.Version.Build;
+        var windowsVersion = windowsBuild switch
+        {
+            >= 22000 => "Windows 11",
+            >= 10240 => "Windows 10",
+            _ => $"Windows {osVersion.Version.Major}"
+        };
+        OsVersion = $"{windowsVersion} (Build {windowsBuild})";
 
         // Architecture
-        Architecture = Environment.Is64BitProcess ? "64-bit" : "32-bit";
+        Architecture = Environment.Is64BitProcess ? "x64" : "x86";
 
         // Working directory
         WorkingDirectory = Environment.CurrentDirectory;
@@ -79,8 +96,8 @@ public partial class DiagnosticsViewModel : ObservableObject
         {
             WorkspaceType = discovery.Method.ToString();
             IndexPath = discovery.IndexPath;
-            // RunCount will be updated if we load the index
-            RunCount = 0;
+            // Get run count from index service if loaded
+            RunCount = _runIndexService.CurrentRuns.Count;
         }
         else
         {
@@ -155,11 +172,18 @@ public partial class DiagnosticsViewModel : ObservableObject
             Workspace
             ---------
             Path: {CurrentWorkspace}
-            Type: {WorkspaceType}
-            Index: {IndexPath ?? "N/A"}
-            Runs: {RunCount}
+            Discovery Method: {WorkspaceType}
+            Index Location: {IndexPath ?? "N/A"}
+            Run Count: {RunCount}
             """;
 
         await Clipboard.Default.SetTextAsync(diagnostics);
+
+        // Show status message
+        StatusMessage = "Diagnostics copied to clipboard";
+
+        // Clear message after 3 seconds
+        await Task.Delay(3000);
+        StatusMessage = null;
     }
 }
