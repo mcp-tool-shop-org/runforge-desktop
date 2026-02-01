@@ -9,6 +9,65 @@ It provides a visual control plane for RunForge artifacts—without modifying th
 
 ---
 
+## Quick Start
+
+### Installation
+
+**Option 1: MSIX Package (Recommended)**
+1. Download the `.msix` file from [Releases](https://github.com/mcp-tool-shop-org/runforge-desktop/releases)
+2. Double-click to install
+3. Launch from Start Menu
+
+**Option 2: Build from Source**
+```powershell
+git clone https://github.com/mcp-tool-shop-org/runforge-desktop
+cd runforge-desktop
+dotnet run --project src/RunForgeDesktop/RunForgeDesktop.csproj
+```
+
+See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation options.
+
+### Usage
+
+1. **Launch** RunForge Desktop
+2. **Select Workspace** - Click "Select Workspace" and choose a folder containing RunForge outputs
+3. **Browse Runs** - View all runs with filtering by status or search
+4. **Inspect Details** - Click any run to view request, result, and metrics
+5. **View Interpretability** - Navigate to interpretability artifacts for model insights
+6. **Export** - Export metrics, feature importance, or coefficients to CSV
+
+---
+
+## Features
+
+### Run Browsing
+- Browse runs with newest-first ordering
+- Filter by status: All, Succeeded, Failed, In-progress
+- Search by run ID
+
+### Run Detail View
+- **Request** - Training parameters (preset, device, GPU reason)
+- **Result** - Status, exit code, duration, errors
+- **Metrics** - Accuracy and sample/feature counts
+- **Open JSON** - View raw artifact files
+
+### Interpretability Index
+- **Metrics v1** - Categorized metrics with formatted values
+- **Feature Importance v1** - Ranked features with visual bars (RandomForest)
+- **Linear Coefficients v1** - Per-class coefficients with class selector (LogisticRegression)
+
+### Export
+- Export feature importance to CSV (Rank, Feature, Importance)
+- Export linear coefficients to CSV (Class, Feature, Coefficient)
+- Export metrics to CSV (Category, Metric, Value)
+
+### Diagnostics
+- View app version, framework, and memory usage
+- View workspace path, discovery method, and index location
+- Copy diagnostics to clipboard for support
+
+---
+
 ## What RunForge Desktop Is
 
 RunForge Desktop is a **companion application** to RunForge tooling.
@@ -19,12 +78,8 @@ With RunForge Desktop you can:
 - **Select** a local workspace containing RunForge outputs
 - **Browse** runs safely (newest first)
 - **View** run summaries derived from `run.json`
-- **Navigate** model-aware interpretability artifacts:
-  - Metrics v1
-  - Feature importance (RandomForest)
-  - Linear model coefficients (LogisticRegression, LinearSVC)
-- **Open** the unified interpretability index (Phase 3.6)
-- **Export** complete run bundles as zip files (copy-only)
+- **Navigate** model-aware interpretability artifacts
+- **Export** data to CSV for further analysis
 
 All data is read directly from artifacts on disk.
 
@@ -75,11 +130,19 @@ Dataset
 RunForge training (CLI / VS Code)
   │
   ▼
-run.json
-  ├── metrics.v1.json
-  ├── feature_importance.v1.json   (if supported)
-  ├── linear_coefficients.v1.json  (if supported)
-  └── interpretability.index.v1.json
+.runforge/
+  ├── index.json
+  └── runs/
+      └── run_20240101_123456/
+          ├── run.json
+          ├── request.json
+          ├── result.json
+          ├── metrics.json
+          └── interpretability/
+              ├── interpretability.index.v1.json
+              ├── metrics.v1.json
+              ├── feature_importance.v1.json   (if supported)
+              └── linear_coefficients.v1.json  (if supported)
   │
   ▼
 RunForge Desktop (this app)
@@ -90,13 +153,24 @@ It complements it with a Windows-native browsing and inspection experience.
 
 ---
 
+## System Requirements
+
+| Requirement | Value |
+|-------------|-------|
+| OS | Windows 10 (1809+) or Windows 11 |
+| Architecture | x64 |
+| Runtime | .NET 10 (bundled in MSIX) |
+| Disk Space | ~100 MB |
+
+---
+
 ## Platform & Packaging
 
 | Attribute | Value |
 |-----------|-------|
-| Platform | Windows 11 |
+| Platform | Windows 10/11 |
 | UI framework | .NET MAUI |
-| Packaging | MSIX |
+| Packaging | MSIX (self-contained) |
 | Install/uninstall | Clean, isolated, reversible |
 
 The app follows standard Windows permission models for file access.
@@ -107,11 +181,51 @@ The app follows standard Windows permission models for file access.
 
 | Attribute | Value |
 |-----------|-------|
-| Current version | v0.1 (in development) |
+| Current version | v0.1.0 |
 | Scope | Read-only inspection and export |
 | Acceptance criteria | [docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md](docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md) |
 
 Phase-style acceptance criteria are used to prevent scope drift.
+
+---
+
+## Development
+
+### Prerequisites
+
+- .NET 10 SDK
+- Windows 10/11
+- Visual Studio 2022 (17.12+) with MAUI workload, OR VS Code with .NET MAUI extension
+
+### Build
+
+```powershell
+# Debug build
+dotnet build
+
+# Run tests
+dotnet test
+
+# Release build
+.\scripts\build-release.cmd
+```
+
+### Project Structure
+
+```
+runforge-desktop/
+├── src/
+│   ├── RunForgeDesktop/          # MAUI app (UI, ViewModels)
+│   └── RunForgeDesktop.Core/     # Core services, models
+├── tests/
+│   └── RunForgeDesktop.Core.Tests/
+├── docs/
+│   ├── PHASE-DESKTOP-0.1-ACCEPTANCE.md
+│   └── INSTALL.md
+└── scripts/
+    ├── build-msix.ps1
+    └── build-release.cmd
+```
 
 ---
 
@@ -155,3 +269,10 @@ Contributions should respect the core constraint:
 Before proposing changes, please review:
 - [docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md](docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md)
 - [TRUST_MODEL.md](https://github.com/mcp-tool-shop-org/runforge-vscode/blob/main/docs/TRUST_MODEL.md) (in the RunForge repo)
+
+---
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/mcp-tool-shop-org/runforge-desktop/issues)
+- **Diagnostics**: Use the Diagnostics page to copy system info for bug reports
