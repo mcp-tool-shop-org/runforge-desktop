@@ -177,18 +177,34 @@
         </Frame>
 
         <!-- Footer with counts -->
-        <Label Grid.Row="3"
-               Margin="0,8,0,0"
-               FontSize="12"
-               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
-               HorizontalTextAlignment="Center">
-            <Label.Text>
-                <MultiBinding StringFormat="Showing {0} of {1} runs">
-                    <Binding Path="FilteredRunCount" />
-                    <Binding Path="TotalRunCount" />
-                </MultiBinding>
-            </Label.Text>
-        </Label>
+        <HorizontalStackLayout Grid.Row="3"
+                               Margin="0,8,0,0"
+                               HorizontalOptions="Center"
+                               Spacing="12">
+            <Label FontSize="12"
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}">
+                <Label.Text>
+                    <MultiBinding StringFormat="Showing {0} of {1} runs">
+                        <Binding Path="FilteredRunCount" />
+                        <Binding Path="TotalRunCount" />
+                    </MultiBinding>
+                </Label.Text>
+            </Label>
+
+            <!-- Cache indicator (subtle) -->
+            <Label Text="(cached)"
+                   FontSize="11"
+                   TextColor="{AppThemeBinding Light=#888888, Dark=#666666}"
+                   IsVisible="{Binding IsFromCache}"
+                   ToolTipProperties.Text="Data loaded from cache. Click Refresh to reload from disk." />
+
+            <!-- Filtering indicator -->
+            <ActivityIndicator IsRunning="{Binding IsFiltering}"
+                               IsVisible="{Binding IsFiltering}"
+                               WidthRequest="12"
+                               HeightRequest="12"
+                               Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+        </HorizontalStackLayout>
 
     </Grid>
 

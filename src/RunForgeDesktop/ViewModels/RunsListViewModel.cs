@@ -15,8 +15,17 @@ public partial class RunsListViewModel : ObservableObject
     private readonly IRunIndexService _runIndexService;
     private readonly IWorkspaceService _workspaceService;
 
+    /// <summary>
+    /// Debounce delay for search/filter operations (milliseconds).
+    /// </summary>
+    private const int FilterDebounceMs = 150;
+    private CancellationTokenSource? _filterDebounceTokenSource;
+
     [ObservableProperty]
     private bool _isLoading;
+
+    [ObservableProperty]
+    private bool _isFiltering;
 
     [ObservableProperty]
     private string? _errorMessage;
@@ -38,6 +47,9 @@ public partial class RunsListViewModel : ObservableObject
 
     [ObservableProperty]
     private int _filteredRunCount;
+
+    [ObservableProperty]
+    private bool _isFromCache;
 
     public ObservableCollection<RunIndexEntry> Runs { get; } = [];
 
@@ -96,26 +108,34 @@ public partial class RunsListViewModel : ObservableObject
 
         IsLoading = true;
         ErrorMessage = null;
+        IsFromCache = false;
 
         try
         {
-            var result = await _runIndexService.LoadIndexAsync(WorkspacePath);
+            var result = await _runIndexService.LoadIndexAsync(WorkspacePath).ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                TotalRunCount = result.Runs.Count;
-                ApplyFilters();
-            }
-            else
-            {
-                ErrorMessage = result.ErrorMessage;
-                ClearRuns();
-            }
+                if (result.IsSuccess)
+                {
+                    TotalRunCount = result.Runs.Count;
+                    IsFromCache = result.FromCache;
+                    ApplyFilters();
+                }
+                else
+                {
+                    ErrorMessage = result.ErrorMessage;
+                    ClearRuns();
+                }
+            });
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load runs: {ex.Message}";
-            ClearRuns();
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                ErrorMessage = $"Failed to load runs: {ex.Message}";
+                ClearRuns();
+            });
         }
         finally
         {
@@ -133,24 +153,32 @@ public partial class RunsListViewModel : ObservableObject
 
         IsLoading = true;
         ErrorMessage = null;
+        IsFromCache = false;
 
         try
         {
-            var result = await _runIndexService.LoadIndexAsync(WorkspacePath, forceRefresh: true);
+            var result = await _runIndexService.LoadIndexAsync(WorkspacePath, forceRefresh: true).ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                TotalRunCount = result.Runs.Count;
-                ApplyFilters();
-            }
-            else
-            {
-                ErrorMessage = result.ErrorMessage;
-            }
+                if (result.IsSuccess)
+                {
+                    TotalRunCount = result.Runs.Count;
+                    IsFromCache = false; // Force refresh never uses cache
+                    ApplyFilters();
+                }
+                else
+                {
+                    ErrorMessage = result.ErrorMessage;
+                }
+            });
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to refresh runs: {ex.Message}";
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                ErrorMessage = $"Failed to refresh runs: {ex.Message}";
+            });
         }
         finally
         {
@@ -160,12 +188,37 @@ public partial class RunsListViewModel : ObservableObject
 
     partial void OnSearchTextChanged(string? value)
     {
-        ApplyFilters();
+        _ = ApplyFiltersWithDebounceAsync();
     }
 
     partial void OnStatusFilterChanged(RunStatusFilter value)
     {
+        // Status filter changes should be immediate (user clicked a button)
         ApplyFilters();
+    }
+
+    private async Task ApplyFiltersWithDebounceAsync()
+    {
+        // Cancel any pending filter operation
+        _filterDebounceTokenSource?.Cancel();
+        _filterDebounceTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            IsFiltering = true;
+            await Task.Delay(FilterDebounceMs, _filterDebounceTokenSource.Token).ConfigureAwait(false);
+
+            // Run filtering on UI thread
+            await MainThread.InvokeOnMainThreadAsync(ApplyFilters);
+        }
+        catch (OperationCanceledException)
+        {
+            // Debounce cancelled - newer filter operation is pending
+        }
+        finally
+        {
+            IsFiltering = false;
+        }
     }
 
     private void ApplyFilters()
