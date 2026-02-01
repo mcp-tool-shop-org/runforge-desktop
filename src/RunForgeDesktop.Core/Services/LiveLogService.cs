@@ -3,27 +3,39 @@ using System.Text;
 namespace RunForgeDesktop.Core.Services;
 
 /// <summary>
-/// Implementation of live log monitoring.
-/// Uses file mtime and byte offset polling for efficient delta reads.
+/// Implementation of live log monitoring with robustness features.
+/// Handles truncation, replacement, adaptive polling, and large file performance.
 /// </summary>
 public sealed class LiveLogService : ILiveLogService
 {
     /// <inheritdoc />
+    public int MaxBytesPerTick { get; set; } = 64 * 1024; // 64KB per tick to prevent UI hitching
+
+    /// <inheritdoc />
+    public TimeSpan SlowPollingThreshold { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <inheritdoc />
+    public TimeSpan SlowPollingInterval { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <inheritdoc />
+    public TimeSpan FastPollingInterval { get; set; } = TimeSpan.FromMilliseconds(500);
+
+    /// <inheritdoc />
     public LogSnapshot GetSnapshot(
         string logFilePath,
-        long lastKnownSize,
+        LogMonitorState state,
         string? runStatus,
         TimeSpan staleThreshold)
     {
         // Check if run already completed
         if (runStatus == "succeeded")
         {
-            return CreateCompletedSnapshot(logFilePath, LogStatus.Completed);
+            return CreateCompletedSnapshot(logFilePath, LogStatus.Completed, state);
         }
 
         if (runStatus == "failed")
         {
-            return CreateCompletedSnapshot(logFilePath, LogStatus.Failed);
+            return CreateCompletedSnapshot(logFilePath, LogStatus.Failed, state);
         }
 
         // Check if file exists
@@ -36,7 +48,9 @@ public sealed class LiveLogService : ILiveLogService
                 LinesAddedSinceLastSnapshot = 0,
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
-                LastWriteTimeUtc = DateTime.MinValue
+                LastWriteTimeUtc = DateTime.MinValue,
+                FileChange = state.LastFileSize > 0 ? FileChangeReason.Deleted : FileChangeReason.None,
+                RecommendedPollingInterval = FastPollingInterval
             };
         }
 
@@ -44,11 +58,27 @@ public sealed class LiveLogService : ILiveLogService
         {
             var fileInfo = new FileInfo(logFilePath);
             var lastWriteUtc = fileInfo.LastWriteTimeUtc;
+            var creationTimeUtc = fileInfo.CreationTimeUtc;
             var currentSize = fileInfo.Length;
             var timeSinceUpdate = DateTime.UtcNow - lastWriteUtc;
 
+            // Detect file changes
+            var fileChange = FileChangeReason.None;
+
+            // Check for file replacement (different creation time)
+            if (state.LastCreationTimeUtc != DateTime.MinValue &&
+                creationTimeUtc != state.LastCreationTimeUtc)
+            {
+                fileChange = FileChangeReason.Replaced;
+            }
+            // Check for truncation (size decreased)
+            else if (currentSize < state.LastFileSize)
+            {
+                fileChange = FileChangeReason.Truncated;
+            }
+
             // Estimate lines added (rough: assume ~80 chars per line average)
-            var bytesAdded = Math.Max(0, currentSize - lastKnownSize);
+            var bytesAdded = Math.Max(0, currentSize - state.LastFileSize);
             var estimatedLinesAdded = (int)(bytesAdded / 80);
 
             // Estimate total lines (same rough calculation)
@@ -59,6 +89,22 @@ public sealed class LiveLogService : ILiveLogService
                 ? LogStatus.Stale
                 : LogStatus.Receiving;
 
+            // Adaptive polling: slow down when stale
+            var recommendedInterval = FastPollingInterval;
+            if (status == LogStatus.Stale && timeSinceUpdate > SlowPollingThreshold)
+            {
+                recommendedInterval = SlowPollingInterval;
+            }
+
+            // Update last activity time if we got new data
+            if (bytesAdded > 0)
+            {
+                state.LastActivityUtc = DateTime.UtcNow;
+            }
+
+            // Update state
+            state.CurrentPollingInterval = recommendedInterval;
+
             return new LogSnapshot
             {
                 Status = status,
@@ -66,7 +112,10 @@ public sealed class LiveLogService : ILiveLogService
                 LinesAddedSinceLastSnapshot = estimatedLinesAdded,
                 TotalLineCount = estimatedTotalLines,
                 FileSizeBytes = currentSize,
-                LastWriteTimeUtc = lastWriteUtc
+                LastWriteTimeUtc = lastWriteUtc,
+                CreationTimeUtc = creationTimeUtc,
+                FileChange = fileChange,
+                RecommendedPollingInterval = recommendedInterval
             };
         }
         catch (IOException)
@@ -79,70 +128,130 @@ public sealed class LiveLogService : ILiveLogService
                 LinesAddedSinceLastSnapshot = 0,
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
-                LastWriteTimeUtc = DateTime.MinValue
+                LastWriteTimeUtc = DateTime.MinValue,
+                RecommendedPollingInterval = FastPollingInterval
             };
         }
     }
 
     /// <inheritdoc />
-    public async Task<(IReadOnlyList<string> Lines, long NewByteOffset)> ReadDeltaAsync(
+    public LogSnapshot GetSnapshot(
         string logFilePath,
-        long fromByteOffset,
+        long lastKnownSize,
+        string? runStatus,
+        TimeSpan staleThreshold)
+    {
+        // Compatibility wrapper - create temporary state
+        var state = new LogMonitorState { LastFileSize = lastKnownSize };
+        return GetSnapshot(logFilePath, state, runStatus, staleThreshold);
+    }
+
+    /// <inheritdoc />
+    public async Task<LogDeltaResult> ReadDeltaAsync(
+        string logFilePath,
+        LogMonitorState state,
         int maxLines = 500)
     {
         if (!File.Exists(logFilePath))
         {
-            return (Array.Empty<string>(), 0);
+            if (state.LastFileSize > 0)
+            {
+                // File was deleted
+                state.Reset();
+                return new LogDeltaResult
+                {
+                    Lines = Array.Empty<string>(),
+                    WasReset = true,
+                    ResetReason = FileChangeReason.Deleted
+                };
+            }
+            return new LogDeltaResult { Lines = Array.Empty<string>() };
         }
 
         try
         {
             var fileInfo = new FileInfo(logFilePath);
             var currentSize = fileInfo.Length;
+            var creationTime = fileInfo.CreationTimeUtc;
 
-            // No new data
-            if (currentSize <= fromByteOffset)
+            // Detect file replacement or truncation
+            var wasReset = false;
+            var resetReason = FileChangeReason.None;
+
+            // Check for replacement (different creation time)
+            if (state.LastCreationTimeUtc != DateTime.MinValue &&
+                creationTime != state.LastCreationTimeUtc)
             {
-                return (Array.Empty<string>(), fromByteOffset);
+                wasReset = true;
+                resetReason = FileChangeReason.Replaced;
+                state.Reset();
+            }
+            // Check for truncation (size decreased)
+            else if (currentSize < state.LastByteOffset)
+            {
+                wasReset = true;
+                resetReason = FileChangeReason.Truncated;
+                state.LastByteOffset = 0; // Reset to start
             }
 
-            // Read only the new bytes
-            var bytesToRead = currentSize - fromByteOffset;
+            // No new data
+            if (currentSize <= state.LastByteOffset)
+            {
+                // Update state tracking
+                state.LastFileSize = currentSize;
+                state.LastCreationTimeUtc = creationTime;
+                state.LastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+
+                return new LogDeltaResult
+                {
+                    Lines = Array.Empty<string>(),
+                    WasReset = wasReset,
+                    ResetReason = resetReason
+                };
+            }
+
+            // Calculate bytes to read with cap
+            var totalBytesAvailable = currentSize - state.LastByteOffset;
+            var bytesToRead = Math.Min(totalBytesAvailable, MaxBytesPerTick);
+            var wasCapped = bytesToRead < totalBytesAvailable;
+            var bytesRemaining = totalBytesAvailable - bytesToRead;
 
             await using var stream = new FileStream(
                 logFilePath,
                 FileMode.Open,
                 FileAccess.Read,
-                FileShare.ReadWrite); // Allow reading while file is being written
+                FileShare.ReadWrite);
 
-            stream.Seek(fromByteOffset, SeekOrigin.Begin);
+            stream.Seek(state.LastByteOffset, SeekOrigin.Begin);
 
             var buffer = new byte[bytesToRead];
-            var bytesRead = await stream.ReadAsync(buffer, 0, (int)bytesToRead);
+            var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, (int)bytesToRead));
 
             if (bytesRead == 0)
             {
-                return (Array.Empty<string>(), fromByteOffset);
+                return new LogDeltaResult
+                {
+                    Lines = Array.Empty<string>(),
+                    WasReset = wasReset,
+                    ResetReason = resetReason
+                };
             }
 
             var text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             var lines = text.Split('\n', StringSplitOptions.None);
 
-            // Handle partial line at the end (keep it for next read)
+            // Handle partial line at the end
             var completeLines = new List<string>();
-            var newOffset = fromByteOffset + bytesRead;
+            var newOffset = state.LastByteOffset + bytesRead;
 
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].TrimEnd('\r');
 
-                // Skip the last element if it's empty (means file ended with newline)
-                // or if it's incomplete (no newline at end)
                 if (i == lines.Length - 1)
                 {
                     if (string.IsNullOrEmpty(line))
                     {
-                        // File ended with newline, all lines complete
                         break;
                     }
                     else if (!text.EndsWith('\n'))
@@ -165,13 +274,42 @@ public sealed class LiveLogService : ILiveLogService
                 completeLines = completeLines.Skip(completeLines.Count - maxLines).ToList();
             }
 
-            return (completeLines, newOffset);
+            // Update state
+            state.LastByteOffset = newOffset;
+            state.LastFileSize = currentSize;
+            state.LastCreationTimeUtc = creationTime;
+            state.LastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+            state.LastActivityUtc = DateTime.UtcNow;
+
+            return new LogDeltaResult
+            {
+                Lines = completeLines,
+                WasReset = wasReset,
+                ResetReason = resetReason,
+                WasCapped = wasCapped,
+                BytesRemaining = bytesRemaining
+            };
         }
-        catch (IOException)
+        catch (IOException ex)
         {
-            // File access error - return empty
-            return (Array.Empty<string>(), fromByteOffset);
+            return new LogDeltaResult
+            {
+                Lines = Array.Empty<string>(),
+                Error = ex.Message
+            };
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<(IReadOnlyList<string> Lines, long NewByteOffset)> ReadDeltaAsync(
+        string logFilePath,
+        long fromByteOffset,
+        int maxLines = 500)
+    {
+        // Compatibility wrapper
+        var state = new LogMonitorState { LastByteOffset = fromByteOffset };
+        var result = await ReadDeltaAsync(logFilePath, state, maxLines);
+        return (result.Lines, state.LastByteOffset);
     }
 
     /// <inheritdoc />
@@ -214,7 +352,7 @@ public sealed class LiveLogService : ILiveLogService
 
                 stream.Seek(position, SeekOrigin.Begin);
                 var buffer = new byte[readSize];
-                await stream.ReadAsync(buffer, 0, readSize);
+                await stream.ReadAsync(buffer.AsMemory(0, readSize));
 
                 var text = Encoding.UTF8.GetString(buffer);
 
@@ -262,7 +400,7 @@ public sealed class LiveLogService : ILiveLogService
         }
     }
 
-    private static LogSnapshot CreateCompletedSnapshot(string logFilePath, LogStatus status)
+    private LogSnapshot CreateCompletedSnapshot(string logFilePath, LogStatus status, LogMonitorState? state)
     {
         if (!File.Exists(logFilePath))
         {
@@ -273,7 +411,8 @@ public sealed class LiveLogService : ILiveLogService
                 LinesAddedSinceLastSnapshot = 0,
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
-                LastWriteTimeUtc = DateTime.MinValue
+                LastWriteTimeUtc = DateTime.MinValue,
+                RecommendedPollingInterval = SlowPollingInterval
             };
         }
 
@@ -285,9 +424,11 @@ public sealed class LiveLogService : ILiveLogService
                 Status = status,
                 TimeSinceLastUpdate = DateTime.UtcNow - fileInfo.LastWriteTimeUtc,
                 LinesAddedSinceLastSnapshot = 0,
-                TotalLineCount = (long)(fileInfo.Length / 80), // Rough estimate
+                TotalLineCount = (long)(fileInfo.Length / 80),
                 FileSizeBytes = fileInfo.Length,
-                LastWriteTimeUtc = fileInfo.LastWriteTimeUtc
+                LastWriteTimeUtc = fileInfo.LastWriteTimeUtc,
+                CreationTimeUtc = fileInfo.CreationTimeUtc,
+                RecommendedPollingInterval = SlowPollingInterval
             };
         }
         catch (IOException)
@@ -299,7 +440,8 @@ public sealed class LiveLogService : ILiveLogService
                 LinesAddedSinceLastSnapshot = 0,
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
-                LastWriteTimeUtc = DateTime.MinValue
+                LastWriteTimeUtc = DateTime.MinValue,
+                RecommendedPollingInterval = SlowPollingInterval
             };
         }
     }

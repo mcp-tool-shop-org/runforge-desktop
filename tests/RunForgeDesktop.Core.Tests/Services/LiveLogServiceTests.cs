@@ -309,6 +309,286 @@ public class LiveLogServiceTests : IDisposable
 
     #endregion
 
+    #region Robustness Tests - Truncation and Replacement Detection
+
+    [Fact]
+    public void GetSnapshot_FileDeleted_ReturnsDeletedChange()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "some content\n");
+        var state = new LogMonitorState { LastFileSize = 100 };
+
+        // Delete the file
+        File.Delete(logPath);
+
+        // Act
+        var snapshot = _service.GetSnapshot(logPath, state, null, TimeSpan.FromMinutes(5));
+
+        // Assert
+        Assert.Equal(LogStatus.NoLogs, snapshot.Status);
+        Assert.Equal(FileChangeReason.Deleted, snapshot.FileChange);
+    }
+
+    [Fact]
+    public void GetSnapshot_FileTruncated_ReturnsTruncatedChange()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "line1\nline2\nline3\nline4\n");
+        var initialSize = new FileInfo(logPath).Length;
+
+        var state = new LogMonitorState
+        {
+            LastFileSize = initialSize,
+            LastCreationTimeUtc = new FileInfo(logPath).CreationTimeUtc
+        };
+
+        // Truncate the file (write less content)
+        File.WriteAllText(logPath, "line1\n");
+
+        // Act
+        var snapshot = _service.GetSnapshot(logPath, state, null, TimeSpan.FromMinutes(5));
+
+        // Assert
+        Assert.Equal(FileChangeReason.Truncated, snapshot.FileChange);
+    }
+
+    [Fact]
+    public async Task ReadDeltaAsync_FileTruncated_ReturnsWasReset()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "line1\nline2\nline3\nline4\n");
+        var initialSize = new FileInfo(logPath).Length;
+
+        var state = new LogMonitorState
+        {
+            LastByteOffset = initialSize,
+            LastFileSize = initialSize,
+            LastCreationTimeUtc = new FileInfo(logPath).CreationTimeUtc
+        };
+
+        // Truncate the file
+        File.WriteAllText(logPath, "new\n");
+
+        // Act
+        var result = await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.True(result.WasReset);
+        Assert.Equal(FileChangeReason.Truncated, result.ResetReason);
+    }
+
+    [Fact]
+    public async Task ReadDeltaAsync_FileReplaced_ReturnsWasReset()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "original content\n");
+
+        // Use a creation time in the past so replacement is detectable
+        var oldCreationTime = DateTime.UtcNow.AddHours(-1);
+        File.SetCreationTimeUtc(logPath, oldCreationTime);
+
+        var state = new LogMonitorState
+        {
+            LastByteOffset = new FileInfo(logPath).Length,
+            LastFileSize = new FileInfo(logPath).Length,
+            LastCreationTimeUtc = oldCreationTime
+        };
+
+        // Delete and recreate the file (which will have a new creation time)
+        File.Delete(logPath);
+        await Task.Delay(10);
+        File.WriteAllText(logPath, "replaced content\n");
+        // Ensure the new file has a different (current) creation time
+        // Windows should set this automatically, but we can force it
+        File.SetCreationTimeUtc(logPath, DateTime.UtcNow);
+
+        // Act
+        var result = await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.True(result.WasReset);
+        Assert.Equal(FileChangeReason.Replaced, result.ResetReason);
+    }
+
+    [Fact]
+    public async Task ReadDeltaAsync_FileDeleted_ReturnsWasReset()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "some content\n");
+
+        var state = new LogMonitorState
+        {
+            LastByteOffset = new FileInfo(logPath).Length,
+            LastFileSize = new FileInfo(logPath).Length
+        };
+
+        // Delete the file
+        File.Delete(logPath);
+
+        // Act
+        var result = await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.True(result.WasReset);
+        Assert.Equal(FileChangeReason.Deleted, result.ResetReason);
+    }
+
+    #endregion
+
+    #region Robustness Tests - Adaptive Polling
+
+    [Fact]
+    public void GetSnapshot_RecentActivity_ReturnsFastPollingInterval()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "some log content\n");
+        var state = new LogMonitorState();
+
+        // Act
+        var snapshot = _service.GetSnapshot(logPath, state, null, TimeSpan.FromMinutes(5));
+
+        // Assert
+        Assert.Equal(LogStatus.Receiving, snapshot.Status);
+        Assert.Equal(_service.FastPollingInterval, snapshot.RecommendedPollingInterval);
+    }
+
+    [Fact]
+    public void GetSnapshot_StaleFile_ReturnsSlowPollingInterval()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "some log content\n");
+
+        // Set file time to 2 minutes ago (beyond SlowPollingThreshold of 60s)
+        var oldTime = DateTime.UtcNow.AddMinutes(-2);
+        File.SetLastWriteTimeUtc(logPath, oldTime);
+
+        var state = new LogMonitorState();
+
+        // Act
+        var snapshot = _service.GetSnapshot(logPath, state, null, TimeSpan.FromSeconds(30));
+
+        // Assert
+        Assert.Equal(LogStatus.Stale, snapshot.Status);
+        Assert.Equal(_service.SlowPollingInterval, snapshot.RecommendedPollingInterval);
+    }
+
+    [Fact]
+    public void GetSnapshot_UpdatesStatePollingInterval()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "some content\n");
+        var state = new LogMonitorState();
+
+        // Act
+        _service.GetSnapshot(logPath, state, null, TimeSpan.FromMinutes(5));
+
+        // Assert
+        Assert.Equal(_service.FastPollingInterval, state.CurrentPollingInterval);
+    }
+
+    #endregion
+
+    #region Robustness Tests - MaxBytesPerTick Capping
+
+    [Fact]
+    public async Task ReadDeltaAsync_LargeChunk_ReturnsCappedResult()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+
+        // Set a small MaxBytesPerTick for testing
+        _service.MaxBytesPerTick = 100;
+
+        // Write 500 bytes
+        var content = new string('x', 50) + "\n";
+        for (int i = 0; i < 10; i++)
+        {
+            File.AppendAllText(logPath, content);
+        }
+
+        var state = new LogMonitorState { LastByteOffset = 0 };
+
+        // Act
+        var result = await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.True(result.WasCapped);
+        Assert.True(result.BytesRemaining > 0);
+    }
+
+    [Fact]
+    public async Task ReadDeltaAsync_SmallChunk_NotCapped()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "line1\nline2\nline3\n");
+
+        var state = new LogMonitorState { LastByteOffset = 0 };
+
+        // Act
+        var result = await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.False(result.WasCapped);
+        Assert.Equal(0, result.BytesRemaining);
+    }
+
+    #endregion
+
+    #region LogMonitorState Tests
+
+    [Fact]
+    public void LogMonitorState_Reset_ClearsAllTracking()
+    {
+        // Arrange
+        var state = new LogMonitorState
+        {
+            LastByteOffset = 1000,
+            LastFileSize = 2000,
+            LastCreationTimeUtc = DateTime.UtcNow,
+            LastWriteTimeUtc = DateTime.UtcNow,
+            LastActivityUtc = DateTime.UtcNow
+        };
+
+        // Act
+        state.Reset();
+
+        // Assert
+        Assert.Equal(0, state.LastByteOffset);
+        Assert.Equal(0, state.LastFileSize);
+        Assert.Equal(DateTime.MinValue, state.LastCreationTimeUtc);
+        Assert.Equal(DateTime.MinValue, state.LastWriteTimeUtc);
+    }
+
+    [Fact]
+    public async Task ReadDeltaAsync_WithState_UpdatesAllStateFields()
+    {
+        // Arrange
+        var logPath = Path.Combine(_testDir, "logs.txt");
+        File.WriteAllText(logPath, "line1\nline2\n");
+        var state = new LogMonitorState();
+
+        // Act
+        await _service.ReadDeltaAsync(logPath, state);
+
+        // Assert
+        Assert.True(state.LastByteOffset > 0);
+        Assert.True(state.LastFileSize > 0);
+        Assert.NotEqual(DateTime.MinValue, state.LastCreationTimeUtc);
+        Assert.NotEqual(DateTime.MinValue, state.LastWriteTimeUtc);
+        Assert.True(state.LastActivityUtc > DateTime.UtcNow.AddMinutes(-1));
+    }
+
+    #endregion
+
     #region LogSnapshot Tests
 
     [Fact]

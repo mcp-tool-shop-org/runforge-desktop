@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,7 +11,7 @@ using RunForgeDesktop.Views;
 namespace RunForgeDesktop.ViewModels;
 
 /// <summary>
-/// ViewModel for the run detail page with live monitoring support.
+/// ViewModel for the run detail page with robust live monitoring support.
 /// </summary>
 public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, IDisposable
 {
@@ -22,9 +23,8 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     private CancellationTokenSource? _monitoringCts;
     private bool _disposed;
 
-    // Monitoring state
-    private long _lastKnownLogSize;
-    private long _lastKnownByteOffset;
+    // Robust monitoring state
+    private readonly LogMonitorState _monitorState = new();
 
     #region Observable Properties - Core
 
@@ -89,10 +89,30 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     [ObservableProperty]
     private int _linesAddedThisTick;
 
+    [ObservableProperty]
+    private bool _showStuckWarning;
+
+    [ObservableProperty]
+    private string? _lastMilestoneName;
+
+    [ObservableProperty]
+    private string? _lastMilestoneTime;
+
+    [ObservableProperty]
+    private bool _wasFileReset;
+
+    [ObservableProperty]
+    private string? _fileResetReason;
+
     /// <summary>
     /// Stale threshold in seconds (configurable).
     /// </summary>
     public TimeSpan StaleThreshold { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Threshold for showing "possible stall" warning.
+    /// </summary>
+    public TimeSpan StuckWarningThreshold { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
     /// Maximum lines to keep in tail buffer.
@@ -100,9 +120,9 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     public int MaxTailLines { get; set; } = 200;
 
     /// <summary>
-    /// Polling interval for log monitoring.
+    /// Base polling interval (adaptive polling will adjust).
     /// </summary>
-    public TimeSpan PollingInterval { get; set; } = TimeSpan.FromMilliseconds(500);
+    public TimeSpan BasePollingInterval { get; set; } = TimeSpan.FromMilliseconds(500);
 
     #endregion
 
@@ -182,6 +202,14 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         }
     }
 
+    /// <summary>
+    /// Whether there's actionable stuck state (stale + in progress + past threshold).
+    /// </summary>
+    public bool IsActionableStuck =>
+        LogSnapshot?.Status == LogStatus.Stale &&
+        IsRunInProgress &&
+        LogSnapshot?.TimeSinceLastUpdate > StuckWarningThreshold;
+
     #endregion
 
     public RunDetailViewModel(
@@ -227,6 +255,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     partial void OnResultChanged(RunResult? value)
     {
         OnPropertyChanged(nameof(IsRunInProgress));
+        OnPropertyChanged(nameof(IsActionableStuck));
 
         // Update timeline if run completed
         if (value is not null && TimelineState is not null)
@@ -238,6 +267,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         if (value is not null && !IsRunInProgress)
         {
             StopMonitoring();
+            ShowStuckWarning = false;
         }
     }
 
@@ -249,6 +279,15 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     partial void OnTimelineStateChanged(RunTimelineState? value)
     {
         OnPropertyChanged(nameof(EpochProgressDisplay));
+        UpdateLastMilestone();
+    }
+
+    partial void OnLogSnapshotChanged(LogSnapshot? value)
+    {
+        OnPropertyChanged(nameof(IsActionableStuck));
+
+        // Update stuck warning state
+        ShowStuckWarning = IsActionableStuck;
     }
 
     #endregion
@@ -513,6 +552,29 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         LogSearchQuery = null;
     }
 
+    [RelayCommand]
+    private async Task CopyDiagnosticsSummaryAsync()
+    {
+        var summary = BuildDiagnosticsSummary();
+
+        try
+        {
+            await Clipboard.Default.SetTextAsync(summary);
+            StatusMessage = "Diagnostics copied to clipboard";
+            _ = ClearStatusAfterDelayAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to copy: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void DismissStuckWarning()
+    {
+        ShowStuckWarning = false;
+    }
+
     #endregion
 
     #region Live Monitoring
@@ -532,20 +594,23 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     {
         StopMonitoring();
 
+        _monitorState.Reset();
         _monitoringCts = new CancellationTokenSource();
         var token = _monitoringCts.Token;
 
         // Load initial tail
         await LoadInitialLogTailAsync();
 
-        // Start polling loop
+        // Start polling loop with adaptive interval
         _ = Task.Run(async () =>
         {
             while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    await Task.Delay(PollingInterval, token);
+                    // Use adaptive polling interval
+                    var interval = _monitorState.CurrentPollingInterval;
+                    await Task.Delay(interval, token);
                     await PollLogFileAsync(token);
                 }
                 catch (OperationCanceledException)
@@ -578,8 +643,15 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
 
         var (lines, totalBytes) = await _liveLogService.ReadTailAsync(logPath, MaxTailLines);
 
-        _lastKnownByteOffset = totalBytes;
-        _lastKnownLogSize = totalBytes;
+        // Initialize monitor state
+        _monitorState.LastByteOffset = totalBytes;
+        _monitorState.LastFileSize = totalBytes;
+        if (File.Exists(logPath))
+        {
+            var fileInfo = new FileInfo(logPath);
+            _monitorState.LastCreationTimeUtc = fileInfo.CreationTimeUtc;
+            _monitorState.LastWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+        }
 
         // Update on UI thread
         await MainThread.InvokeOnMainThreadAsync(() =>
@@ -598,7 +670,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
 
             // Get initial snapshot
             var runStatus = Result?.Status;
-            LogSnapshot = _liveLogService.GetSnapshot(logPath, 0, runStatus, StaleThreshold);
+            LogSnapshot = _liveLogService.GetSnapshot(logPath, _monitorState, runStatus, StaleThreshold);
         });
     }
 
@@ -608,27 +680,66 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         if (string.IsNullOrEmpty(logPath))
             return;
 
-        // Get snapshot
+        // Get snapshot with change detection
         var runStatus = Result?.Status;
-        var snapshot = _liveLogService.GetSnapshot(logPath, _lastKnownLogSize, runStatus, StaleThreshold);
+        var snapshot = _liveLogService.GetSnapshot(logPath, _monitorState, runStatus, StaleThreshold);
 
-        // Read delta if not paused and there's new data
-        IReadOnlyList<string> newLines = Array.Empty<string>();
-        if (!IsLogTailPaused && snapshot.FileSizeBytes > _lastKnownByteOffset)
+        // Check for file changes
+        var wasReset = false;
+        var resetReason = FileChangeReason.None;
+
+        if (snapshot.FileChange != FileChangeReason.None)
         {
-            (newLines, _lastKnownByteOffset) = await _liveLogService.ReadDeltaAsync(
-                logPath,
-                _lastKnownByteOffset,
-                MaxTailLines);
+            wasReset = true;
+            resetReason = snapshot.FileChange;
+
+            // Reset and reload if file was replaced/truncated
+            _monitorState.Reset();
+            if (resetReason != FileChangeReason.Deleted)
+            {
+                await LoadInitialLogTailAsync();
+            }
         }
 
-        _lastKnownLogSize = snapshot.FileSizeBytes;
+        // Read delta if not paused and file exists
+        LogDeltaResult? deltaResult = null;
+        if (!IsLogTailPaused && snapshot.Status != LogStatus.NoLogs && !wasReset)
+        {
+            deltaResult = await _liveLogService.ReadDeltaAsync(logPath, _monitorState, MaxTailLines);
+
+            if (deltaResult.WasReset)
+            {
+                wasReset = true;
+                resetReason = deltaResult.ResetReason;
+            }
+        }
+
+        var newLines = deltaResult?.Lines ?? Array.Empty<string>();
+
+        // Update adaptive polling interval
+        _monitorState.CurrentPollingInterval = snapshot.RecommendedPollingInterval;
 
         // Update on UI thread
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
             LogSnapshot = snapshot;
             LinesAddedThisTick = newLines.Count;
+
+            // Show file reset notification
+            if (wasReset && resetReason != FileChangeReason.None)
+            {
+                WasFileReset = true;
+                FileResetReason = resetReason switch
+                {
+                    FileChangeReason.Truncated => "Log file was truncated",
+                    FileChangeReason.Replaced => "Log file was replaced",
+                    FileChangeReason.Deleted => "Log file was deleted",
+                    _ => "Log file changed"
+                };
+
+                // Clear after 5 seconds
+                _ = ClearFileResetNotificationAsync();
+            }
 
             if (newLines.Count > 0)
             {
@@ -653,6 +764,91 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
                 OnPropertyChanged(nameof(FilteredLogLines));
             }
         });
+    }
+
+    private async Task ClearFileResetNotificationAsync()
+    {
+        await Task.Delay(5000);
+        WasFileReset = false;
+        FileResetReason = null;
+    }
+
+    private void UpdateLastMilestone()
+    {
+        if (TimelineState is null)
+        {
+            LastMilestoneName = null;
+            LastMilestoneTime = null;
+            return;
+        }
+
+        // Find the last reached milestone
+        var lastReached = TimelineState.Milestones
+            .Where(m => m.IsReached)
+            .OrderByDescending(m => m.ReachedAtUtc)
+            .FirstOrDefault();
+
+        if (lastReached is not null)
+        {
+            LastMilestoneName = lastReached.Name;
+            LastMilestoneTime = lastReached.ReachedAtUtc?.ToLocalTime().ToString("HH:mm:ss");
+        }
+        else
+        {
+            LastMilestoneName = null;
+            LastMilestoneTime = null;
+        }
+    }
+
+    private string BuildDiagnosticsSummary()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("=== RunForge Diagnostics ===");
+        sb.AppendLine($"Run ID: {RunId}");
+        sb.AppendLine($"Run Name: {RunName}");
+        sb.AppendLine($"Run Directory: {RunDir}");
+        sb.AppendLine();
+
+        sb.AppendLine("--- Status ---");
+        sb.AppendLine($"Log Status: {LogSnapshot?.Status}");
+        sb.AppendLine($"Time Since Last Update: {LogSnapshot?.TimeSinceLastUpdate}");
+        sb.AppendLine($"File Size: {LogSnapshot?.FileSizeBytes:N0} bytes");
+        sb.AppendLine();
+
+        sb.AppendLine("--- Timeline ---");
+        sb.AppendLine($"Last Milestone: {LastMilestoneName} at {LastMilestoneTime}");
+        sb.AppendLine($"Epoch Progress: {EpochProgressDisplay ?? "Not detected"}");
+        sb.AppendLine();
+
+        if (TimelineState?.Milestones is not null)
+        {
+            sb.AppendLine("Milestones:");
+            foreach (var m in TimelineState.Milestones)
+            {
+                var status = m.IsReached ? "[X]" : "[ ]";
+                var time = m.ReachedAtUtc?.ToLocalTime().ToString("HH:mm:ss") ?? "";
+                sb.AppendLine($"  {status} {m.Name} {time}");
+            }
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("--- Request ---");
+        sb.AppendLine($"Preset: {Request?.Preset}");
+        sb.AppendLine($"Model: {Request?.Model.Family}");
+        sb.AppendLine($"Device: {Request?.Device.Type}");
+        sb.AppendLine();
+
+        sb.AppendLine("--- Last 10 Log Lines ---");
+        var lastLines = LogTailLines.TakeLast(10);
+        foreach (var line in lastLines)
+        {
+            sb.AppendLine(line);
+        }
+
+        sb.AppendLine();
+        sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+        return sb.ToString();
     }
 
     #endregion

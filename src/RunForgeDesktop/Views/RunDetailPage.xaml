@@ -148,6 +148,75 @@
                                        TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}" />
                             </Frame>
 
+                            <!-- File reset notification -->
+                            <Frame IsVisible="{Binding WasFileReset}"
+                                   BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3E2723}"
+                                   BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
+                                   CornerRadius="4"
+                                   Padding="8,4"
+                                   HasShadow="False">
+                                <Label Text="{Binding FileResetReason}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                            </Frame>
+
+                            <!-- Possible stall warning -->
+                            <Frame IsVisible="{Binding ShowStuckWarning}"
+                                   BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#4A2C00}"
+                                   BorderColor="{AppThemeBinding Light=#FF9800, Dark=#FF9800}"
+                                   CornerRadius="8"
+                                   Padding="12"
+                                   HasShadow="False">
+                                <VerticalStackLayout Spacing="8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="Possible Stall Detected"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                                        <Button Grid.Column="1"
+                                                Text="✕"
+                                                Command="{Binding DismissStuckWarningCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                                FontSize="14"
+                                                Padding="4"
+                                                WidthRequest="28" />
+                                    </Grid>
+                                    <Label Text="{Binding LogSnapshot.StatusMessage, StringFormat='No log activity: {0}'}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Label Text="{Binding LastMilestoneName, StringFormat='Last milestone: {0} at '}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           IsVisible="{Binding LastMilestoneName, Converter={StaticResource StringToBoolConverter}}" />
+                                    <HorizontalStackLayout Spacing="8" Margin="0,4,0,0">
+                                        <Button Text="Open Logs"
+                                                Command="{Binding OpenRawFileCommand}"
+                                                CommandParameter="logs.txt"
+                                                BackgroundColor="{AppThemeBinding Light=#FF9800, Dark=#E65100}"
+                                                TextColor="White"
+                                                CornerRadius="4"
+                                                Padding="12,6"
+                                                FontSize="12" />
+                                        <Button Text="Open Folder"
+                                                Command="{Binding OpenRunFolderCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                                CornerRadius="4"
+                                                Padding="12,6"
+                                                FontSize="12" />
+                                        <Button Text="Copy Diagnostics"
+                                                Command="{Binding CopyDiagnosticsSummaryCommand}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                                CornerRadius="4"
+                                                Padding="12,6"
+                                                FontSize="12" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Frame>
+
                             <!-- Timeline milestones -->
                             <Grid IsVisible="{Binding TimelineState, Converter={StaticResource ObjectToBoolConverter}}">
                                 <HorizontalStackLayout Spacing="8"
