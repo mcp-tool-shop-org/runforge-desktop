@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             xmlns:services="clr-namespace:RunForgeDesktop.Core.Services;assembly=RunForgeDesktop.Core"
              x:Class="RunForgeDesktop.Views.DiagnosticsPage"
              x:DataType="vm:DiagnosticsViewModel"
              Title="Diagnostics">
@@ -142,6 +143,164 @@
                             <Label Grid.Row="3" Grid.Column="0" Text="Run Count:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                             <Label Grid.Row="3" Grid.Column="1" Text="{Binding RunCount}" FontAttributes="Bold" />
                         </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Storage Section -->
+                <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                       BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                       CornerRadius="8"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0"
+                                   Text="Storage"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                            <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                <ActivityIndicator IsRunning="{Binding IsLoadingStorage}"
+                                                   IsVisible="{Binding IsLoadingStorage}"
+                                                   HeightRequest="16"
+                                                   WidthRequest="16"
+                                                   Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+                                <Button Text="Refresh Storage"
+                                        Command="{Binding LoadStorageCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                            </HorizontalStackLayout>
+                        </Grid>
+
+                        <!-- Storage summary -->
+                        <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                            <Label Grid.Row="0" Grid.Column="0" Text="Total Size:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding TotalStorageSize}" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+
+                            <Label Grid.Row="1" Grid.Column="0" Text="Logs:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding TotalLogsSize}" />
+
+                            <Label Grid.Row="2" Grid.Column="0" Text="Artifacts:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalArtifactsSize}" />
+                        </Grid>
+
+                        <!-- Top runs by size -->
+                        <Label Text="Top 10 Largest Runs"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                               Margin="0,8,0,0"
+                               IsVisible="{Binding TopRuns.Count}" />
+
+                        <CollectionView ItemsSource="{Binding TopRuns}"
+                                        SelectionMode="None"
+                                        IsVisible="{Binding TopRuns.Count}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="services:RunStorageInfo">
+                                    <Frame BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                           CornerRadius="4"
+                                           Padding="12"
+                                           Margin="0,4">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                            <!-- Run name -->
+                                            <Label Grid.Row="0" Grid.Column="0"
+                                                   Text="{Binding Name}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                                   LineBreakMode="TailTruncation" />
+
+                                            <!-- Total size -->
+                                            <Label Grid.Row="0" Grid.Column="1"
+                                                   Text="{Binding TotalSizeDisplay}"
+                                                   FontSize="13"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                                   Margin="8,0" />
+
+                                            <!-- Open folder button -->
+                                            <Button Grid.Row="0" Grid.Column="2"
+                                                    Text="Open"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DiagnosticsViewModel}}, Path=OpenRunFolderCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                                    FontSize="11"
+                                                    Padding="6,2" />
+
+                                            <!-- Delete button -->
+                                            <Button Grid.Row="0" Grid.Column="3"
+                                                    Text="Delete"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DiagnosticsViewModel}}, Path=RequestDeleteRunCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}"
+                                                    FontSize="11"
+                                                    Padding="6,2" />
+
+                                            <!-- Details row -->
+                                            <HorizontalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Spacing="16">
+                                                <Label Text="{Binding LogsSizeDisplay, StringFormat='Logs: {0}'}"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                                                <Label Text="{Binding ArtifactsSizeDisplay, StringFormat='Artifacts: {0}'}"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                                                <Label Text="{Binding Status}"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                                       IsVisible="{Binding Status, Converter={StaticResource StringToBoolConverter}}" />
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Empty state -->
+                        <Label Text="No runs found in workspace."
+                               FontSize="12"
+                               FontStyle="Italic"
+                               TextColor="{AppThemeBinding Light=#888888, Dark=#777777}"
+                               IsVisible="{Binding TopRuns.Count, Converter={StaticResource InverseBoolConverter}}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Delete confirmation modal -->
+                <Frame IsVisible="{Binding ShowDeleteConfirmation}"
+                       BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#3E2723}"
+                       BorderColor="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}"
+                       CornerRadius="8"
+                       Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Confirm Delete"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}" />
+                        <Label Text="{Binding DeleteConfirmRunName, StringFormat='Are you sure you want to permanently delete run: {0}?'}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                        <Label Text="This action cannot be undone."
+                               FontSize="12"
+                               FontAttributes="Italic"
+                               TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="End">
+                            <Button Text="Cancel"
+                                    Command="{Binding CancelDeleteCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                                    TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                    CornerRadius="4"
+                                    Padding="16,8" />
+                            <Button Text="Delete"
+                                    Command="{Binding ConfirmDeleteCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#C62828, Dark=#D32F2F}"
+                                    TextColor="White"
+                                    CornerRadius="4"
+                                    Padding="16,8" />
+                        </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Frame>
 

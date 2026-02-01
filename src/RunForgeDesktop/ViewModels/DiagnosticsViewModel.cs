@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,6 +13,7 @@ public partial class DiagnosticsViewModel : ObservableObject
 {
     private readonly IWorkspaceService _workspaceService;
     private readonly IRunIndexService _runIndexService;
+    private readonly IStorageService _storageService;
 
     [ObservableProperty]
     private string _appVersion = string.Empty;
@@ -49,11 +51,41 @@ public partial class DiagnosticsViewModel : ObservableObject
     [ObservableProperty]
     private string? _statusMessage;
 
-    public DiagnosticsViewModel(IWorkspaceService workspaceService, IRunIndexService runIndexService)
+    // Storage properties
+    [ObservableProperty]
+    private bool _isLoadingStorage;
+
+    [ObservableProperty]
+    private string _totalStorageSize = "—";
+
+    [ObservableProperty]
+    private string _totalLogsSize = "—";
+
+    [ObservableProperty]
+    private string _totalArtifactsSize = "—";
+
+    [ObservableProperty]
+    private ObservableCollection<RunStorageInfo> _topRuns = [];
+
+    [ObservableProperty]
+    private RunStorageInfo? _selectedRun;
+
+    [ObservableProperty]
+    private bool _showDeleteConfirmation;
+
+    [ObservableProperty]
+    private string? _deleteConfirmRunName;
+
+    public DiagnosticsViewModel(
+        IWorkspaceService workspaceService,
+        IRunIndexService runIndexService,
+        IStorageService storageService)
     {
         _workspaceService = workspaceService;
         _runIndexService = runIndexService;
+        _storageService = storageService;
         LoadDiagnostics();
+        _ = LoadStorageAsync();
     }
 
     [RelayCommand]
@@ -175,6 +207,12 @@ public partial class DiagnosticsViewModel : ObservableObject
             Discovery Method: {WorkspaceType}
             Index Location: {IndexPath ?? "(not configured)"}
             Run Count: {RunCount}
+
+            Storage
+            -------
+            Total Size: {TotalStorageSize}
+            Logs: {TotalLogsSize}
+            Artifacts: {TotalArtifactsSize}
             """;
 
         await Clipboard.Default.SetTextAsync(diagnostics);
@@ -185,5 +223,148 @@ public partial class DiagnosticsViewModel : ObservableObject
         // Clear message after 3 seconds
         await Task.Delay(3000);
         StatusMessage = null;
+    }
+
+    [RelayCommand]
+    private async Task LoadStorageAsync()
+    {
+        if (string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            TotalStorageSize = "—";
+            TotalLogsSize = "—";
+            TotalArtifactsSize = "—";
+            TopRuns.Clear();
+            return;
+        }
+
+        IsLoadingStorage = true;
+        try
+        {
+            var summary = await _storageService.CalculateStorageAsync(
+                _workspaceService.CurrentWorkspacePath,
+                topN: 10);
+
+            TotalStorageSize = summary.TotalSizeDisplay;
+            TotalLogsSize = FormatSize(summary.TotalLogsBytes);
+            TotalArtifactsSize = FormatSize(summary.TotalArtifactsBytes);
+
+            TopRuns.Clear();
+            foreach (var run in summary.TopRunsBySize)
+            {
+                TopRuns.Add(run);
+            }
+        }
+        catch
+        {
+            TotalStorageSize = "Error";
+            TotalLogsSize = "—";
+            TotalArtifactsSize = "—";
+        }
+        finally
+        {
+            IsLoadingStorage = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenRunFolderAsync(RunStorageInfo? run)
+    {
+        if (run is null || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            return;
+        }
+
+        var runPath = Path.Combine(
+            _workspaceService.CurrentWorkspacePath,
+            run.RunDir.Replace('/', Path.DirectorySeparatorChar));
+
+        if (Directory.Exists(runPath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = runPath,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // Silently ignore
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void RequestDeleteRun(RunStorageInfo? run)
+    {
+        if (run is null)
+        {
+            return;
+        }
+
+        SelectedRun = run;
+        DeleteConfirmRunName = run.Name;
+        ShowDeleteConfirmation = true;
+    }
+
+    [RelayCommand]
+    private void CancelDelete()
+    {
+        ShowDeleteConfirmation = false;
+        SelectedRun = null;
+        DeleteConfirmRunName = null;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAsync()
+    {
+        if (SelectedRun is null || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+        {
+            ShowDeleteConfirmation = false;
+            return;
+        }
+
+        var runToDelete = SelectedRun;
+        ShowDeleteConfirmation = false;
+        SelectedRun = null;
+        DeleteConfirmRunName = null;
+
+        var success = await _storageService.DeleteRunAsync(
+            _workspaceService.CurrentWorkspacePath,
+            runToDelete.RunDir);
+
+        if (success)
+        {
+            StatusMessage = $"Deleted run: {runToDelete.Name}";
+            TopRuns.Remove(runToDelete);
+
+            // Reload storage to update totals
+            await LoadStorageAsync();
+
+            // Reload the index
+            await _runIndexService.LoadIndexAsync(_workspaceService.CurrentWorkspacePath);
+            RunCount = _runIndexService.CurrentRuns.Count;
+        }
+        else
+        {
+            StatusMessage = $"Failed to delete run: {runToDelete.Name}";
+        }
+
+        // Clear message after 3 seconds
+        await Task.Delay(3000);
+        StatusMessage = null;
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024 * 1024 * 1024)
+            return $"{bytes / (1024.0 * 1024):F1} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
     }
 }

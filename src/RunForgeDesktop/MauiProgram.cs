@@ -26,6 +26,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExportService, ExportService>();
         builder.Services.AddSingleton<ILiveLogService, LiveLogService>();
         builder.Services.AddSingleton<IRunTimelineService, RunTimelineService>();
+        builder.Services.AddSingleton<IStorageService, StorageService>();
 
         // Register view models
         // RunsListViewModel is singleton so filter/search state persists across navigation
