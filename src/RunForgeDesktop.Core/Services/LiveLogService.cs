@@ -12,13 +12,22 @@ public sealed class LiveLogService : ILiveLogService
     public int MaxBytesPerTick { get; set; } = 64 * 1024; // 64KB per tick to prevent UI hitching
 
     /// <inheritdoc />
-    public TimeSpan SlowPollingThreshold { get; set; } = TimeSpan.FromSeconds(60);
+    public TimeSpan SlowPollingThreshold { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
-    public TimeSpan SlowPollingInterval { get; set; } = TimeSpan.FromSeconds(3);
+    public TimeSpan SlowPollingInterval { get; set; } = TimeSpan.FromSeconds(2);
 
     /// <inheritdoc />
     public TimeSpan FastPollingInterval { get; set; } = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>Threshold for very stale runs (5 minutes).</summary>
+    public TimeSpan VeryStaleThreshold { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>Polling interval for very stale runs.</summary>
+    public TimeSpan VeryStalePollingInterval { get; set; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>Polling interval for completed/failed runs (very slow, just for monitoring).</summary>
+    public TimeSpan TerminalPollingInterval { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
     public LogSnapshot GetSnapshot(
@@ -89,11 +98,20 @@ public sealed class LiveLogService : ILiveLogService
                 ? LogStatus.Stale
                 : LogStatus.Receiving;
 
-            // Adaptive polling: slow down when stale
+            // Adaptive polling: progressive backoff when stale
             var recommendedInterval = FastPollingInterval;
-            if (status == LogStatus.Stale && timeSinceUpdate > SlowPollingThreshold)
+            if (status == LogStatus.Stale)
             {
-                recommendedInterval = SlowPollingInterval;
+                if (timeSinceUpdate > VeryStaleThreshold)
+                {
+                    // Very stale: poll every 10s
+                    recommendedInterval = VeryStalePollingInterval;
+                }
+                else if (timeSinceUpdate > SlowPollingThreshold)
+                {
+                    // Stale: poll every 2s
+                    recommendedInterval = SlowPollingInterval;
+                }
             }
 
             // Update last activity time if we got new data
@@ -402,6 +420,9 @@ public sealed class LiveLogService : ILiveLogService
 
     private LogSnapshot CreateCompletedSnapshot(string logFilePath, LogStatus status, LogMonitorState? state)
     {
+        // Terminal runs (completed/failed) use very slow polling
+        var pollingInterval = TerminalPollingInterval;
+
         if (!File.Exists(logFilePath))
         {
             return new LogSnapshot
@@ -412,7 +433,7 @@ public sealed class LiveLogService : ILiveLogService
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
                 LastWriteTimeUtc = DateTime.MinValue,
-                RecommendedPollingInterval = SlowPollingInterval
+                RecommendedPollingInterval = pollingInterval
             };
         }
 
@@ -428,7 +449,7 @@ public sealed class LiveLogService : ILiveLogService
                 FileSizeBytes = fileInfo.Length,
                 LastWriteTimeUtc = fileInfo.LastWriteTimeUtc,
                 CreationTimeUtc = fileInfo.CreationTimeUtc,
-                RecommendedPollingInterval = SlowPollingInterval
+                RecommendedPollingInterval = pollingInterval
             };
         }
         catch (IOException)
@@ -441,7 +462,7 @@ public sealed class LiveLogService : ILiveLogService
                 TotalLineCount = 0,
                 FileSizeBytes = 0,
                 LastWriteTimeUtc = DateTime.MinValue,
-                RecommendedPollingInterval = SlowPollingInterval
+                RecommendedPollingInterval = pollingInterval
             };
         }
     }
