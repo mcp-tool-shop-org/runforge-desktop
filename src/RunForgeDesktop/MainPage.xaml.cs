@@ -82,4 +82,9 @@ public partial class MainPage : ContentPage
     {
         await Shell.Current.GoToAsync(nameof(RunsListPage));
     }
+
+    private async void OnDiagnosticsClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(DiagnosticsPage));
+    }
 }

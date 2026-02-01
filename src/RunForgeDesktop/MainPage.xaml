@@ -61,12 +61,22 @@
         </Frame>
 
         <!-- Footer -->
-        <Label Grid.Row="2"
-               Text="v0.1.0 — Read-only by design"
-               FontSize="12"
-               TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
-               HorizontalTextAlignment="Center"
-               Margin="0,16,0,0" />
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <Label Grid.Column="0"
+                   Text="v0.1.0 — Read-only by design"
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center" />
+            <Button Grid.Column="1"
+                    x:Name="DiagnosticsBtn"
+                    Text="Diagnostics"
+                    Clicked="OnDiagnosticsClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                    FontSize="12"
+                    Padding="8,4" />
+        </Grid>
 
     </Grid>
 

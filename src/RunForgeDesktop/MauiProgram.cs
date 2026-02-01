@@ -32,6 +32,7 @@ public static class MauiProgram
         builder.Services.AddTransient<FeatureImportanceViewModel>();
         builder.Services.AddTransient<LinearCoefficientsViewModel>();
         builder.Services.AddTransient<MetricsDetailViewModel>();
+        builder.Services.AddTransient<DiagnosticsViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();
@@ -41,6 +42,7 @@ public static class MauiProgram
         builder.Services.AddTransient<FeatureImportancePage>();
         builder.Services.AddTransient<LinearCoefficientsPage>();
         builder.Services.AddTransient<MetricsDetailPage>();
+        builder.Services.AddTransient<DiagnosticsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
