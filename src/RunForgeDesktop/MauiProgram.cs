@@ -26,7 +26,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExportService, ExportService>();
 
         // Register view models
-        builder.Services.AddTransient<RunsListViewModel>();
+        // RunsListViewModel is singleton so filter/search state persists across navigation
+        builder.Services.AddSingleton<RunsListViewModel>();
         builder.Services.AddTransient<RunDetailViewModel>();
         builder.Services.AddTransient<InterpretabilityViewModel>();
         builder.Services.AddTransient<FeatureImportanceViewModel>();
