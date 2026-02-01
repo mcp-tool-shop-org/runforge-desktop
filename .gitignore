@@ -1,0 +1,128 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Rider
+.idea/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Build results of an ATL project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+nuget.exe
+NuGet.Config
+*.nuget.props
+*.nuget.targets
+
+# MAUI / Xamarin
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM/
+*.xcarchive/
+
+# MSIX
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxupload
+
+# Windows Store
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+nunit-*.xml
+*.trx
+*.coverage
+*.coveragexml
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MSpec
+*.mspec
+
+# Publish output
+publish/
+*.Publish.xml
+
+# NuGet package restore
+packages/
+*.nupkg
+
+# Chutzpah Test files
+_Chutzpah*
+
+# JetBrains Rider
+*.sln.iml
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backup & Temp
+*~
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Project-specific
+.runforge/
+runs/
