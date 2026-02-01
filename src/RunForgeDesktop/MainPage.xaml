@@ -112,7 +112,8 @@
                     BackgroundColor="Transparent"
                     TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
                     FontSize="12"
-                    Padding="8,4" />
+                    Padding="8,4"
+                    ToolTipProperties.Text="View app and workspace diagnostic information" />
         </Grid>
 
     </Grid>

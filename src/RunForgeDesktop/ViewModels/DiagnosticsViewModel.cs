@@ -66,7 +66,7 @@ public partial class DiagnosticsViewModel : ObservableObject
         var version = assembly.GetName().Version;
         AppVersion = version is not null
             ? $"v{version.Major}.{version.Minor}.{version.Build}"
-            : "Unknown";
+            : "Not available";
 
         // Framework version
         FrameworkVersion = $".NET {Environment.Version}";
@@ -101,7 +101,7 @@ public partial class DiagnosticsViewModel : ObservableObject
         }
         else
         {
-            WorkspaceType = "None";
+            WorkspaceType = "Not configured";
             IndexPath = null;
             RunCount = 0;
         }
@@ -173,7 +173,7 @@ public partial class DiagnosticsViewModel : ObservableObject
             ---------
             Path: {CurrentWorkspace}
             Discovery Method: {WorkspaceType}
-            Index Location: {IndexPath ?? "N/A"}
+            Index Location: {IndexPath ?? "(not configured)"}
             Run Count: {RunCount}
             """;
 

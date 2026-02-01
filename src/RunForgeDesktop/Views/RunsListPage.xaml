@@ -47,7 +47,8 @@
                     BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
                     TextColor="White"
                     CornerRadius="4"
-                    Padding="16,8" />
+                    Padding="16,8"
+                    ToolTipProperties.Text="Reload runs from disk, bypassing cache" />
         </Grid>
 
         <!-- Runs list -->

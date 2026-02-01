@@ -35,13 +35,15 @@
                         BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}"
                         TextColor="White"
                         CornerRadius="4"
-                        Padding="16,8" />
+                        Padding="16,8"
+                        ToolTipProperties.Text="Export metrics data to CSV file" />
                 <Button Text="Open JSON"
                         Command="{Binding OpenRawJsonCommand}"
                         BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
                         TextColor="White"
                         CornerRadius="4"
-                        Padding="16,8" />
+                        Padding="16,8"
+                        ToolTipProperties.Text="Open raw JSON artifact in default viewer" />
             </HorizontalStackLayout>
         </Grid>
 
