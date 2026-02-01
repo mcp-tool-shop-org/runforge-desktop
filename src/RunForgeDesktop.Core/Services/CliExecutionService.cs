@@ -5,12 +5,20 @@ namespace RunForgeDesktop.Core.Services;
 /// <summary>
 /// Implementation of CLI execution service.
 /// Spawns runforge-cli as a subprocess and streams output.
+/// Uses PythonDiscoveryService for reliable Python location.
 /// </summary>
 public sealed class CliExecutionService : ICliExecutionService
 {
+    private readonly IPythonDiscoveryService _pythonDiscovery;
+
     private CliExecutionState? _currentExecution;
     private Process? _currentProcess;
     private readonly object _lock = new();
+
+    public CliExecutionService(IPythonDiscoveryService pythonDiscovery)
+    {
+        _pythonDiscovery = pythonDiscovery;
+    }
 
     /// <inheritdoc />
     public bool IsCliAvailable { get; private set; }
@@ -26,17 +34,20 @@ public sealed class CliExecutionService : ICliExecutionService
     {
         try
         {
-            // Check if Python is available
-            var pythonResult = await RunProcessAsync("python", "--version", cancellationToken);
-            if (pythonResult.ExitCode != 0)
+            // Discover Python installation
+            // TODO: Load preferred path from settings
+            var pythonFound = await _pythonDiscovery.DiscoverAsync(preferredPath: null, cancellationToken);
+            if (!pythonFound)
             {
-                CliUnavailableReason = "Python is not installed or not in PATH";
+                CliUnavailableReason = _pythonDiscovery.UnavailableReason ?? "Python 3.10+ not found";
                 IsCliAvailable = false;
                 return false;
             }
 
+            var pythonPath = _pythonDiscovery.PythonPath!;
+
             // Check if runforge-cli is available
-            var cliResult = await RunProcessAsync("python", "-m runforge_cli --version", cancellationToken);
+            var cliResult = await RunProcessAsync(pythonPath, "-m runforge_cli --version", cancellationToken);
             if (cliResult.ExitCode != 0)
             {
                 CliUnavailableReason = "runforge-cli is not installed. Run: pip install -e src/runforge-cli";
@@ -63,6 +74,18 @@ public sealed class CliExecutionService : ICliExecutionService
         Action<string>? onOutput = null,
         CancellationToken cancellationToken = default)
     {
+        // Ensure Python is discovered
+        if (!_pythonDiscovery.IsPythonAvailable)
+        {
+            return new CliExecutionResult
+            {
+                ExitCode = 4,
+                ErrorMessage = "Python not available. Call CheckCliAvailabilityAsync first."
+            };
+        }
+
+        var pythonPath = _pythonDiscovery.PythonPath!;
+
         // Build full run path
         var fullRunPath = Path.Combine(
             workspacePath,
@@ -108,7 +131,7 @@ public sealed class CliExecutionService : ICliExecutionService
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = pythonPath,
                 Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

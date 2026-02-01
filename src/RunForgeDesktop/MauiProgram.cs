@@ -27,6 +27,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILiveLogService, LiveLogService>();
         builder.Services.AddSingleton<IRunTimelineService, RunTimelineService>();
         builder.Services.AddSingleton<IStorageService, StorageService>();
+        builder.Services.AddSingleton<IPythonDiscoveryService, PythonDiscoveryService>();
         builder.Services.AddSingleton<ICliExecutionService, CliExecutionService>();
         builder.Services.AddSingleton<IRunCreationService, RunCreationService>();
         builder.Services.AddSingleton<IRunRequestService, RunRequestService>();

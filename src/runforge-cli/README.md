@@ -134,3 +134,48 @@ On failure:
   }
 }
 ```
+
+---
+
+## Desktop Integration
+
+### Python Requirements
+
+- **Required version:** Python 3.10+
+- **Dependencies:** scikit-learn, pandas, joblib (installed automatically via pip)
+
+### How Desktop Discovers Python
+
+Desktop uses a multi-step discovery process:
+
+1. **User-specified path** - Settings override (future)
+2. **py launcher** - Windows Python Launcher (`py --version`)
+3. **python in PATH** - Standard PATH lookup
+4. **Common paths** - `C:\Python3XX\`, `%LOCALAPPDATA%\Programs\Python\`
+5. **Windows Store** - `%LOCALAPPDATA%\Microsoft\WindowsApps\python.exe`
+
+### How Desktop Invokes the CLI
+
+```
+<python> -m runforge_cli run --run-dir "<path>" --workspace "<path>"
+```
+
+Where `<python>` is the discovered Python executable.
+
+### Running Tests
+
+```bash
+cd src/runforge-cli
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+### MSIX Packaging (Future)
+
+For MSIX distribution, options include:
+
+1. **Embedded Python** - Bundle Python runtime in MSIX
+2. **Require Python** - Document as prerequisite, discover at runtime
+3. **PyInstaller** - Package CLI as standalone .exe
+
+Current v0.3.0 uses option 2 (runtime discovery).
