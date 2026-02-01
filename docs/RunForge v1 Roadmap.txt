@@ -1,0 +1,240 @@
+RunForge v1 Roadmap (Normal + Advanced Mode)
+Guiding contract
+
+Normal Mode = status quo ML training app baseline
+
+Advanced Mode = same engine, power-user surface
+
+Every milestone ships a complete loop: configure → run → observe → artifacts → rerun/compare → diagnose
+
+Phase 0 — Foundation and repo hygiene
+
+0.1 — Commit: repo-first guardrails + CI
+
+CI on Windows
+
+build/test pipeline
+
+branch conventions + tags + release template
+
+0.2 — Commit: product identity + docs baseline
+
+“What RunForge is” doc (Normal vs Advanced)
+
+glossary (run, preset, workspace, artifact)
+
+“Definition of Done” checklist in repo
+
+Phase 1 — Normal Mode MVP loop (must feel “real”)
+
+1.1 — Commit: workspace model + run store
+
+workspace folder contract
+
+run folder creation
+
+append-only index + metadata model
+
+1.2 — Commit: run configuration (write-first)
+
+editable config (form + raw JSON)
+
+validation + error messages
+
+save/clone config
+
+1.3 — Commit: run execution engine
+
+launch runs
+
+status lifecycle (queued/running/succeeded/failed/canceled)
+
+stdout/stderr capture
+
+1.4 — Commit: live run monitoring UI
+
+live log tail
+
+progress + timestamps
+
+cancel button (best-effort but safe)
+
+1.5 — Commit: artifacts v1
+
+artifact discovery + status
+
+view/copy/open for common types (images, json, text)
+
+“open run folder” and “copy run summary”
+
+Gate for Phase 1
+
+A new user can: create config → run → see logs → see artifacts → rerun with edits.
+
+Phase 2 — Reliability and “reviewer-proof” usability
+
+2.1 — Commit: crash-safe indexing + recovery
+
+tolerate partial writes
+
+rebuild index from run folders if needed
+
+mark orphaned/incomplete runs clearly
+
+2.2 — Commit: performance + responsiveness
+
+caching + incremental load
+
+large workspace behavior (100+ runs)
+
+search/filter/sort that stays fast
+
+2.3 — Commit: diagnostics bundle
+
+environment snapshot
+
+run folder sanity checks
+
+one-click “copy diagnostics” / export zip
+
+2.4 — Commit: single-instance + workspace lock
+
+prevent multiple instances stomping the same workspace
+
+clear messaging + safe unlock rules
+
+Gate for Phase 2
+
+It doesn’t fall over or corrupt state under normal abuse.
+
+Phase 3 — Presets become first-class (still Normal Mode)
+
+3.1 — Commit: preset registry + editor
+
+create/edit/duplicate/delete
+
+validation + schema versioning
+
+3.2 — Commit: preset import/export
+
+shareable preset files
+
+preserve compatibility across versions
+
+3.3 — Commit: provenance
+
+each run records exact preset/config used
+
+immutable “run record” even if presets change later
+
+Gate for Phase 3
+
+Users can build and share workflows without touching code.
+
+Phase 4 — Device selection and GPU gating done correctly
+
+4.1 — Commit: device detection + selection UI
+
+show detected CPU/GPU/RAM/VRAM
+
+recommended device + “why”
+
+4.2 — Commit: gating rules + explicit messaging
+
+“GPU unavailable because X”
+
+always offer safe fallback (CPU)
+
+never silently block
+
+4.3 — Commit: override policy (Advanced toggle aware)
+
+optional “I accept risks” override
+
+policy controlled via settings (off by default in Normal Mode)
+
+Gate for Phase 4
+
+No mystery failures; every gating decision is legible and actionable.
+
+Phase 5 — Advanced Mode scaffolding (engine-compatible)
+
+This phase is about building the rails so advanced features don’t become a rewrite.
+
+5.1 — Commit: mode system (Normal vs Advanced)
+
+settings toggle + UI affordances
+
+advanced panels hidden by default but same underlying data
+
+5.2 — Commit: run grouping model
+
+“experiment” / “group” entity
+
+link runs into groups without changing run format
+
+tags/notes
+
+5.3 — Commit: compare view v1
+
+side-by-side metrics
+
+artifact diff affordances (at least “open both” + metadata deltas)
+
+Gate for Phase 5
+
+You can group runs and compare them without hacks.
+
+Phase 6 — Advanced Mode v1 features
+
+This is where your “SLOAQ + multiruns” direction lives.
+
+6.1 — Commit: multi-run launcher (sweeps v1)
+
+parameter grid / list sweep
+
+concurrency control
+
+failure handling per-run
+
+6.2 — Commit: SLOAQ-style training hooks (v1)
+
+define objectives + evaluation signals
+
+persist evaluation results into run records
+
+surface in compare view
+
+6.3 — Commit: experiment dashboard
+
+experiment summary (best run, trends)
+
+export experiment report (json/markdown)
+
+Gate for Phase 6
+
+Advanced Mode is meaningfully more powerful, not just “more settings.”
+
+Phase 7 — v1 packaging and polish
+
+7.1 — Commit: onboarding + templates
+
+first-run wizard
+
+sample presets + “what to try”
+
+7.2 — Commit: packaging (MSIX) + update story
+
+signed packaging approach
+
+versioned release artifacts + checksums
+
+7.3 — Commit: final QA + doc lock
+
+known limitations list
+
+“v1 acceptance checklist” verified
+
+Gate for v1
+
+A stranger can install, train something, inspect results, rerun, compare, and file a useful bug report in <10 minutes.
