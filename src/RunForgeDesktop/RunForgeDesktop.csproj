@@ -20,8 +20,8 @@
     <ApplicationId>com.mcptoolshop.runforgedesktop</ApplicationId>
 
     <!-- Versions -->
-    <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion>
+    <ApplicationVersion>2</ApplicationVersion>
 
     <!-- MSIX Packaging -->
     <WindowsPackageType>MSIX</WindowsPackageType>
@@ -32,7 +32,7 @@
     <Company>mcp-tool-shop</Company>
     <Product>RunForge Desktop</Product>
     <Description>Windows-native ML run inspection and export tool</Description>
-    <Copyright>Copyright (c) 2025 mcp-tool-shop</Copyright>
+    <Copyright>Copyright (c) 2026 mcp-tool-shop</Copyright>
     <RepositoryUrl>https://github.com/mcp-tool-shop-org/runforge-desktop</RepositoryUrl>
   </PropertyGroup>
 

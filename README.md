@@ -181,7 +181,7 @@ The app follows standard Windows permission models for file access.
 
 | Attribute | Value |
 |-----------|-------|
-| Current version | v0.1.0 |
+| Current version | v0.1.1 |
 | Scope | Read-only inspection and export |
 | Acceptance criteria | [docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md](docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md) |
 
