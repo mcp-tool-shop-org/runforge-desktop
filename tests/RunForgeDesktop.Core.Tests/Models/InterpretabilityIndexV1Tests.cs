@@ -111,4 +111,101 @@ public class InterpretabilityIndexV1Tests
         // Assert
         Assert.Null(artifact);
     }
+
+    #region v0.1.1 ArtifactEntry Status Tests
+
+    [Fact]
+    public void ArtifactEntry_AvailableArtifact_HasPresentStatus()
+    {
+        // Arrange
+        var index = JsonSerializer.Deserialize<InterpretabilityIndexV1>(ValidIndexJson, JsonOptions.Default);
+        var artifact = index?.GetArtifact("metrics.v1");
+
+        // Assert
+        Assert.NotNull(artifact);
+        Assert.Equal(ArtifactAvailabilityStatus.Present, artifact.Status);
+        Assert.Equal("Present", artifact.StatusLabel);
+        Assert.Null(artifact.StatusReason);
+    }
+
+    [Fact]
+    public void ArtifactEntry_UnsupportedModel_HasUnsupportedStatus()
+    {
+        // Arrange
+        var index = JsonSerializer.Deserialize<InterpretabilityIndexV1>(ValidIndexJson, JsonOptions.Default);
+        var artifact = index?.GetArtifact("feature_importance.v1");
+
+        // Assert
+        Assert.NotNull(artifact);
+        Assert.Equal(ArtifactAvailabilityStatus.Unsupported, artifact.Status);
+        Assert.Equal("Unsupported", artifact.StatusLabel);
+        Assert.Equal("This model type does not support this artifact.", artifact.StatusReason);
+    }
+
+    [Fact]
+    public void ArtifactEntry_GenerationFailed_HasCorruptStatus()
+    {
+        // Arrange
+        var json = """
+        {
+            "type": "test.v1",
+            "schema_version": "1.0",
+            "path": "test.json",
+            "available": false,
+            "unavailable_reason": "generation_failed"
+        }
+        """;
+        var artifact = JsonSerializer.Deserialize<ArtifactEntry>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(artifact);
+        Assert.Equal(ArtifactAvailabilityStatus.Corrupt, artifact.Status);
+        Assert.Equal("Corrupt", artifact.StatusLabel);
+        // Corrupt status uses generic message
+        Assert.Equal("The artifact file is corrupt or invalid.", artifact.StatusReason);
+    }
+
+    [Fact]
+    public void ArtifactEntry_NoReason_HasNotAvailableStatus()
+    {
+        // Arrange
+        var json = """
+        {
+            "type": "test.v1",
+            "schema_version": "1.0",
+            "path": "test.json",
+            "available": false
+        }
+        """;
+        var artifact = JsonSerializer.Deserialize<ArtifactEntry>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(artifact);
+        Assert.Equal(ArtifactAvailabilityStatus.NotAvailable, artifact.Status);
+        Assert.Equal("Not Available", artifact.StatusLabel);
+        Assert.Equal("This artifact was not generated for this run.", artifact.StatusReason);
+    }
+
+    [Fact]
+    public void ArtifactEntry_CustomReason_FormatsCorrectly()
+    {
+        // Arrange
+        var json = """
+        {
+            "type": "test.v1",
+            "schema_version": "1.0",
+            "path": "test.json",
+            "available": false,
+            "unavailable_reason": "custom_error_message"
+        }
+        """;
+        var artifact = JsonSerializer.Deserialize<ArtifactEntry>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(artifact);
+        Assert.Equal(ArtifactAvailabilityStatus.NotAvailable, artifact.Status);
+        Assert.Equal("custom error message", artifact.StatusReason); // underscores converted to spaces
+    }
+
+    #endregion
 }
