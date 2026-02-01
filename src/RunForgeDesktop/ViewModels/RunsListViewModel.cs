@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Models;
 using RunForgeDesktop.Core.Services;
+using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -46,6 +47,29 @@ public partial class RunsListViewModel : ObservableObject
         _workspaceService = workspaceService;
 
         _workspaceService.WorkspaceChanged += OnWorkspaceChanged;
+    }
+
+    partial void OnSelectedRunChanged(RunIndexEntry? value)
+    {
+        if (value is not null)
+        {
+            _ = NavigateToRunDetailAsync(value);
+        }
+    }
+
+    private async Task NavigateToRunDetailAsync(RunIndexEntry run)
+    {
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", run.RunId },
+            { "runName", run.Name },
+            { "runDir", run.RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(RunDetailPage), parameters);
+
+        // Clear selection so the same run can be selected again
+        SelectedRun = null;
     }
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangedEventArgs e)

@@ -21,13 +21,16 @@ public static class MauiProgram
         // Register services
         builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
         builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
+        builder.Services.AddSingleton<IRunDetailService, RunDetailService>();
 
         // Register view models
         builder.Services.AddTransient<RunsListViewModel>();
+        builder.Services.AddTransient<RunDetailViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RunsListPage>();
+        builder.Services.AddTransient<RunDetailPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

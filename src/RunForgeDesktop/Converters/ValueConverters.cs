@@ -105,3 +105,35 @@ public class EnumToIntConverter : IValueConverter
         return value;
     }
 }
+
+/// <summary>
+/// Converts an object to boolean (true if not null).
+/// </summary>
+public class ObjectToBoolConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is not null;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts an object to inverse boolean (true if null).
+/// </summary>
+public class ObjectToInverseBoolConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is null;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

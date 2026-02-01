@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.RunDetailPage"
+             x:DataType="vm:RunDetailViewModel"
+             Title="{Binding RunName, StringFormat='Run: {0}'}">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <!-- Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <Label Text="{Binding RunName}"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#E0E0E0}" />
+            <Label Text="{Binding RunId}"
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+        </VerticalStackLayout>
+
+        <!-- Content -->
+        <ScrollView Grid.Row="1">
+            <Grid>
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+
+                <!-- Error message -->
+                <Frame IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                       BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#3E2723}"
+                       BorderColor="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}"
+                       CornerRadius="8"
+                       Padding="16"
+                       Margin="0,0,0,16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Error loading run details"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}" />
+                        <Label Text="{Binding ErrorMessage}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Run details -->
+                <VerticalStackLayout Spacing="16"
+                                     IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+
+                    <!-- Request section (training parameters) -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Request, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Training Parameters"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Button Grid.Column="1"
+                                        Text="Open JSON"
+                                        Command="{Binding OpenRawFileCommand}"
+                                        CommandParameter="request.json"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Preset:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Request.PresetId}" FontAttributes="Bold" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Created:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Request.CreatedAt}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Requested Device:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Request.RequestedDevice}" />
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Actual Device:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Request.ActualDevice}" />
+
+                                <Label Grid.Row="4" Grid.Column="0" Text="GPU Reason:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Request.GpuReason}" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Result section -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Result, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Training Result"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Button Grid.Column="1"
+                                        Text="Open JSON"
+                                        Command="{Binding OpenRawFileCommand}"
+                                        CommandParameter="result.json"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Status:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding Result.Status}"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding Result.IsSucceeded, Converter={StaticResource SuccessToColorConverter}}" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Exit Code:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Result.ExitCode}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Duration:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Result.Duration, StringFormat='{0:mm\\:ss\\.fff}'}" />
+
+                                <Label Grid.Row="3" Grid.Column="0" Text="Error:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                       IsVisible="{Binding Result.Error, Converter={StaticResource StringToBoolConverter}}" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Result.Error}"
+                                       TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}"
+                                       IsVisible="{Binding Result.Error, Converter={StaticResource StringToBoolConverter}}" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Metrics section -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Metrics, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Training Metrics"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Button Grid.Column="1"
+                                        Text="Open JSON"
+                                        Command="{Binding OpenRawFileCommand}"
+                                        CommandParameter="metrics.json"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Accuracy:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding Metrics.AccuracyPercent}"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#2E7D32, Dark=#81C784}" />
+
+                                <Label Grid.Row="1" Grid.Column="0" Text="Samples:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Metrics.NumSamples, StringFormat='{0:N0}'}" />
+
+                                <Label Grid.Row="2" Grid.Column="0" Text="Features:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Metrics.NumFeatures, StringFormat='{0:N0}'}" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- No data message -->
+                    <Label Text="No run artifacts found"
+                           IsVisible="{Binding Request, Converter={StaticResource ObjectToInverseBoolConverter}}"
+                           FontSize="16"
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                           Margin="0,32" />
+
+                </VerticalStackLayout>
+            </Grid>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

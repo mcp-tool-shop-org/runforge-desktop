@@ -17,6 +17,8 @@
             <converters:IntToInverseBoolConverter x:Key="IntToInverseBoolConverter" />
             <converters:SuccessToColorConverter x:Key="SuccessToColorConverter" />
             <converters:EnumToIntConverter x:Key="EnumToIntConverter" />
+            <converters:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
+            <converters:ObjectToInverseBoolConverter x:Key="ObjectToInverseBoolConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
