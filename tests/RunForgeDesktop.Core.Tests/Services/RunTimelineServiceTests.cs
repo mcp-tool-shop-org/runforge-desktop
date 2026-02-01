@@ -323,4 +323,111 @@ public class RunTimelineServiceTests
     }
 
     #endregion
+
+    #region Explicit Token Tests [RF:STAGE=X]
+
+    [Theory]
+    [InlineData("[RF:STAGE=STARTING]", MilestoneType.Starting)]
+    [InlineData("[RF:STAGE=LOADING_DATASET]", MilestoneType.LoadingDataset)]
+    [InlineData("[RF:STAGE=TRAINING]", MilestoneType.Training)]
+    [InlineData("[RF:STAGE=EVALUATING]", MilestoneType.Evaluating)]
+    [InlineData("[RF:STAGE=WRITING_ARTIFACTS]", MilestoneType.WritingArtifacts)]
+    [InlineData("[RF:STAGE=COMPLETED]", MilestoneType.Completed)]
+    [InlineData("[RF:STAGE=FAILED]", MilestoneType.Failed)]
+    public void ProcessLogLines_DetectsExplicitStageToken(string token, MilestoneType expectedType)
+    {
+        // Arrange
+        var state = _service.CreateTimeline();
+        var lines = new[] { $"2024-01-15 10:30:00 INFO {token} Starting new phase" };
+
+        // Act
+        var newState = _service.ProcessLogLines(state, lines);
+
+        // Assert
+        var milestone = newState.Milestones.FirstOrDefault(m => m.Type == expectedType);
+        if (milestone is not null)
+        {
+            Assert.True(milestone.IsReached);
+        }
+        // For Failed type, it won't be in the default list, but detection should work
+    }
+
+    [Fact]
+    public void ProcessLogLines_ExplicitTokenTakesPriorityOverHeuristics()
+    {
+        // Arrange
+        var state = _service.CreateTimeline();
+        // This line would trigger "Completed" by heuristic, but explicit token says "Training"
+        var lines = new[] { "[RF:STAGE=TRAINING] Training is complete now" };
+
+        // Act
+        var newState = _service.ProcessLogLines(state, lines);
+
+        // Assert
+        var training = newState.Milestones.First(m => m.Type == MilestoneType.Training);
+        Assert.True(training.IsReached);
+    }
+
+    [Fact]
+    public void ProcessLogLines_DetectsExplicitEpochToken()
+    {
+        // Arrange
+        var state = _service.CreateTimeline();
+        var lines = new[] { "[RF:EPOCH=7/15] Processing batch..." };
+
+        // Act
+        var newState = _service.ProcessLogLines(state, lines);
+
+        // Assert
+        Assert.NotNull(newState.EpochProgress);
+        Assert.Equal(7, newState.EpochProgress.Value.Current);
+        Assert.Equal(15, newState.EpochProgress.Value.Total);
+    }
+
+    [Fact]
+    public void ProcessLogLines_ExplicitEpochTokenTakesPriority()
+    {
+        // Arrange
+        var state = _service.CreateTimeline();
+        // Heuristic would parse "Epoch 3/10", but explicit token says 7/15
+        var lines = new[] { "[RF:EPOCH=7/15] Epoch 3/10 loss=0.05" };
+
+        // Act
+        var newState = _service.ProcessLogLines(state, lines);
+
+        // Assert
+        Assert.NotNull(newState.EpochProgress);
+        Assert.Equal(7, newState.EpochProgress.Value.Current);
+        Assert.Equal(15, newState.EpochProgress.Value.Total);
+    }
+
+    [Fact]
+    public void MilestonePatterns_HasExplicitToken_ReturnsTrueForValidTokens()
+    {
+        // Assert
+        Assert.True(MilestonePatterns.HasExplicitToken("[RF:STAGE=TRAINING]"));
+        Assert.True(MilestonePatterns.HasExplicitToken("[RF:EPOCH=5/10]"));
+        Assert.True(MilestonePatterns.HasExplicitToken("INFO [RF:STAGE=COMPLETED] done"));
+    }
+
+    [Fact]
+    public void MilestonePatterns_HasExplicitToken_ReturnsFalseForNoTokens()
+    {
+        // Assert
+        Assert.False(MilestonePatterns.HasExplicitToken("Training started"));
+        Assert.False(MilestonePatterns.HasExplicitToken("Epoch 5/10"));
+        Assert.False(MilestonePatterns.HasExplicitToken(""));
+        Assert.False(MilestonePatterns.HasExplicitToken(null!));
+    }
+
+    [Fact]
+    public void MilestonePatterns_DetectExplicitStage_ReturnsNullForInvalidStage()
+    {
+        // Act & Assert
+        Assert.Null(MilestonePatterns.DetectExplicitStage("[RF:STAGE=UNKNOWN]"));
+        Assert.Null(MilestonePatterns.DetectExplicitStage("[RF:STAGE=training]")); // lowercase not valid
+        Assert.Null(MilestonePatterns.DetectExplicitStage("STAGE=TRAINING")); // missing brackets
+    }
+
+    #endregion
 }

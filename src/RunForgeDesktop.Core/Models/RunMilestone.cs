@@ -71,6 +71,31 @@ public static class MilestonePatterns
         new() { Type = MilestoneType.Completed, Name = "Completed" },
     ];
 
+    /// <summary>
+    /// Explicit RunForge stage token pattern: [RF:STAGE=X]
+    /// This takes priority over heuristic pattern matching.
+    /// </summary>
+    /// <remarks>
+    /// Runners can emit these tokens for guaranteed milestone detection:
+    /// - [RF:STAGE=STARTING]
+    /// - [RF:STAGE=LOADING_DATASET]
+    /// - [RF:STAGE=TRAINING]
+    /// - [RF:STAGE=EVALUATING]
+    /// - [RF:STAGE=WRITING_ARTIFACTS]
+    /// - [RF:STAGE=COMPLETED]
+    /// - [RF:STAGE=FAILED]
+    /// </remarks>
+    private static readonly Regex ExplicitStagePattern = new(
+        @"\[RF:STAGE=([A-Z_]+)\]",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Explicit RunForge epoch progress token: [RF:EPOCH=X/Y]
+    /// </summary>
+    private static readonly Regex ExplicitEpochPattern = new(
+        @"\[RF:EPOCH=(\d+)/(\d+)\]",
+        RegexOptions.Compiled);
+
     // Compiled regex patterns for efficient matching
     private static readonly Regex StartingPattern = new(
         @"starting|initializ|begin|run\s+id",
@@ -104,11 +129,22 @@ public static class MilestonePatterns
     /// Detects which milestone (if any) a log line indicates.
     /// Returns null if no milestone detected.
     /// </summary>
+    /// <remarks>
+    /// Detection priority:
+    /// 1. Explicit [RF:STAGE=X] tokens (guaranteed match)
+    /// 2. Heuristic pattern matching (may produce false positives)
+    /// </remarks>
     public static MilestoneType? DetectMilestone(string logLine)
     {
         if (string.IsNullOrWhiteSpace(logLine))
             return null;
 
+        // Priority 1: Check for explicit [RF:STAGE=X] tokens
+        var explicitStage = DetectExplicitStage(logLine);
+        if (explicitStage.HasValue)
+            return explicitStage;
+
+        // Priority 2: Fall back to heuristic pattern matching
         // Check patterns in reverse order of pipeline (most specific first)
         // This ensures we don't trigger "Starting" on every line
 
@@ -137,11 +173,54 @@ public static class MilestonePatterns
     }
 
     /// <summary>
+    /// Detects an explicit [RF:STAGE=X] token in the log line.
+    /// </summary>
+    public static MilestoneType? DetectExplicitStage(string logLine)
+    {
+        if (string.IsNullOrEmpty(logLine))
+            return null;
+
+        var match = ExplicitStagePattern.Match(logLine);
+        if (!match.Success)
+            return null;
+
+        return match.Groups[1].Value switch
+        {
+            "STARTING" => MilestoneType.Starting,
+            "LOADING_DATASET" => MilestoneType.LoadingDataset,
+            "TRAINING" => MilestoneType.Training,
+            "EVALUATING" => MilestoneType.Evaluating,
+            "WRITING_ARTIFACTS" => MilestoneType.WritingArtifacts,
+            "COMPLETED" => MilestoneType.Completed,
+            "FAILED" => MilestoneType.Failed,
+            _ => null
+        };
+    }
+
+    /// <summary>
     /// Extracts epoch progress if present in the log line.
     /// Returns (current, total) or null if not found.
     /// </summary>
+    /// <remarks>
+    /// Detection priority:
+    /// 1. Explicit [RF:EPOCH=X/Y] tokens (guaranteed match)
+    /// 2. Heuristic "Epoch X/Y" pattern matching
+    /// </remarks>
     public static (int Current, int Total)? ExtractEpochProgress(string logLine)
     {
+        if (string.IsNullOrEmpty(logLine))
+            return null;
+
+        // Priority 1: Check for explicit [RF:EPOCH=X/Y] token
+        var explicitMatch = ExplicitEpochPattern.Match(logLine);
+        if (explicitMatch.Success &&
+            int.TryParse(explicitMatch.Groups[1].Value, out var explicitCurrent) &&
+            int.TryParse(explicitMatch.Groups[2].Value, out var explicitTotal))
+        {
+            return (explicitCurrent, explicitTotal);
+        }
+
+        // Priority 2: Heuristic pattern matching
         // Match patterns like "Epoch 3/10" or "epoch 3 of 10" or "Epoch: 3/10"
         var match = Regex.Match(
             logLine,
@@ -163,5 +242,16 @@ public static class MilestonePatterns
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Checks if a log line contains an explicit RunForge token.
+    /// </summary>
+    public static bool HasExplicitToken(string logLine)
+    {
+        if (string.IsNullOrEmpty(logLine))
+            return false;
+
+        return ExplicitStagePattern.IsMatch(logLine) || ExplicitEpochPattern.IsMatch(logLine);
     }
 }
