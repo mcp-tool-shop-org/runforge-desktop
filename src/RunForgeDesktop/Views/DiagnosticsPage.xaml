@@ -10,7 +10,7 @@
     <Grid RowDefinitions="Auto,*" Padding="16">
 
         <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,16">
             <VerticalStackLayout Grid.Column="0" Spacing="4">
                 <Label Text="Diagnostics"
                        FontSize="24"
@@ -22,6 +22,17 @@
             </VerticalStackLayout>
 
             <Button Grid.Column="1"
+                    Text="Settings"
+                    Command="{Binding OpenSettingsCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#757575, Dark=#616161}"
+                    TextColor="White"
+                    CornerRadius="4"
+                    Padding="16,8"
+                    Margin="0,0,8,0"
+                    VerticalOptions="Center"
+                    ToolTipProperties.Text="Configure Python and other settings" />
+
+            <Button Grid.Column="2"
                     Text="Copy Diagnostics"
                     Command="{Binding CopyDiagnosticsCommand}"
                     BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#388E3C}"
@@ -32,7 +43,7 @@
                     VerticalOptions="Center"
                     ToolTipProperties.Text="Copy all diagnostic information to clipboard" />
 
-            <Button Grid.Column="2"
+            <Button Grid.Column="3"
                     Text="Refresh"
                     Command="{Binding LoadDiagnosticsCommand}"
                     BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"

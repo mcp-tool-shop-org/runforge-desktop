@@ -3,6 +3,7 @@ using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Services;
+using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -223,6 +224,12 @@ public partial class DiagnosticsViewModel : ObservableObject
         // Clear message after 3 seconds
         await Task.Delay(3000);
         StatusMessage = null;
+    }
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(SettingsPage));
     }
 
     [RelayCommand]

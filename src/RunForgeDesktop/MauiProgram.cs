@@ -19,6 +19,7 @@ public static class MauiProgram
             });
 
         // Register services
+        builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
         builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
         builder.Services.AddSingleton<IRunDetailService, RunDetailService>();
@@ -41,6 +42,7 @@ public static class MauiProgram
         builder.Services.AddTransient<LinearCoefficientsViewModel>();
         builder.Services.AddTransient<MetricsDetailViewModel>();
         builder.Services.AddTransient<DiagnosticsViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();
@@ -51,6 +53,7 @@ public static class MauiProgram
         builder.Services.AddTransient<LinearCoefficientsPage>();
         builder.Services.AddTransient<MetricsDetailPage>();
         builder.Services.AddTransient<DiagnosticsPage>();
+        builder.Services.AddTransient<SettingsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

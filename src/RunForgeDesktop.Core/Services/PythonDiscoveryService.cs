@@ -18,6 +18,13 @@ public sealed partial class PythonDiscoveryService : IPythonDiscoveryService
 {
     private const string MinPythonVersion = "3.10";
 
+    private readonly ISettingsService _settings;
+
+    public PythonDiscoveryService(ISettingsService settings)
+    {
+        _settings = settings;
+    }
+
     /// <inheritdoc />
     public string? PythonPath { get; private set; }
 
@@ -42,10 +49,11 @@ public sealed partial class PythonDiscoveryService : IPythonDiscoveryService
         DiscoveryInfo = null;
         UnavailableReason = null;
 
-        // 1. Try user-specified path first
-        if (!string.IsNullOrWhiteSpace(preferredPath))
+        // 1. Try user-specified path first (parameter takes priority over settings)
+        var overridePath = preferredPath ?? _settings.PythonPathOverride;
+        if (!string.IsNullOrWhiteSpace(overridePath))
         {
-            if (await TryPythonAsync(preferredPath, "user-specified", cancellationToken))
+            if (await TryPythonAsync(overridePath, "user-specified", cancellationToken))
             {
                 return true;
             }

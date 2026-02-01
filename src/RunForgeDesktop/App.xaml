@@ -26,6 +26,8 @@
             <converters:LogStatusToColorConverter x:Key="LogStatusToColorConverter" />
             <converters:MilestoneToColorConverter x:Key="MilestoneToColorConverter" />
             <converters:MilestoneToFontConverter x:Key="MilestoneToFontConverter" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <converters:StringNotNullConverter x:Key="StringNotNullConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

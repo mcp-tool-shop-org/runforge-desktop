@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Settings"
+             BackgroundColor="{StaticResource Gray950}">
+
+    <ScrollView Padding="24">
+        <VerticalStackLayout Spacing="24" MaximumWidthRequest="800">
+
+            <!-- Header -->
+            <Label Text="Settings"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="White" />
+
+            <!-- Python Configuration Section -->
+            <Frame BackgroundColor="{StaticResource Gray900}"
+                   BorderColor="{StaticResource Gray800}"
+                   CornerRadius="8"
+                   Padding="20">
+                <VerticalStackLayout Spacing="16">
+
+                    <Label Text="Python Configuration"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="White" />
+
+                    <Label Text="RunForge uses Python to execute ML training runs. Configure a custom Python path or use auto-discovery."
+                           TextColor="{StaticResource Gray400}"
+                           FontSize="13" />
+
+                    <!-- Current Python Status -->
+                    <Frame BackgroundColor="{StaticResource Gray800}"
+                           BorderColor="Transparent"
+                           CornerRadius="6"
+                           Padding="12">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Label Text="●"
+                                   FontSize="16"
+                                   TextColor="{Binding IsPythonValid, Converter={StaticResource BoolToColorConverter}}"
+                                   VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding PythonVersion, StringFormat='Python {0}'}"
+                                       TextColor="White"
+                                       FontSize="14"
+                                       IsVisible="{Binding IsPythonValid}" />
+                                <Label Text="{Binding PythonDiscoveryInfo}"
+                                       TextColor="{StaticResource Gray400}"
+                                       FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Frame>
+
+                    <!-- Python Path Override -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Python Path Override (optional)"
+                               TextColor="{StaticResource Gray300}"
+                               FontSize="13" />
+
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <Entry Text="{Binding PythonPathOverride}"
+                                   Placeholder="Leave empty for auto-discovery"
+                                   PlaceholderColor="{StaticResource Gray500}"
+                                   BackgroundColor="{StaticResource Gray800}"
+                                   TextColor="White"
+                                   FontSize="13" />
+
+                            <Button Grid.Column="1"
+                                    Text="Browse"
+                                    Command="{Binding BrowsePythonPathCommand}"
+                                    BackgroundColor="{StaticResource Gray700}"
+                                    TextColor="White"
+                                    FontSize="12"
+                                    Padding="12,8"
+                                    CornerRadius="4" />
+
+                            <Button Grid.Column="2"
+                                    Text="Clear"
+                                    Command="{Binding ClearPythonPathCommand}"
+                                    BackgroundColor="{StaticResource Gray700}"
+                                    TextColor="White"
+                                    FontSize="12"
+                                    Padding="12,8"
+                                    CornerRadius="4" />
+                        </Grid>
+
+                        <Label Text="Example: C:\Python312\python.exe"
+                               TextColor="{StaticResource Gray500}"
+                               FontSize="11" />
+                    </VerticalStackLayout>
+
+                    <!-- Action Buttons -->
+                    <HorizontalStackLayout Spacing="12">
+                        <Button Text="Save"
+                                Command="{Binding SavePythonPathCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"
+                                FontSize="13"
+                                Padding="16,10"
+                                CornerRadius="4" />
+
+                        <Button Text="Validate"
+                                Command="{Binding ValidatePythonCommand}"
+                                BackgroundColor="{StaticResource Gray700}"
+                                TextColor="White"
+                                FontSize="13"
+                                Padding="16,10"
+                                CornerRadius="4" />
+
+                        <ActivityIndicator IsRunning="{Binding IsValidating}"
+                                           IsVisible="{Binding IsValidating}"
+                                           Color="{StaticResource Primary}"
+                                           WidthRequest="20"
+                                           HeightRequest="20" />
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Status Message -->
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="{StaticResource Primary}"
+                   FontSize="13"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotNullConverter}}" />
+
+            <!-- Help Section -->
+            <Frame BackgroundColor="{StaticResource Gray900}"
+                   BorderColor="{StaticResource Gray800}"
+                   CornerRadius="8"
+                   Padding="20">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Python Discovery Order"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="White" />
+
+                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="1. " FontAttributes="Bold" />
+                                <Span Text="User-specified path (this setting)" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="2. " FontAttributes="Bold" />
+                                <Span Text="py launcher (Windows Python Launcher)" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="3. " FontAttributes="Bold" />
+                                <Span Text="python in PATH" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="4. " FontAttributes="Bold" />
+                                <Span Text="Common installation paths" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="5. " FontAttributes="Bold" />
+                                <Span Text="Windows Store Python" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Label Text="Requires Python 3.10 or higher."
+                           TextColor="{StaticResource Gray500}"
+                           FontSize="12"
+                           Margin="0,8,0,0" />
+
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
