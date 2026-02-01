@@ -135,6 +135,58 @@
                                 </HorizontalStackLayout>
                             </Grid>
 
+                            <!-- Log file size info row -->
+                            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
+                                <Label Grid.Column="0"
+                                       Text="{Binding LogFileSizeDisplay, StringFormat='logs.txt: {0}'}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                       VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding LogLineCountEstimate}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#888888, Dark=#777777}"
+                                       VerticalOptions="Center" />
+                                <Button Grid.Column="3"
+                                        Text="Copy Path"
+                                        Command="{Binding CopyLogFilePathCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                        FontSize="11"
+                                        Padding="6,2"
+                                        ToolTipProperties.Text="Copy full logs.txt path to clipboard" />
+                            </Grid>
+
+                            <!-- Log size warning banner (info/warning/danger) -->
+                            <Frame IsVisible="{Binding ShowLogSizeWarning}"
+                                   BackgroundColor="{AppThemeBinding Light=#FFF8E1, Dark=#3E2700}"
+                                   BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
+                                   CornerRadius="4"
+                                   Padding="10,8"
+                                   HasShadow="False">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Label Grid.Column="0"
+                                           Text="⚠"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,8,0" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding LogSizeWarningMessage}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                           VerticalOptions="Center" />
+                                    <Button Grid.Column="2"
+                                            Text="✕"
+                                            Command="{Binding DismissLogSizeWarningCommand}"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                            FontSize="12"
+                                            Padding="4"
+                                            WidthRequest="24" />
+                                </Grid>
+                            </Frame>
+
                             <!-- Epoch progress (if detected) -->
                             <Frame IsVisible="{Binding EpochProgressDisplay, Converter={StaticResource StringToBoolConverter}}"
                                    BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A237E}"

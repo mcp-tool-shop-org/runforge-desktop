@@ -104,10 +104,18 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     [ObservableProperty]
     private string? _fileResetReason;
 
+    [ObservableProperty]
+    private bool _logSizeWarningDismissed;
+
     /// <summary>
     /// Stale threshold in seconds (configurable).
     /// </summary>
     public TimeSpan StaleThreshold { get; set; } = TimeSpan.FromSeconds(30);
+
+    // Log size warning thresholds
+    private const long LogSizeInfoThreshold = 50 * 1024 * 1024;      // 50 MB
+    private const long LogSizeWarningThreshold = 250 * 1024 * 1024;  // 250 MB
+    private const long LogSizeDangerThreshold = 1024L * 1024 * 1024; // 1 GB
 
     /// <summary>
     /// Threshold for showing "possible stall" warning.
@@ -210,6 +218,72 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         IsRunInProgress &&
         LogSnapshot?.TimeSinceLastUpdate > StuckWarningThreshold;
 
+    /// <summary>
+    /// Formatted log file size for display.
+    /// </summary>
+    public string LogFileSizeDisplay
+    {
+        get
+        {
+            var bytes = LogSnapshot?.FileSizeBytes ?? 0;
+            return FormatFileSize(bytes);
+        }
+    }
+
+    /// <summary>
+    /// Estimated line count (based on ~80 bytes per line).
+    /// </summary>
+    public string LogLineCountEstimate
+    {
+        get
+        {
+            var lines = LogSnapshot?.TotalLineCount ?? 0;
+            return lines > 0 ? $"~{lines:N0} lines" : "—";
+        }
+    }
+
+    /// <summary>
+    /// Full path to the logs.txt file.
+    /// </summary>
+    public string LogFilePath => GetLogFilePath();
+
+    /// <summary>
+    /// Log size warning level: none, info, warning, or danger.
+    /// </summary>
+    public string LogSizeWarningLevel
+    {
+        get
+        {
+            var bytes = LogSnapshot?.FileSizeBytes ?? 0;
+            if (bytes >= LogSizeDangerThreshold) return "danger";
+            if (bytes >= LogSizeWarningThreshold) return "warning";
+            if (bytes >= LogSizeInfoThreshold) return "info";
+            return "none";
+        }
+    }
+
+    /// <summary>
+    /// Whether to show log size warning banner.
+    /// </summary>
+    public bool ShowLogSizeWarning => !LogSizeWarningDismissed && LogSizeWarningLevel != "none";
+
+    /// <summary>
+    /// Warning message based on log size.
+    /// </summary>
+    public string LogSizeWarningMessage
+    {
+        get
+        {
+            return LogSizeWarningLevel switch
+            {
+                "danger" => "Very large log file (1GB+). Disk usage is significant. Consider archiving or deleting old runs.",
+                "warning" => "Large log file (250MB+). Consider archiving or deleting old runs to free disk space.",
+                "info" => "Log file is growing (50MB+). Tail view is optimized, but disk usage may grow.",
+                _ => ""
+            };
+        }
+    }
+
     #endregion
 
     public RunDetailViewModel(
@@ -285,9 +359,19 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     partial void OnLogSnapshotChanged(LogSnapshot? value)
     {
         OnPropertyChanged(nameof(IsActionableStuck));
+        OnPropertyChanged(nameof(LogFileSizeDisplay));
+        OnPropertyChanged(nameof(LogLineCountEstimate));
+        OnPropertyChanged(nameof(LogSizeWarningLevel));
+        OnPropertyChanged(nameof(ShowLogSizeWarning));
+        OnPropertyChanged(nameof(LogSizeWarningMessage));
 
         // Update stuck warning state
         ShowStuckWarning = IsActionableStuck;
+    }
+
+    partial void OnLogSizeWarningDismissedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowLogSizeWarning));
     }
 
     #endregion
@@ -550,6 +634,34 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     private void ClearLogSearch()
     {
         LogSearchQuery = null;
+    }
+
+    [RelayCommand]
+    private async Task CopyLogFilePathAsync()
+    {
+        var path = GetLogFilePath();
+        if (string.IsNullOrEmpty(path))
+        {
+            StatusMessage = "No log file path available";
+            return;
+        }
+
+        try
+        {
+            await Clipboard.Default.SetTextAsync(path);
+            StatusMessage = "Log file path copied to clipboard";
+            _ = ClearStatusAfterDelayAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to copy: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void DismissLogSizeWarning()
+    {
+        LogSizeWarningDismissed = true;
     }
 
     [RelayCommand]
@@ -862,6 +974,17 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         {
             StatusMessage = null;
         }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024)
+            return $"{bytes} B";
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024 * 1024 * 1024)
+            return $"{bytes / (1024.0 * 1024):F1} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
     }
 
     #endregion
