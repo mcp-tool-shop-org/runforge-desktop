@@ -19,6 +19,8 @@
             <converters:EnumToIntConverter x:Key="EnumToIntConverter" />
             <converters:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
             <converters:ObjectToInverseBoolConverter x:Key="ObjectToInverseBoolConverter" />
+            <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
+            <converters:PositiveToColorConverter x:Key="PositiveToColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

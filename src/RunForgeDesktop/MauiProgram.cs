@@ -28,12 +28,18 @@ public static class MauiProgram
         builder.Services.AddTransient<RunsListViewModel>();
         builder.Services.AddTransient<RunDetailViewModel>();
         builder.Services.AddTransient<InterpretabilityViewModel>();
+        builder.Services.AddTransient<FeatureImportanceViewModel>();
+        builder.Services.AddTransient<LinearCoefficientsViewModel>();
+        builder.Services.AddTransient<MetricsDetailViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RunsListPage>();
         builder.Services.AddTransient<RunDetailPage>();
         builder.Services.AddTransient<InterpretabilityPage>();
+        builder.Services.AddTransient<FeatureImportancePage>();
+        builder.Services.AddTransient<LinearCoefficientsPage>();
+        builder.Services.AddTransient<MetricsDetailPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

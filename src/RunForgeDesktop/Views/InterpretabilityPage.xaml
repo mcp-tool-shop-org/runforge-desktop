@@ -143,13 +143,22 @@
                            Padding="16"
                            IsVisible="{Binding MetricsArtifact, Converter={StaticResource ObjectToBoolConverter}}">
                         <VerticalStackLayout Spacing="12">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
                                 <Label Grid.Column="0"
                                        Text="Metrics (v1)"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
                                 <Button Grid.Column="1"
+                                        Text="View Details"
+                                        Command="{Binding NavigateToMetricsDetailCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        CornerRadius="4"
+                                        Padding="12,4"
+                                        Margin="0,0,8,0" />
+                                <Button Grid.Column="2"
                                         Text="Open JSON"
                                         Command="{Binding OpenArtifactCommand}"
                                         CommandParameter="metrics.v1"
@@ -171,13 +180,22 @@
                            Padding="16"
                            IsVisible="{Binding FeatureImportance, Converter={StaticResource ObjectToBoolConverter}}">
                         <VerticalStackLayout Spacing="12">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
                                 <Label Grid.Column="0"
                                        Text="Feature Importance (v1)"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
                                 <Button Grid.Column="1"
+                                        Text="View Details"
+                                        Command="{Binding NavigateToFeatureImportanceCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        CornerRadius="4"
+                                        Padding="12,4"
+                                        Margin="0,0,8,0" />
+                                <Button Grid.Column="2"
                                         Text="Open JSON"
                                         Command="{Binding OpenArtifactCommand}"
                                         CommandParameter="feature_importance.v1"
@@ -202,13 +220,22 @@
                            Padding="16"
                            IsVisible="{Binding LinearCoefficients, Converter={StaticResource ObjectToBoolConverter}}">
                         <VerticalStackLayout Spacing="12">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
                                 <Label Grid.Column="0"
                                        Text="Linear Coefficients (v1)"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
                                 <Button Grid.Column="1"
+                                        Text="View Details"
+                                        Command="{Binding NavigateToLinearCoefficientsCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        CornerRadius="4"
+                                        Padding="12,4"
+                                        Margin="0,0,8,0" />
+                                <Button Grid.Column="2"
                                         Text="Open JSON"
                                         Command="{Binding OpenArtifactCommand}"
                                         CommandParameter="linear_coefficients.v1"

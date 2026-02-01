@@ -12,5 +12,8 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(RunsListPage), typeof(RunsListPage));
         Routing.RegisterRoute(nameof(RunDetailPage), typeof(RunDetailPage));
         Routing.RegisterRoute(nameof(InterpretabilityPage), typeof(InterpretabilityPage));
+        Routing.RegisterRoute(nameof(FeatureImportancePage), typeof(FeatureImportancePage));
+        Routing.RegisterRoute(nameof(LinearCoefficientsPage), typeof(LinearCoefficientsPage));
+        Routing.RegisterRoute(nameof(MetricsDetailPage), typeof(MetricsDetailPage));
     }
 }

@@ -137,3 +137,49 @@ public class ObjectToInverseBoolConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts a percentage (0-100) to a width value for bar charts.
+/// Default max width is 150.
+/// </summary>
+public class PercentToWidthConverter : IValueConverter
+{
+    public double MaxWidth { get; set; } = 150;
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is double percent)
+        {
+            return (percent / 100.0) * MaxWidth;
+        }
+        return 0;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a boolean (positive/negative) to a color.
+/// True = green (positive), False = red (negative).
+/// </summary>
+public class PositiveToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isPositive)
+        {
+            return isPositive
+                ? Color.FromArgb("#4CAF50") // Green for positive
+                : Color.FromArgb("#F44336"); // Red for negative
+        }
+        return Colors.Gray;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

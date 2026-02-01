@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Models;
 using RunForgeDesktop.Core.Services;
+using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -186,5 +187,59 @@ public partial class InterpretabilityViewModel : ObservableObject, IQueryAttribu
                 // Silently ignore if we can't open
             }
         }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToMetricsDetailAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir))
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId ?? "" },
+            { "runName", RunName ?? "" },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(MetricsDetailPage), parameters);
+    }
+
+    [RelayCommand]
+    private async Task NavigateToFeatureImportanceAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir))
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId ?? "" },
+            { "runName", RunName ?? "" },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(FeatureImportancePage), parameters);
+    }
+
+    [RelayCommand]
+    private async Task NavigateToLinearCoefficientsAsync()
+    {
+        if (string.IsNullOrEmpty(RunDir))
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId ?? "" },
+            { "runName", RunName ?? "" },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(LinearCoefficientsPage), parameters);
     }
 }
