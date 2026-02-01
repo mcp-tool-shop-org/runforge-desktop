@@ -189,4 +189,29 @@ public partial class RunsListViewModel : ObservableObject
         TotalRunCount = 0;
         FilteredRunCount = 0;
     }
+
+    [RelayCommand]
+    private async Task OpenWorkspaceFolderAsync()
+    {
+        if (string.IsNullOrEmpty(WorkspacePath))
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = WorkspacePath,
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // Silently ignore if we can't open the folder
+        }
+
+        await Task.CompletedTask;
+    }
 }

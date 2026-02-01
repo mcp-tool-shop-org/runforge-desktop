@@ -83,12 +83,42 @@
                 </VerticalStackLayout>
 
                 <!-- Empty state -->
-                <Label Text="No runs found"
-                       IsVisible="{Binding FilteredRunCount, Converter={StaticResource IntToInverseBoolConverter}}"
-                       FontSize="16"
-                       HorizontalOptions="Center"
+                <Frame IsVisible="{Binding FilteredRunCount, Converter={StaticResource IntToInverseBoolConverter}}"
+                       BackgroundColor="Transparent"
+                       BorderColor="Transparent"
+                       Padding="24"
                        VerticalOptions="Center"
-                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                       HorizontalOptions="Center">
+                    <VerticalStackLayout Spacing="16" MaximumWidthRequest="400">
+                        <Label Text="No runs found in this workspace"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light=#333333, Dark=#CCCCCC}" />
+
+                        <Label Text="{Binding WorkspacePath}"
+                               FontSize="12"
+                               FontFamily="Consolas"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light=#888888, Dark=#777777}"
+                               LineBreakMode="MiddleTruncation" />
+
+                        <Label Text="Runs are created when you train models using RunForge CLI or VS Code extension."
+                               FontSize="13"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+
+                        <Button Text="Open Workspace Folder"
+                                Command="{Binding OpenWorkspaceFolderCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                BorderColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                BorderWidth="1"
+                                CornerRadius="4"
+                                Padding="16,8"
+                                HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Frame>
 
                 <!-- Runs collection view -->
                 <CollectionView ItemsSource="{Binding Runs}"
