@@ -23,6 +23,9 @@
             <converters:PositiveToColorConverter x:Key="PositiveToColorConverter" />
             <converters:ArtifactStatusToColorConverter x:Key="ArtifactStatusToColorConverter" />
             <converters:ArtifactStatusToTextColorConverter x:Key="ArtifactStatusToTextColorConverter" />
+            <converters:LogStatusToColorConverter x:Key="LogStatusToColorConverter" />
+            <converters:MilestoneToColorConverter x:Key="MilestoneToColorConverter" />
+            <converters:MilestoneToFontConverter x:Key="MilestoneToFontConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

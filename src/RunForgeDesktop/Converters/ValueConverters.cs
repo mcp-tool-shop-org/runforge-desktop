@@ -239,3 +239,76 @@ public class ArtifactStatusToTextColorConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts a LogStatus enum to a color.
+/// Receiving = green, Stale = amber, Completed = blue, Failed = red, NoLogs = gray.
+/// </summary>
+public class LogStatusToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is RunForgeDesktop.Core.Services.LogStatus status)
+        {
+            return status switch
+            {
+                RunForgeDesktop.Core.Services.LogStatus.Receiving => Color.FromArgb("#4CAF50"), // Green
+                RunForgeDesktop.Core.Services.LogStatus.Stale => Color.FromArgb("#FFA726"), // Amber
+                RunForgeDesktop.Core.Services.LogStatus.Completed => Color.FromArgb("#2196F3"), // Blue
+                RunForgeDesktop.Core.Services.LogStatus.Failed => Color.FromArgb("#F44336"), // Red
+                RunForgeDesktop.Core.Services.LogStatus.NoLogs => Color.FromArgb("#9E9E9E"), // Gray
+                _ => Colors.Gray
+            };
+        }
+        return Colors.Gray;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a milestone reached status to color.
+/// Reached = green, Not reached = gray.
+/// </summary>
+public class MilestoneToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isReached)
+        {
+            return isReached
+                ? Color.FromArgb("#4CAF50") // Green
+                : Color.FromArgb("#E0E0E0"); // Light gray
+        }
+        return Color.FromArgb("#E0E0E0");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a milestone active status to font weight.
+/// Active = Bold, Not active = Normal.
+/// </summary>
+public class MilestoneToFontConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isActive)
+        {
+            return isActive ? FontAttributes.Bold : FontAttributes.None;
+        }
+        return FontAttributes.None;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

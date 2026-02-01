@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,12 +10,23 @@ using RunForgeDesktop.Views;
 namespace RunForgeDesktop.ViewModels;
 
 /// <summary>
-/// ViewModel for the run detail page.
+/// ViewModel for the run detail page with live monitoring support.
 /// </summary>
-public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
+public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, IDisposable
 {
     private readonly IRunDetailService _runDetailService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly ILiveLogService _liveLogService;
+    private readonly IRunTimelineService _timelineService;
+
+    private CancellationTokenSource? _monitoringCts;
+    private bool _disposed;
+
+    // Monitoring state
+    private long _lastKnownLogSize;
+    private long _lastKnownByteOffset;
+
+    #region Observable Properties - Core
 
     [ObservableProperty]
     private bool _isLoading;
@@ -52,6 +64,50 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty]
     private string? _rawJsonTitle;
 
+    #endregion
+
+    #region Observable Properties - Live Monitoring
+
+    [ObservableProperty]
+    private LogSnapshot? _logSnapshot;
+
+    [ObservableProperty]
+    private RunTimelineState? _timelineState;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _logTailLines = [];
+
+    [ObservableProperty]
+    private bool _isLogTailPaused;
+
+    [ObservableProperty]
+    private string? _logSearchQuery;
+
+    [ObservableProperty]
+    private bool _showLogTail;
+
+    [ObservableProperty]
+    private int _linesAddedThisTick;
+
+    /// <summary>
+    /// Stale threshold in seconds (configurable).
+    /// </summary>
+    public TimeSpan StaleThreshold { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Maximum lines to keep in tail buffer.
+    /// </summary>
+    public int MaxTailLines { get; set; } = 200;
+
+    /// <summary>
+    /// Polling interval for log monitoring.
+    /// </summary>
+    public TimeSpan PollingInterval { get; set; } = TimeSpan.FromMilliseconds(500);
+
+    #endregion
+
+    #region Computed Properties
+
     /// <summary>
     /// Whether the request has optional fields to display.
     /// </summary>
@@ -84,10 +140,60 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
         }
     }
 
-    public RunDetailViewModel(IRunDetailService runDetailService, IWorkspaceService workspaceService)
+    /// <summary>
+    /// Whether the run is still in progress (no result yet or status not set).
+    /// </summary>
+    public bool IsRunInProgress => Result is null ||
+        (Result.Status != "succeeded" && Result.Status != "failed");
+
+    /// <summary>
+    /// Whether live monitoring is active.
+    /// </summary>
+    public bool IsMonitoringActive => _monitoringCts is not null && !_monitoringCts.IsCancellationRequested;
+
+    /// <summary>
+    /// Epoch progress display string.
+    /// </summary>
+    public string? EpochProgressDisplay
+    {
+        get
+        {
+            if (TimelineState?.EpochProgress is not { } progress)
+                return null;
+
+            return progress.Total > 0
+                ? $"Epoch {progress.Current}/{progress.Total}"
+                : $"Epoch {progress.Current}";
+        }
+    }
+
+    /// <summary>
+    /// Filtered log lines based on search query.
+    /// </summary>
+    public IEnumerable<string> FilteredLogLines
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(LogSearchQuery))
+                return LogTailLines;
+
+            return LogTailLines.Where(line =>
+                line.Contains(LogSearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    #endregion
+
+    public RunDetailViewModel(
+        IRunDetailService runDetailService,
+        IWorkspaceService workspaceService,
+        ILiveLogService liveLogService,
+        IRunTimelineService timelineService)
     {
         _runDetailService = runDetailService;
         _workspaceService = workspaceService;
+        _liveLogService = liveLogService;
+        _timelineService = timelineService;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -109,12 +215,45 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
         }
     }
 
+    #region Property Change Handlers
+
     partial void OnRequestChanged(RunRequest? value)
     {
         OnPropertyChanged(nameof(HasRequestExtras));
         OnPropertyChanged(nameof(TagsDisplay));
         OnPropertyChanged(nameof(FormattedCreatedAt));
     }
+
+    partial void OnResultChanged(RunResult? value)
+    {
+        OnPropertyChanged(nameof(IsRunInProgress));
+
+        // Update timeline if run completed
+        if (value is not null && TimelineState is not null)
+        {
+            TimelineState = _timelineService.SetCompleted(TimelineState, value.IsSucceeded);
+        }
+
+        // Stop monitoring if run is complete
+        if (value is not null && !IsRunInProgress)
+        {
+            StopMonitoring();
+        }
+    }
+
+    partial void OnLogSearchQueryChanged(string? value)
+    {
+        OnPropertyChanged(nameof(FilteredLogLines));
+    }
+
+    partial void OnTimelineStateChanged(RunTimelineState? value)
+    {
+        OnPropertyChanged(nameof(EpochProgressDisplay));
+    }
+
+    #endregion
+
+    #region Commands - Core
 
     [RelayCommand]
     private async Task LoadRunDetailAsync()
@@ -140,6 +279,26 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
                 Request = loadResult.Request;
                 Result = loadResult.Result;
                 Metrics = loadResult.Metrics;
+
+                // Initialize timeline
+                TimelineState = _timelineService.CreateTimeline();
+
+                // Start live monitoring if run is in progress
+                if (IsRunInProgress)
+                {
+                    await StartMonitoringAsync();
+                }
+                else
+                {
+                    // Load initial log tail even for completed runs
+                    await LoadInitialLogTailAsync();
+
+                    // Set timeline to completed state
+                    if (Result is not null)
+                    {
+                        TimelineState = _timelineService.SetCompleted(TimelineState, Result.IsSucceeded);
+                    }
+                }
             }
             else
             {
@@ -173,7 +332,6 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
         {
             try
             {
-                // Open in default application
                 await Launcher.Default.OpenAsync(new OpenFileRequest
                 {
                     File = new ReadOnlyFile(filePath)
@@ -233,8 +391,6 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
 
             await Clipboard.Default.SetTextAsync(json);
             StatusMessage = "Request JSON copied to clipboard";
-
-            // Clear status after 3 seconds
             _ = ClearStatusAfterDelayAsync();
         }
         catch (Exception ex)
@@ -313,6 +469,196 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
         await Shell.Current.GoToAsync(nameof(InterpretabilityPage), parameters);
     }
 
+    #endregion
+
+    #region Commands - Live Log
+
+    [RelayCommand]
+    private void ToggleLogTailPause()
+    {
+        IsLogTailPaused = !IsLogTailPaused;
+    }
+
+    [RelayCommand]
+    private void ToggleLogTail()
+    {
+        ShowLogTail = !ShowLogTail;
+    }
+
+    [RelayCommand]
+    private async Task CopyVisibleLogsAsync()
+    {
+        var lines = FilteredLogLines.ToList();
+        if (lines.Count == 0)
+        {
+            StatusMessage = "No logs to copy";
+            return;
+        }
+
+        try
+        {
+            await Clipboard.Default.SetTextAsync(string.Join(Environment.NewLine, lines));
+            StatusMessage = $"Copied {lines.Count} lines to clipboard";
+            _ = ClearStatusAfterDelayAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to copy: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void ClearLogSearch()
+    {
+        LogSearchQuery = null;
+    }
+
+    #endregion
+
+    #region Live Monitoring
+
+    private string GetLogFilePath()
+    {
+        if (string.IsNullOrEmpty(RunDir) || string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath))
+            return string.Empty;
+
+        return Path.Combine(
+            _workspaceService.CurrentWorkspacePath,
+            RunDir.Replace('/', Path.DirectorySeparatorChar),
+            "logs.txt");
+    }
+
+    private async Task StartMonitoringAsync()
+    {
+        StopMonitoring();
+
+        _monitoringCts = new CancellationTokenSource();
+        var token = _monitoringCts.Token;
+
+        // Load initial tail
+        await LoadInitialLogTailAsync();
+
+        // Start polling loop
+        _ = Task.Run(async () =>
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(PollingInterval, token);
+                    await PollLogFileAsync(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch
+                {
+                    // Log error but continue polling
+                }
+            }
+        }, token);
+
+        OnPropertyChanged(nameof(IsMonitoringActive));
+    }
+
+    private void StopMonitoring()
+    {
+        _monitoringCts?.Cancel();
+        _monitoringCts?.Dispose();
+        _monitoringCts = null;
+        OnPropertyChanged(nameof(IsMonitoringActive));
+    }
+
+    private async Task LoadInitialLogTailAsync()
+    {
+        var logPath = GetLogFilePath();
+        if (string.IsNullOrEmpty(logPath))
+            return;
+
+        var (lines, totalBytes) = await _liveLogService.ReadTailAsync(logPath, MaxTailLines);
+
+        _lastKnownByteOffset = totalBytes;
+        _lastKnownLogSize = totalBytes;
+
+        // Update on UI thread
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            LogTailLines.Clear();
+            foreach (var line in lines)
+            {
+                LogTailLines.Add(line);
+            }
+
+            // Process lines for timeline
+            if (TimelineState is not null)
+            {
+                TimelineState = _timelineService.ProcessLogLines(TimelineState, lines);
+            }
+
+            // Get initial snapshot
+            var runStatus = Result?.Status;
+            LogSnapshot = _liveLogService.GetSnapshot(logPath, 0, runStatus, StaleThreshold);
+        });
+    }
+
+    private async Task PollLogFileAsync(CancellationToken token)
+    {
+        var logPath = GetLogFilePath();
+        if (string.IsNullOrEmpty(logPath))
+            return;
+
+        // Get snapshot
+        var runStatus = Result?.Status;
+        var snapshot = _liveLogService.GetSnapshot(logPath, _lastKnownLogSize, runStatus, StaleThreshold);
+
+        // Read delta if not paused and there's new data
+        IReadOnlyList<string> newLines = Array.Empty<string>();
+        if (!IsLogTailPaused && snapshot.FileSizeBytes > _lastKnownByteOffset)
+        {
+            (newLines, _lastKnownByteOffset) = await _liveLogService.ReadDeltaAsync(
+                logPath,
+                _lastKnownByteOffset,
+                MaxTailLines);
+        }
+
+        _lastKnownLogSize = snapshot.FileSizeBytes;
+
+        // Update on UI thread
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            LogSnapshot = snapshot;
+            LinesAddedThisTick = newLines.Count;
+
+            if (newLines.Count > 0)
+            {
+                // Add new lines to tail
+                foreach (var line in newLines)
+                {
+                    LogTailLines.Add(line);
+                }
+
+                // Trim to max size
+                while (LogTailLines.Count > MaxTailLines)
+                {
+                    LogTailLines.RemoveAt(0);
+                }
+
+                // Update timeline
+                if (TimelineState is not null)
+                {
+                    TimelineState = _timelineService.ProcessLogLines(TimelineState, newLines);
+                }
+
+                OnPropertyChanged(nameof(FilteredLogLines));
+            }
+        });
+    }
+
+    #endregion
+
+    #region Helpers
+
     private async Task ClearStatusAfterDelayAsync()
     {
         await Task.Delay(3000);
@@ -321,4 +667,28 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable
             StatusMessage = null;
         }
     }
+
+    #endregion
+
+    #region IDisposable
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+
+        if (disposing)
+        {
+            StopMonitoring();
+        }
+
+        _disposed = true;
+    }
+
+    #endregion
 }

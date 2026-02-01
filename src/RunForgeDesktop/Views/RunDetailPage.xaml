@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             xmlns:models="clr-namespace:RunForgeDesktop.Core.Models;assembly=RunForgeDesktop.Core"
              x:Class="RunForgeDesktop.Views.RunDetailPage"
              x:DataType="vm:RunDetailViewModel"
              Title="{Binding RunName, StringFormat='Run: {0}'}">
@@ -78,7 +79,192 @@
                 <VerticalStackLayout Spacing="16"
                                      IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
 
-                    <!-- Request section (training parameters) -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- LIVE SECTION: Heartbeat + Timeline + Log Tail -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding LogSnapshot, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="12">
+                            <!-- Header with heartbeat status -->
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Live Status"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                       VerticalOptions="Center" />
+
+                                <!-- Heartbeat pill -->
+                                <Frame Grid.Column="2"
+                                       BackgroundColor="{Binding LogSnapshot.Status, Converter={StaticResource LogStatusToColorConverter}}"
+                                       CornerRadius="12"
+                                       Padding="12,4"
+                                       HasShadow="False"
+                                       Margin="8,0">
+                                    <HorizontalStackLayout Spacing="6">
+                                        <Label Text="{Binding LogSnapshot.StatusIndicator}"
+                                               TextColor="White"
+                                               FontSize="12"
+                                               VerticalOptions="Center" />
+                                        <Label Text="{Binding LogSnapshot.StatusMessage}"
+                                               TextColor="White"
+                                               FontSize="12"
+                                               VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Frame>
+
+                                <!-- Signal strip (lines added indicator) -->
+                                <HorizontalStackLayout Grid.Column="3"
+                                                       Spacing="2"
+                                                       IsVisible="{Binding IsMonitoringActive}"
+                                                       VerticalOptions="Center">
+                                    <BoxView WidthRequest="4"
+                                             HeightRequest="12"
+                                             CornerRadius="2"
+                                             Color="{Binding LinesAddedThisTick, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter=1}"
+                                             BackgroundColor="{AppThemeBinding Light=#4CAF50, Dark=#81C784}"
+                                             Opacity="{Binding LinesAddedThisTick, Converter={StaticResource ObjectToBoolConverter}}" />
+                                    <Label Text="{Binding LinesAddedThisTick, StringFormat='+{0}'}"
+                                           FontSize="10"
+                                           TextColor="{AppThemeBinding Light=#4CAF50, Dark=#81C784}"
+                                           IsVisible="{Binding LinesAddedThisTick}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                            <!-- Epoch progress (if detected) -->
+                            <Frame IsVisible="{Binding EpochProgressDisplay, Converter={StaticResource StringToBoolConverter}}"
+                                   BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A237E}"
+                                   BorderColor="Transparent"
+                                   CornerRadius="4"
+                                   Padding="8,4"
+                                   HasShadow="False">
+                                <Label Text="{Binding EpochProgressDisplay}"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}" />
+                            </Frame>
+
+                            <!-- Timeline milestones -->
+                            <Grid IsVisible="{Binding TimelineState, Converter={StaticResource ObjectToBoolConverter}}">
+                                <HorizontalStackLayout Spacing="8"
+                                                       HorizontalOptions="Start"
+                                                       BindableLayout.ItemsSource="{Binding TimelineState.Milestones}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:RunMilestone">
+                                            <Frame Padding="8,4"
+                                                   CornerRadius="4"
+                                                   HasShadow="False"
+                                                   BackgroundColor="{Binding IsReached, Converter={StaticResource MilestoneToColorConverter}}"
+                                                   BorderColor="{Binding IsActive, Converter={StaticResource MilestoneToColorConverter}}">
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="11"
+                                                       FontAttributes="{Binding IsActive, Converter={StaticResource MilestoneToFontConverter}}"
+                                                       TextColor="{Binding IsReached, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter=White, FallbackValue=#666666}" />
+                                            </Frame>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                            <!-- Log tail toggle -->
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                <Button Grid.Column="0"
+                                        Text="{Binding ShowLogTail, Converter={StaticResource InverseBoolConverter}, ConverterParameter='Show Logs,Hide Logs'}"
+                                        Command="{Binding ToggleLogTailCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="0"
+                                        HorizontalOptions="Start" />
+
+                                <Button Grid.Column="1"
+                                        Text="{Binding IsLogTailPaused, Converter={StaticResource InverseBoolConverter}, ConverterParameter='Pause,Resume'}"
+                                        Command="{Binding ToggleLogTailPauseCommand}"
+                                        IsVisible="{Binding ShowLogTail}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+
+                                <Button Grid.Column="2"
+                                        Text="Copy"
+                                        Command="{Binding CopyVisibleLogsCommand}"
+                                        IsVisible="{Binding ShowLogTail}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+
+                                <Button Grid.Column="3"
+                                        Text="Open logs.txt"
+                                        Command="{Binding OpenRawFileCommand}"
+                                        CommandParameter="logs.txt"
+                                        IsVisible="{Binding ShowLogTail}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                        FontSize="12"
+                                        Padding="8,4" />
+                            </Grid>
+
+                            <!-- Log tail content -->
+                            <Frame IsVisible="{Binding ShowLogTail}"
+                                   BackgroundColor="{AppThemeBinding Light=#1E1E1E, Dark=#0D0D0D}"
+                                   BorderColor="{AppThemeBinding Light=#333333, Dark=#1A1A1A}"
+                                   CornerRadius="4"
+                                   Padding="0"
+                                   HasShadow="False"
+                                   HeightRequest="250">
+                                <Grid RowDefinitions="Auto,*">
+                                    <!-- Search bar -->
+                                    <Grid Grid.Row="0"
+                                          ColumnDefinitions="*,Auto"
+                                          BackgroundColor="{AppThemeBinding Light=#2D2D2D, Dark=#1A1A1A}"
+                                          Padding="8,4">
+                                        <Entry Grid.Column="0"
+                                               Placeholder="Search logs..."
+                                               Text="{Binding LogSearchQuery}"
+                                               BackgroundColor="Transparent"
+                                               TextColor="{AppThemeBinding Light=#CCCCCC, Dark=#AAAAAA}"
+                                               PlaceholderColor="{AppThemeBinding Light=#666666, Dark=#555555}"
+                                               FontSize="12" />
+                                        <Button Grid.Column="1"
+                                                Text="✕"
+                                                Command="{Binding ClearLogSearchCommand}"
+                                                IsVisible="{Binding LogSearchQuery, Converter={StaticResource StringToBoolConverter}}"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
+                                                FontSize="12"
+                                                Padding="8,2"
+                                                WidthRequest="30" />
+                                    </Grid>
+
+                                    <!-- Log lines -->
+                                    <CollectionView Grid.Row="1"
+                                                    ItemsSource="{Binding FilteredLogLines}"
+                                                    SelectionMode="None">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <Label Text="{Binding}"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light=#CCCCCC, Dark=#AAAAAA}"
+                                                       Padding="8,1"
+                                                       LineBreakMode="NoWrap" />
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+                            </Frame>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- REQUEST SECTION -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
                     <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
                            BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
                            CornerRadius="8"
@@ -212,7 +398,9 @@
                         </VerticalStackLayout>
                     </Frame>
 
-                    <!-- Result section -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- RESULT SECTION -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
                     <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
                            BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
                            CornerRadius="8"
@@ -257,7 +445,9 @@
                         </VerticalStackLayout>
                     </Frame>
 
-                    <!-- Metrics section -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- METRICS SECTION -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
                     <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
                            BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
                            CornerRadius="8"
