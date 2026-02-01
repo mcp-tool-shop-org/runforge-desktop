@@ -86,21 +86,27 @@
                                         Padding="8,4" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Preset:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Request.PresetId}" FontAttributes="Bold" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding Request.Preset}" FontAttributes="Bold" />
 
-                                <Label Grid.Row="1" Grid.Column="0" Text="Created:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Request.CreatedAt}" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="Model:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Request.Model.Family}" />
 
-                                <Label Grid.Row="2" Grid.Column="0" Text="Requested Device:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Request.RequestedDevice}" />
+                                <Label Grid.Row="2" Grid.Column="0" Text="Dataset:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Request.Dataset.Path}" />
 
-                                <Label Grid.Row="3" Grid.Column="0" Text="Actual Device:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Request.ActualDevice}" />
+                                <Label Grid.Row="3" Grid.Column="0" Text="Label Column:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Request.Dataset.LabelColumn}" />
 
-                                <Label Grid.Row="4" Grid.Column="0" Text="GPU Reason:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Request.GpuReason}" />
+                                <Label Grid.Row="4" Grid.Column="0" Text="Device:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="4" Grid.Column="1" Text="{Binding Request.Device.Type}" />
+
+                                <Label Grid.Row="5" Grid.Column="0" Text="Created:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="5" Grid.Column="1" Text="{Binding Request.CreatedAt}" />
+
+                                <Label Grid.Row="6" Grid.Column="0" Text="Created By:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="6" Grid.Column="1" Text="{Binding Request.CreatedBy}" />
                             </Grid>
                         </VerticalStackLayout>
                     </Frame>
