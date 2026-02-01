@@ -6,7 +6,7 @@
              x:DataType="vm:RunDetailViewModel"
              Title="{Binding RunName, StringFormat='Run: {0}'}">
 
-    <Grid RowDefinitions="Auto,*" Padding="16">
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
 
         <!-- Header -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
@@ -20,15 +20,22 @@
                        TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
             </VerticalStackLayout>
 
-            <Button Grid.Column="1"
-                    Text="Interpretability"
-                    Command="{Binding NavigateToInterpretabilityCommand}"
-                    BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
-                    TextColor="White"
-                    CornerRadius="4"
-                    Padding="16,8"
-                    VerticalOptions="Center"
-                    ToolTipProperties.Text="View model interpretability artifacts (feature importance, coefficients)" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                <Button Text="Open Folder"
+                        Command="{Binding OpenRunFolderCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                        FontSize="12"
+                        Padding="8,4"
+                        ToolTipProperties.Text="Open run folder in file explorer" />
+                <Button Text="Interpretability"
+                        Command="{Binding NavigateToInterpretabilityCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                        TextColor="White"
+                        CornerRadius="4"
+                        Padding="16,8"
+                        ToolTipProperties.Text="View model interpretability artifacts" />
+            </HorizontalStackLayout>
         </Grid>
 
         <!-- Content -->
@@ -56,6 +63,14 @@
                         <Label Text="{Binding ErrorMessage}"
                                FontSize="14"
                                TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                        <Button Text="Open Run Folder"
+                                Command="{Binding OpenRunFolderCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}"
+                                TextColor="White"
+                                CornerRadius="4"
+                                Padding="12,6"
+                                HorizontalOptions="Start"
+                                Margin="0,8,0,0" />
                     </VerticalStackLayout>
                 </Frame>
 
@@ -70,23 +85,42 @@
                            Padding="16"
                            IsVisible="{Binding Request, Converter={StaticResource ObjectToBoolConverter}}">
                         <VerticalStackLayout Spacing="12">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <!-- Header with action buttons -->
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                 <Label Grid.Column="0"
-                                       Text="Training Parameters"
+                                       Text="Run Request"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
                                 <Button Grid.Column="1"
-                                        Text="Open JSON"
+                                        Text="View JSON"
+                                        Command="{Binding ViewRequestJsonCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        ToolTipProperties.Text="View formatted JSON" />
+                                <Button Grid.Column="2"
+                                        Text="Copy"
+                                        Command="{Binding CopyRequestJsonCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                        FontSize="12"
+                                        Padding="8,4"
+                                        ToolTipProperties.Text="Copy JSON to clipboard" />
+                                <Button Grid.Column="3"
+                                        Text="Open File"
                                         Command="{Binding OpenRawFileCommand}"
                                         CommandParameter="request.json"
                                         BackgroundColor="Transparent"
                                         TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
                                         FontSize="12"
-                                        Padding="8,4" />
+                                        Padding="8,4"
+                                        ToolTipProperties.Text="Open in default editor" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <!-- Core fields -->
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Preset:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                                 <Label Grid.Row="0" Grid.Column="1" Text="{Binding Request.Preset}" FontAttributes="Bold" />
 
@@ -103,11 +137,78 @@
                                 <Label Grid.Row="4" Grid.Column="1" Text="{Binding Request.Device.Type}" />
 
                                 <Label Grid.Row="5" Grid.Column="0" Text="Created:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="5" Grid.Column="1" Text="{Binding Request.CreatedAt}" />
+                                <Label Grid.Row="5" Grid.Column="1" Text="{Binding FormattedCreatedAt}" />
 
                                 <Label Grid.Row="6" Grid.Column="0" Text="Created By:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                                 <Label Grid.Row="6" Grid.Column="1" Text="{Binding Request.CreatedBy}" />
                             </Grid>
+
+                            <!-- Optional fields (only shown if present) -->
+                            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasRequestExtras}">
+                                <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#404040}" Margin="0,4" />
+
+                                <!-- User-provided name -->
+                                <Grid ColumnDefinitions="140,*" IsVisible="{Binding Request.Name, Converter={StaticResource StringToBoolConverter}}">
+                                    <Label Grid.Column="0" Text="Name:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Label Grid.Column="1" Text="{Binding Request.Name}" FontAttributes="Italic" />
+                                </Grid>
+
+                                <!-- Rerun source -->
+                                <Grid ColumnDefinitions="140,*" IsVisible="{Binding Request.RerunFrom, Converter={StaticResource StringToBoolConverter}}">
+                                    <Label Grid.Column="0" Text="Rerun From:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Label Grid.Column="1" Text="{Binding Request.RerunFrom}" TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+                                </Grid>
+
+                                <!-- Tags -->
+                                <Grid ColumnDefinitions="140,*" IsVisible="{Binding TagsDisplay, Converter={StaticResource StringToBoolConverter}}">
+                                    <Label Grid.Column="0" Text="Tags:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Label Grid.Column="1" Text="{Binding TagsDisplay}" />
+                                </Grid>
+
+                                <!-- GPU Reason -->
+                                <Grid ColumnDefinitions="140,*" IsVisible="{Binding Request.Device.GpuReason, Converter={StaticResource StringToBoolConverter}}">
+                                    <Label Grid.Column="0" Text="GPU Reason:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Label Grid.Column="1" Text="{Binding Request.Device.GpuReason}" TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                                </Grid>
+
+                                <!-- Notes -->
+                                <VerticalStackLayout Spacing="4" IsVisible="{Binding Request.Notes, Converter={StaticResource StringToBoolConverter}}">
+                                    <Label Text="Notes:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                    <Frame BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                           CornerRadius="4"
+                                           Padding="12">
+                                        <Label Text="{Binding Request.Notes}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light=#333333, Dark=#CCCCCC}" />
+                                    </Frame>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Request not available message -->
+                    <Frame IsVisible="{Binding Request, Converter={StaticResource ObjectToInverseBoolConverter}}"
+                           BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3E2723}"
+                           BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
+                           CornerRadius="8"
+                           Padding="16">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Request Not Available"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                            <Label Text="The request.json file is missing or could not be parsed. This run may have been created by an older version."
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            <Button Text="Open Run Folder"
+                                    Command="{Binding OpenRunFolderCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#FF8F00, Dark=#E65100}"
+                                    TextColor="White"
+                                    CornerRadius="4"
+                                    Padding="12,6"
+                                    HorizontalOptions="Start"
+                                    FontSize="12" />
                         </VerticalStackLayout>
                     </Frame>
 
@@ -134,7 +235,7 @@
                                         Padding="8,4" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Status:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                                 <Label Grid.Row="0" Grid.Column="1"
                                        Text="{Binding Result.Status}"
@@ -179,7 +280,7 @@
                                         Padding="8,4" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Accuracy:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                                 <Label Grid.Row="0" Grid.Column="1"
                                        Text="{Binding Metrics.AccuracyPercent}"
@@ -196,35 +297,86 @@
                         </VerticalStackLayout>
                     </Frame>
 
-                    <!-- No data message -->
-                    <Frame IsVisible="{Binding Request, Converter={StaticResource ObjectToInverseBoolConverter}}"
-                           BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3E2723}"
-                           BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
-                           CornerRadius="8"
-                           Padding="24"
-                           Margin="0,32"
-                           MaximumWidthRequest="400"
-                           HorizontalOptions="Center">
-                        <VerticalStackLayout Spacing="12">
-                            <Label Text="Artifacts Not Present"
-                                   FontSize="16"
-                                   FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"
-                                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
-                            <Label Text="The expected artifact files (request.json, result.json) are not present in this run directory."
-                                   FontSize="13"
-                                   HorizontalTextAlignment="Center"
-                                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                            <Label Text="This may indicate an incomplete or corrupted run."
-                                   FontSize="12"
-                                   HorizontalTextAlignment="Center"
-                                   TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
-                        </VerticalStackLayout>
-                    </Frame>
-
                 </VerticalStackLayout>
             </Grid>
         </ScrollView>
+
+        <!-- Status message toast -->
+        <Frame Grid.Row="2"
+               IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+               BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+               CornerRadius="4"
+               Padding="12,8"
+               Margin="0,8,0,0"
+               HorizontalOptions="Center">
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="White"
+                   FontSize="13" />
+        </Frame>
+
+        <!-- Raw JSON Modal Overlay -->
+        <Grid Grid.RowSpan="3"
+              IsVisible="{Binding ShowRawJsonModal}"
+              BackgroundColor="#80000000">
+            <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                   BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                   CornerRadius="8"
+                   Padding="0"
+                   Margin="32"
+                   MaximumWidthRequest="800"
+                   MaximumHeightRequest="600"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Modal header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Padding="16" BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}">
+                        <Label Grid.Column="0"
+                               Text="{Binding RawJsonTitle}"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                               VerticalOptions="Center" />
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseRawJsonModalCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                FontSize="18"
+                                Padding="8,4"
+                                WidthRequest="40" />
+                    </Grid>
+
+                    <!-- JSON content -->
+                    <ScrollView Grid.Row="1" Padding="16">
+                        <Label Text="{Binding RawJsonContent}"
+                               FontFamily="Consolas, Courier New, monospace"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#333333, Dark=#CCCCCC}"
+                               LineBreakMode="NoWrap" />
+                    </ScrollView>
+
+                    <!-- Modal footer -->
+                    <HorizontalStackLayout Grid.Row="2"
+                                           Padding="16"
+                                           Spacing="8"
+                                           HorizontalOptions="End"
+                                           BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}">
+                        <Button Text="Copy"
+                                Command="{Binding CopyRawJsonCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                                TextColor="White"
+                                CornerRadius="4"
+                                Padding="16,8" />
+                        <Button Text="Close"
+                                Command="{Binding CloseRawJsonModalCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                                TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                CornerRadius="4"
+                                Padding="16,8" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Frame>
+        </Grid>
 
     </Grid>
 
