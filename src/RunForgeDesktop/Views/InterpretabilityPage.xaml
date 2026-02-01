@@ -40,22 +40,52 @@
                        BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
                        CornerRadius="8"
                        Padding="24"
-                       Margin="0,32">
-                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
-                        <Label Text="Interpretability Not Available"
+                       Margin="0,32"
+                       MaximumWidthRequest="450">
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+                        <Label Text="Interpretability Index Not Found"
                                FontSize="18"
                                FontAttributes="Bold"
                                HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
-                        <Label Text="This run does not have an interpretability index."
+
+                        <Label Text="This run does not have an interpretability index file."
                                FontSize="14"
                                HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                        <Label Text="Interpretability artifacts are generated during training based on model type."
-                               FontSize="12"
+
+                        <VerticalStackLayout Spacing="8" Margin="0,8,0,0">
+                            <Label Text="Possible reasons:"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#555555, Dark=#AAAAAA}" />
+
+                            <VerticalStackLayout Spacing="6" Margin="8,0,0,0">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="•" TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                                    <Label Text="Run predates interpretability feature"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="•" TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                                    <Label Text="Model type does not support interpretability"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="6">
+                                    <Label Text="•" TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                                    <Label Text="Training was interrupted before completion"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
+                        <Label Text="Interpretability artifacts are generated during training by RunForge CLI or VS Code extension."
+                               FontSize="11"
                                HorizontalTextAlignment="Center"
-                               TextColor="{AppThemeBinding Light=#888888, Dark=#777777}"
-                               MaximumWidthRequest="400" />
+                               TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
                     </VerticalStackLayout>
                 </Frame>
 
@@ -87,7 +117,7 @@
                            CornerRadius="8"
                            Padding="16">
                         <VerticalStackLayout Spacing="12">
-                            <Label Text="Available Artifacts"
+                            <Label Text="Artifact Index"
                                    FontSize="16"
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
@@ -105,21 +135,33 @@
                                                          HeightRequest="8"
                                                          CornerRadius="4"
                                                          VerticalOptions="Center"
-                                                         Color="{Binding Available, Converter={StaticResource SuccessToColorConverter}}" />
+                                                         Color="{Binding Status, Converter={StaticResource ArtifactStatusToColorConverter}}" />
 
                                                 <!-- Artifact info -->
                                                 <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                                    <Label Text="{Binding Type}"
-                                                           FontSize="14"
-                                                           FontAttributes="Bold"
-                                                           TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                                    <HorizontalStackLayout Spacing="8">
+                                                        <Label Text="{Binding Type}"
+                                                               FontSize="14"
+                                                               FontAttributes="Bold"
+                                                               TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                                        <!-- Status label -->
+                                                        <Frame Padding="6,2"
+                                                               CornerRadius="4"
+                                                               BackgroundColor="{Binding Status, Converter={StaticResource ArtifactStatusToColorConverter}}"
+                                                               HasShadow="False">
+                                                            <Label Text="{Binding StatusLabel}"
+                                                                   FontSize="10"
+                                                                   TextColor="White" />
+                                                        </Frame>
+                                                    </HorizontalStackLayout>
                                                     <Label Text="{Binding Path}"
                                                            FontSize="12"
                                                            TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                                    <Label Text="{Binding UnavailableReason}"
+                                                    <!-- Show reason when unavailable -->
+                                                    <Label Text="{Binding StatusReason}"
                                                            FontSize="11"
-                                                           TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}"
-                                                           IsVisible="{Binding UnavailableReason, Converter={StaticResource StringToBoolConverter}}" />
+                                                           TextColor="{Binding Status, Converter={StaticResource ArtifactStatusToTextColorConverter}}"
+                                                           IsVisible="{Binding StatusReason, Converter={StaticResource StringToBoolConverter}}" />
                                                 </VerticalStackLayout>
 
                                                 <!-- Schema version -->

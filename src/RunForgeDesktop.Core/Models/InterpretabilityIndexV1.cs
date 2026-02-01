@@ -87,4 +87,71 @@ public sealed record ArtifactEntry
     /// </summary>
     [JsonPropertyName("unavailable_reason")]
     public string? UnavailableReason { get; init; }
+
+    /// <summary>
+    /// Gets the availability status for display.
+    /// </summary>
+    [JsonIgnore]
+    public ArtifactAvailabilityStatus Status => Available
+        ? ArtifactAvailabilityStatus.Present
+        : UnavailableReason switch
+        {
+            "not_supported_for_model" or "unsupported_model" => ArtifactAvailabilityStatus.Unsupported,
+            "generation_failed" or "corrupt" or "invalid" => ArtifactAvailabilityStatus.Corrupt,
+            _ => ArtifactAvailabilityStatus.NotAvailable
+        };
+
+    /// <summary>
+    /// Gets a human-readable status label.
+    /// </summary>
+    [JsonIgnore]
+    public string StatusLabel => Status switch
+    {
+        ArtifactAvailabilityStatus.Present => "Present",
+        ArtifactAvailabilityStatus.Unsupported => "Unsupported",
+        ArtifactAvailabilityStatus.Corrupt => "Corrupt",
+        _ => "Not Available"
+    };
+
+    /// <summary>
+    /// Gets a human-readable reason for unavailability.
+    /// </summary>
+    [JsonIgnore]
+    public string? StatusReason => Status switch
+    {
+        ArtifactAvailabilityStatus.Present => null,
+        ArtifactAvailabilityStatus.Unsupported => "This model type does not support this artifact.",
+        ArtifactAvailabilityStatus.Corrupt => "The artifact file is corrupt or invalid.",
+        _ when !string.IsNullOrEmpty(UnavailableReason) => FormatReason(UnavailableReason),
+        _ => "This artifact was not generated for this run."
+    };
+
+    private static string FormatReason(string reason) => reason switch
+    {
+        "not_supported_for_model" => "This model type does not support this artifact.",
+        "unsupported_model" => "This model type does not support this artifact.",
+        "generation_failed" => "Artifact generation failed during training.",
+        "corrupt" => "The artifact file is corrupt.",
+        "invalid" => "The artifact file is invalid.",
+        "not_generated" => "This artifact was not generated for this run.",
+        _ => reason.Replace('_', ' ')
+    };
+}
+
+/// <summary>
+/// Availability status for interpretability artifacts.
+/// </summary>
+public enum ArtifactAvailabilityStatus
+{
+    /// <summary>Artifact is present and valid.</summary>
+    Present,
+
+    /// <summary>Artifact is not available (run predates feature or not generated).</summary>
+    NotAvailable,
+
+    /// <summary>Artifact is not supported for this model type.</summary>
+    Unsupported,
+
+    /// <summary>Artifact file exists but is corrupt or invalid.</summary>
+    Corrupt
 }

@@ -190,12 +190,30 @@
                     </Frame>
 
                     <!-- No data message -->
-                    <Label Text="No run artifacts found"
-                           IsVisible="{Binding Request, Converter={StaticResource ObjectToInverseBoolConverter}}"
-                           FontSize="16"
-                           HorizontalOptions="Center"
-                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
-                           Margin="0,32" />
+                    <Frame IsVisible="{Binding Request, Converter={StaticResource ObjectToInverseBoolConverter}}"
+                           BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3E2723}"
+                           BorderColor="{AppThemeBinding Light=#FFB74D, Dark=#FF8F00}"
+                           CornerRadius="8"
+                           Padding="24"
+                           Margin="0,32"
+                           MaximumWidthRequest="400"
+                           HorizontalOptions="Center">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="Artifacts Not Found"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                            <Label Text="The expected artifact files (request.json, result.json) were not found in this run directory."
+                                   FontSize="13"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            <Label Text="This may indicate an incomplete or corrupted run."
+                                   FontSize="12"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light=#888888, Dark=#777777}" />
+                        </VerticalStackLayout>
+                    </Frame>
 
                 </VerticalStackLayout>
             </Grid>

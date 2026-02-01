@@ -183,3 +183,59 @@ public class PositiveToColorConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts an ArtifactAvailabilityStatus to a color.
+/// Present = green, NotAvailable = amber, Unsupported = gray, Corrupt = red.
+/// </summary>
+public class ArtifactStatusToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus status)
+        {
+            return status switch
+            {
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Present => Color.FromArgb("#4CAF50"), // Green
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.NotAvailable => Color.FromArgb("#FFA726"), // Amber
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Unsupported => Color.FromArgb("#9E9E9E"), // Gray
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Corrupt => Color.FromArgb("#F44336"), // Red
+                _ => Colors.Gray
+            };
+        }
+        return Colors.Gray;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts an ArtifactAvailabilityStatus to text color.
+/// Present = green, NotAvailable = amber, Unsupported = gray, Corrupt = red.
+/// </summary>
+public class ArtifactStatusToTextColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus status)
+        {
+            return status switch
+            {
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Present => Color.FromArgb("#2E7D32"), // Dark green
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.NotAvailable => Color.FromArgb("#E65100"), // Dark amber
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Unsupported => Color.FromArgb("#616161"), // Dark gray
+                RunForgeDesktop.Core.Models.ArtifactAvailabilityStatus.Corrupt => Color.FromArgb("#C62828"), // Dark red
+                _ => Colors.Gray
+            };
+        }
+        return Colors.Gray;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -21,6 +21,8 @@
             <converters:ObjectToInverseBoolConverter x:Key="ObjectToInverseBoolConverter" />
             <converters:PercentToWidthConverter x:Key="PercentToWidthConverter" />
             <converters:PositiveToColorConverter x:Key="PositiveToColorConverter" />
+            <converters:ArtifactStatusToColorConverter x:Key="ArtifactStatusToColorConverter" />
+            <converters:ArtifactStatusToTextColorConverter x:Key="ArtifactStatusToTextColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
