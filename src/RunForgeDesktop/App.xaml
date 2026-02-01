@@ -1,7 +1,8 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version = "1.0" encoding = "UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:RunForgeDesktop"
+             xmlns:converters="clr-namespace:RunForgeDesktop.Converters"
              x:Class="RunForgeDesktop.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +10,13 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Value Converters -->
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:IntToInverseBoolConverter x:Key="IntToInverseBoolConverter" />
+            <converters:SuccessToColorConverter x:Key="SuccessToColorConverter" />
+            <converters:EnumToIntConverter x:Key="EnumToIntConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,5 +1,6 @@
 using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Services;
+using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop;
 
@@ -30,7 +31,8 @@ public partial class MainPage : ContentPage
                 var result = await _workspaceService.SetWorkspaceAsync(lastPath);
                 if (result.IsValid)
                 {
-                    await UpdateWorkspaceUIAsync(result);
+                    // Navigate directly to runs list
+                    await NavigateToRunsListAsync();
                 }
             }
         }
@@ -50,11 +52,20 @@ public partial class MainPage : ContentPage
             if (folderPath is not null)
             {
                 var discoveryResult = await _workspaceService.SetWorkspaceAsync(folderPath);
-                await UpdateWorkspaceUIAsync(discoveryResult);
 
                 if (discoveryResult.IsValid)
                 {
                     await _workspaceService.SaveLastWorkspaceAsync();
+                    await NavigateToRunsListAsync();
+                }
+                else
+                {
+                    await DisplayAlertAsync(
+                        "Invalid Workspace",
+                        $"{discoveryResult.ErrorMessage}\n\n" +
+                        $"Please select a folder containing RunForge outputs " +
+                        $"(look for .ml/outputs/index.json or .ml/runs/ directory).",
+                        "OK");
                 }
             }
         }
@@ -67,26 +78,8 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task UpdateWorkspaceUIAsync(WorkspaceDiscoveryResult result)
+    private async Task NavigateToRunsListAsync()
     {
-        if (result.IsValid)
-        {
-            await DisplayAlertAsync(
-                "Workspace Selected",
-                $"Found RunForge workspace!\n\n" +
-                $"Path: {result.WorkspacePath}\n" +
-                $"Method: {result.Method}\n\n" +
-                $"Run browsing will be implemented in the next commit.",
-                "OK");
-        }
-        else
-        {
-            await DisplayAlertAsync(
-                "Invalid Workspace",
-                $"{result.ErrorMessage}\n\n" +
-                $"Please select a folder containing RunForge outputs " +
-                $"(look for .ml/outputs/index.json or .ml/runs/ directory).",
-                "OK");
-        }
+        await Shell.Current.GoToAsync(nameof(RunsListPage));
     }
 }

@@ -1,9 +1,14 @@
-﻿namespace RunForgeDesktop;
+using RunForgeDesktop.Views;
+
+namespace RunForgeDesktop;
 
 public partial class AppShell : Shell
 {
-	public AppShell()
-	{
-		InitializeComponent();
-	}
+    public AppShell()
+    {
+        InitializeComponent();
+
+        // Register routes for navigation
+        Routing.RegisterRoute(nameof(RunsListPage), typeof(RunsListPage));
+    }
 }
