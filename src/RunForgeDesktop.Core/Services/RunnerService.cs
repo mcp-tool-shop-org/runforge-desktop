@@ -445,11 +445,9 @@ public class RunnerService : IRunnerService
     private async Task CreateSimulatorScriptAsync(string scriptPath)
     {
         // Create a Python script that simulates training
-        var script = """
+        const string script = """
             #!/usr/bin/env python3
-            """
-            + "\"\"\"Training simulator for RunForge Desktop.\"\"\"\n" +
-            """
+            '''Training simulator for RunForge Desktop.'''
             import sys
             import json
             import time

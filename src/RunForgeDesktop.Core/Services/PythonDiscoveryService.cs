@@ -124,7 +124,25 @@ public sealed partial class PythonDiscoveryService : IPythonDiscoveryService
                 return false;
             }
 
-            PythonPath = pythonPath;
+            // If using py launcher, resolve to actual python.exe path
+            // This is critical for MSIX packaged apps where py launcher
+            // may not work correctly due to sandboxing
+            var resolvedPath = pythonPath;
+            if (pythonPath.Equals("py", StringComparison.OrdinalIgnoreCase))
+            {
+                var (resolveExitCode, resolveOutput) = await RunProcessAsync(
+                    pythonPath,
+                    "-c \"import sys; print(sys.executable)\"",
+                    cancellationToken);
+
+                if (resolveExitCode == 0 && !string.IsNullOrWhiteSpace(resolveOutput))
+                {
+                    resolvedPath = resolveOutput.Trim();
+                    source = $"py launcher → {resolvedPath}";
+                }
+            }
+
+            PythonPath = resolvedPath;
             PythonVersion = version;
             DiscoveryInfo = $"Found Python {version} via {source}";
             return true;
