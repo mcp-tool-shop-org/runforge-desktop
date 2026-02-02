@@ -72,6 +72,7 @@ public sealed class CliExecutionService : ICliExecutionService
         string workspacePath,
         string runDir,
         Action<string>? onOutput = null,
+        bool dryRun = false,
         CancellationToken cancellationToken = default)
     {
         // Ensure Python is discovered
@@ -128,6 +129,10 @@ public sealed class CliExecutionService : ICliExecutionService
         {
             // Build CLI arguments
             var args = $"-m runforge_cli run --run-dir \"{fullRunPath}\" --workspace \"{workspacePath}\"";
+            if (dryRun)
+            {
+                args += " --dry-run";
+            }
 
             var startInfo = new ProcessStartInfo
             {

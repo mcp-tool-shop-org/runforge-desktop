@@ -250,7 +250,12 @@
                                 <Picker ItemsSource="{Binding DeviceTypeOptions}"
                                         SelectedItem="{Binding DeviceType}"
                                         BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
-                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                        TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                        ToolTipProperties.Text="cpu = CPU only, gpu = GPU acceleration (requires CUDA)" />
+                                <Label Text="⚠ GPU acceleration requires CUDA and is not yet supported in this version"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}"
+                                       IsVisible="{Binding DeviceType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=gpu}" />
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </Frame>

@@ -352,3 +352,24 @@ public class StringNotNullConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts a string to boolean based on equality with parameter.
+/// Returns true if value equals parameter (case-insensitive).
+/// </summary>
+public class StringEqualsConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string str && parameter is string target)
+        {
+            return string.Equals(str, target, StringComparison.OrdinalIgnoreCase);
+        }
+        return false;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

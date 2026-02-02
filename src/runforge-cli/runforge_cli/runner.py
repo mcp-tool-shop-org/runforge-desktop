@@ -26,7 +26,7 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 
 from .logger import RunLogger
 from .request import RunRequest
-from .result import ArtifactInfo, RunResult, timestamp_now
+from .result import ArtifactInfo, EffectiveConfig, RunResult, timestamp_now
 from .tokens import (
     STAGE_LOADING_DATASET,
     STAGE_TRAINING,
@@ -138,6 +138,17 @@ def run_training(
         hyperparams = get_default_hyperparameters(family)
         if request.model.hyperparameters:
             hyperparams.update(request.model.hyperparameters)
+
+        # Capture effective configuration for result
+        result.effective_config = EffectiveConfig(
+            model_family=family,
+            model_hyperparameters=hyperparams,
+            device_type=request.device.type,
+            preset=request.preset,
+            dataset_path=request.dataset.path,
+            label_column=request.dataset.label_column,
+        )
+        logger.log(f"Effective config: family={family}, device={request.device.type}")
 
         model_class = MODEL_FAMILIES[family]
         model = model_class(**hyperparams)

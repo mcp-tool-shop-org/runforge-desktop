@@ -2,6 +2,8 @@
 
 Usage:
     runforge-cli run --run-dir <path>
+    runforge-cli run --run-dir <path> --dry-run
+    runforge-cli run --run-dir <path> --dry-run --max-rows 200
 
 Exit codes:
     0 - Success
@@ -17,6 +19,7 @@ import traceback
 from pathlib import Path
 
 from . import __version__
+from .dry_run import run_dry
 from .exit_codes import FAILED, INTERNAL_ERROR, INVALID_REQUEST, MISSING_FILES, SUCCESS
 from .logger import RunLogger
 from .request import RunRequest
@@ -24,12 +27,19 @@ from .runner import run_training
 from .tokens import STAGE_COMPLETED, STAGE_FAILED, STAGE_STARTING
 
 
-def run_command(run_dir: Path, workspace: Path | None = None) -> int:
+def run_command(
+    run_dir: Path,
+    workspace: Path | None = None,
+    dry_run: bool = False,
+    max_rows: int | None = None,
+) -> int:
     """Execute a training run.
 
     Args:
         run_dir: Path to the run directory containing request.json
         workspace: Optional workspace path. If not provided, inferred from run_dir.
+        dry_run: If True, validate only without training.
+        max_rows: Optional row limit for dataset loading.
 
     Returns:
         Exit code (see exit_codes.py)
@@ -68,6 +78,8 @@ def run_command(run_dir: Path, workspace: Path | None = None) -> int:
         try:
             logger.raw(STAGE_STARTING)
             logger.log(f"runforge-cli v{__version__}")
+            if dry_run:
+                logger.log("[DRY-RUN MODE]")
             logger.log(f"Run directory: {run_dir}")
             logger.log(f"Workspace: {workspace}")
 
@@ -98,8 +110,11 @@ def run_command(run_dir: Path, workspace: Path | None = None) -> int:
             if request.rerun_from:
                 logger.log(f"Rerun from: {request.rerun_from}")
 
-            # Execute training
-            result = run_training(request, run_dir, workspace, logger)
+            # Execute training or dry-run
+            if dry_run:
+                result = run_dry(request, run_dir, workspace, logger, max_rows)
+            else:
+                result = run_training(request, run_dir, workspace, logger)
 
             # Save result
             result.save(run_dir)
@@ -154,11 +169,27 @@ def main() -> None:
         default=None,
         help="Workspace root path (optional, inferred from run-dir if not provided)",
     )
+    run_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate request and write result.json without training",
+    )
+    run_parser.add_argument(
+        "--max-rows",
+        type=int,
+        default=None,
+        help="Maximum rows to load from dataset (useful for testing)",
+    )
 
     args = parser.parse_args()
 
     if args.command == "run":
-        exit_code = run_command(args.run_dir, args.workspace)
+        exit_code = run_command(
+            args.run_dir,
+            args.workspace,
+            dry_run=args.dry_run,
+            max_rows=args.max_rows,
+        )
         sys.exit(exit_code)
 
 

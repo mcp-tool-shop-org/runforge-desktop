@@ -26,12 +26,14 @@ public interface ICliExecutionService
     /// <param name="workspacePath">Path to the workspace root.</param>
     /// <param name="runDir">Workspace-relative run directory.</param>
     /// <param name="onOutput">Callback for streaming output lines.</param>
+    /// <param name="dryRun">If true, validate without training.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Execution result.</returns>
     Task<CliExecutionResult> ExecuteRunAsync(
         string workspacePath,
         string runDir,
         Action<string>? onOutput = null,
+        bool dryRun = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -28,6 +28,7 @@
             <converters:MilestoneToFontConverter x:Key="MilestoneToFontConverter" />
             <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
             <converters:StringNotNullConverter x:Key="StringNotNullConverter" />
+            <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -21,6 +21,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     private readonly IRunTimelineService _timelineService;
     private readonly ICliExecutionService _cliExecutionService;
     private readonly IRunCreationService _runCreationService;
+    private readonly IRunRequestComparer _requestComparer;
 
     private CancellationTokenSource? _monitoringCts;
     private bool _disposed;
@@ -65,6 +66,21 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
 
     [ObservableProperty]
     private string? _rawJsonTitle;
+
+    [ObservableProperty]
+    private bool _showDiffModal;
+
+    [ObservableProperty]
+    private RunRequestDiffResult? _diffResult;
+
+    [ObservableProperty]
+    private bool _isLoadingDiff;
+
+    [ObservableProperty]
+    private string? _parentJsonContent;
+
+    [ObservableProperty]
+    private string? _currentJsonContent;
 
     #endregion
 
@@ -315,6 +331,19 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         Request is not null &&
         Result is not null;
 
+    /// <summary>
+    /// Whether the request can be edited.
+    /// For draft runs: direct edit. For completed runs: creates a rerun first.
+    /// </summary>
+    public bool CanEdit =>
+        !IsExecuting &&
+        Request is not null;
+
+    /// <summary>
+    /// Whether this run has a parent (is a rerun).
+    /// </summary>
+    public bool HasParent => !string.IsNullOrEmpty(Request?.RerunFrom);
+
     #endregion
 
     public RunDetailViewModel(
@@ -323,7 +352,8 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         ILiveLogService liveLogService,
         IRunTimelineService timelineService,
         ICliExecutionService cliExecutionService,
-        IRunCreationService runCreationService)
+        IRunCreationService runCreationService,
+        IRunRequestComparer requestComparer)
     {
         _runDetailService = runDetailService;
         _workspaceService = workspaceService;
@@ -331,6 +361,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         _timelineService = timelineService;
         _cliExecutionService = cliExecutionService;
         _runCreationService = runCreationService;
+        _requestComparer = requestComparer;
 
         // Check CLI availability on construction
         _ = CheckCliAvailabilityAsync();
@@ -369,6 +400,8 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         OnPropertyChanged(nameof(HasRequestExtras));
         OnPropertyChanged(nameof(TagsDisplay));
         OnPropertyChanged(nameof(FormattedCreatedAt));
+        OnPropertyChanged(nameof(CanEdit));
+        OnPropertyChanged(nameof(HasParent));
     }
 
     partial void OnResultChanged(RunResult? value)
@@ -423,6 +456,7 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
     {
         OnPropertyChanged(nameof(CanExecute));
         OnPropertyChanged(nameof(CanRerun));
+        OnPropertyChanged(nameof(CanEdit));
     }
 
     partial void OnIsCliAvailableChanged(bool value)
@@ -656,14 +690,112 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
             return;
         }
 
-        var parameters = new Dictionary<string, object>
+        // For completed runs, create a rerun first, then navigate to editor
+        if (Result is not null)
         {
-            { "runId", RunId },
-            { "runName", RunName ?? RunId },
-            { "runDir", RunDir }
-        };
+            try
+            {
+                var newRunDir = await _runCreationService.CloneForRerunAsync(
+                    _workspaceService.CurrentWorkspacePath!,
+                    RunDir,
+                    $"{RunName ?? RunId} (edit)");
 
-        await Shell.Current.GoToAsync(nameof(RequestEditorPage), parameters);
+                var newRunId = newRunDir.Split('/')[^1];
+                StatusMessage = "Created editable copy. Opening editor...";
+
+                var parameters = new Dictionary<string, object>
+                {
+                    { "runId", newRunId },
+                    { "runName", $"{RunName ?? RunId} (edit)" },
+                    { "runDir", newRunDir }
+                };
+
+                await Shell.Current.GoToAsync($"../{nameof(RunDetailPage)}/{nameof(RequestEditorPage)}", parameters);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to create editable copy: {ex.Message}";
+            }
+        }
+        else
+        {
+            // For draft runs, navigate directly to editor
+            var parameters = new Dictionary<string, object>
+            {
+                { "runId", RunId },
+                { "runName", RunName ?? RunId },
+                { "runDir", RunDir }
+            };
+
+            await Shell.Current.GoToAsync(nameof(RequestEditorPage), parameters);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ViewDiffFromParentAsync()
+    {
+        if (Request is null || string.IsNullOrEmpty(Request.RerunFrom))
+        {
+            StatusMessage = "This run is not a rerun";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_workspaceService.CurrentWorkspacePath) || string.IsNullOrEmpty(RunDir))
+        {
+            StatusMessage = "Invalid workspace or run";
+            return;
+        }
+
+        IsLoadingDiff = true;
+
+        try
+        {
+            DiffResult = await _requestComparer.CompareWithParentAsync(
+                _workspaceService.CurrentWorkspacePath,
+                RunDir,
+                Request);
+
+            if (DiffResult.HasParent)
+            {
+                // Serialize both for side-by-side view
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
+
+                ParentJsonContent = DiffResult.ParentRequest is not null
+                    ? JsonSerializer.Serialize(DiffResult.ParentRequest, jsonOptions)
+                    : null;
+
+                CurrentJsonContent = DiffResult.CurrentRequest is not null
+                    ? JsonSerializer.Serialize(DiffResult.CurrentRequest, jsonOptions)
+                    : null;
+
+                ShowDiffModal = true;
+            }
+            else
+            {
+                StatusMessage = $"Parent run '{Request.RerunFrom}' not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load diff: {ex.Message}";
+        }
+        finally
+        {
+            IsLoadingDiff = false;
+        }
+    }
+
+    [RelayCommand]
+    private void CloseDiffModal()
+    {
+        ShowDiffModal = false;
+        DiffResult = null;
+        ParentJsonContent = null;
+        CurrentJsonContent = null;
     }
 
     #endregion

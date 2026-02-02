@@ -14,6 +14,32 @@ from typing import Any
 
 
 @dataclass
+class EffectiveConfig:
+    """Effective configuration used for training (post-merge with defaults)."""
+
+    model_family: str = ""
+    model_hyperparameters: dict[str, Any] = field(default_factory=dict)
+    device_type: str = "cpu"
+    preset: str = "balanced"
+    dataset_path: str = ""
+    label_column: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model": {
+                "family": self.model_family,
+                "hyperparameters": self.model_hyperparameters,
+            },
+            "device": {"type": self.device_type},
+            "preset": self.preset,
+            "dataset": {
+                "path": self.dataset_path,
+                "label_column": self.label_column,
+            },
+        }
+
+
+@dataclass
 class ArtifactInfo:
     """Information about a generated artifact."""
 
@@ -40,6 +66,7 @@ class RunResult:
     artifacts: list[ArtifactInfo] = field(default_factory=list)
     error_message: str | None = None
     error_type: str | None = None
+    effective_config: EffectiveConfig | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -61,6 +88,10 @@ class RunResult:
                 "name": self.primary_metric_name,
                 "value": self.primary_metric_value,
             }
+
+        # Add effective config if present
+        if self.effective_config is not None:
+            result["effective_config"] = self.effective_config.to_dict()
 
         # Add error if failed
         if self.status == "failed" and self.error_message:
