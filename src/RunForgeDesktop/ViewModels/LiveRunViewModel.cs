@@ -106,6 +106,13 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
     public bool CanCancel => Status == RunStatus.Running || Status == RunStatus.Pending;
     public bool ShowError => IsFailed && !string.IsNullOrEmpty(ErrorMessage);
 
+    /// <summary>
+    /// Accessibility hint for loss chart - summarizes current loss value and trend.
+    /// </summary>
+    public string LossSummaryText => _allMetrics.Count > 0
+        ? $"Current loss: {CurrentLoss:F4} at step {CurrentStep}. {_allMetrics.Count} data points recorded."
+        : "No loss data available yet.";
+
     partial void OnRunIdChanged(string value)
     {
         if (!string.IsNullOrEmpty(value))
@@ -206,6 +213,9 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
                         _lastChartInvalidation = now;
                         ChartInvalidated?.Invoke();
                     }
+
+                    // Update accessibility hint for chart
+                    OnPropertyChanged(nameof(LossSummaryText));
                 });
 
                 // Trim _allMetrics to avoid unbounded growth

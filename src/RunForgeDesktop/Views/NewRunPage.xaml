@@ -15,10 +15,12 @@
                 <Label Text="New Training Run"
                        FontSize="28"
                        FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}"
+                       SemanticProperties.HeadingLevel="Level1" />
                 <Label Text="Configure and start a new training job"
                        FontSize="14"
-                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                       SemanticProperties.Description="Form to configure a new machine learning training run" />
             </VerticalStackLayout>
 
             <!-- No Workspace Banner - blocks form until workspace selected -->
@@ -27,16 +29,24 @@
                     Stroke="{AppThemeBinding Light=#FCD34D, Dark=#44403C}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
-                    Padding="20">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Workspace Required"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
-                    <Label Text="Select a workspace from the Dashboard tab before starting a training run."
-                           FontSize="14"
-                           TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
-                </VerticalStackLayout>
+                    Padding="20"
+                    SemanticProperties.Description="Warning: Workspace required. Select a workspace from the Dashboard tab before starting a training run.">
+                <HorizontalStackLayout Spacing="12">
+                    <Label Text="⚠"
+                           FontSize="24"
+                           VerticalOptions="Start"
+                           TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}"
+                           SemanticProperties.Description="Warning icon" />
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Workspace Required"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
+                        <Label Text="Select a workspace from the Dashboard tab before starting a training run."
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
             </Border>
 
             <!-- Workspace Info - shown when workspace is set -->
@@ -45,8 +55,14 @@
                     Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 8"
-                    Padding="16,12">
+                    Padding="16,12"
+                    SemanticProperties.Description="{Binding WorkspaceDisplayName, StringFormat='Current workspace: {0}'}">
                 <HorizontalStackLayout Spacing="8">
+                    <Label Text="✓"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}"
+                           SemanticProperties.Description="Checkmark icon" />
                     <Label Text="Workspace:"
                            FontSize="13"
                            TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}" />
@@ -81,13 +97,15 @@
                             <Label Text="Run Name"
                                    FontSize="14"
                                    FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}"
+                                   x:Name="RunNameLabel" />
                             <Entry Text="{Binding RunName}"
                                    Placeholder="e.g., sloaq_experiment_01"
                                    FontSize="14"
                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
-                                   PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                   PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   SemanticProperties.Description="Run name input field. Example: sloaq_experiment_01" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
@@ -116,7 +134,8 @@
                                     SelectedItem="{Binding SelectedPreset}"
                                     FontSize="14"
                                     BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
-                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
+                                    SemanticProperties.Description="Model preset selector. Choose a training configuration." />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
@@ -148,7 +167,8 @@
                                        FontSize="14"
                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
                                        TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
-                                       PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                       PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                       SemanticProperties.Description="Dataset path input. Enter path to training data folder or file." />
                                 <Button Grid.Column="1"
                                         Text="Browse"
                                         Command="{Binding BrowseDatasetCommand}"
@@ -158,12 +178,14 @@
                                         TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
                                         CornerRadius="6"
                                         Padding="16,8"
-                                        FontSize="13" />
+                                        FontSize="13"
+                                        SemanticProperties.Description="Browse for dataset folder" />
                             </Grid>
                             <!-- Dataset helper text - always visible -->
                             <Label Text="{Binding DatasetHelperText}"
                                    FontSize="12"
-                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   SemanticProperties.Description="{Binding DatasetHelperText}" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
@@ -188,11 +210,13 @@
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
-                            <HorizontalStackLayout Spacing="24">
+                            <HorizontalStackLayout Spacing="24"
+                                                   SemanticProperties.Description="Device selection. Choose GPU for faster training or CPU for compatibility.">
                                 <HorizontalStackLayout Spacing="8">
                                     <RadioButton IsChecked="{Binding UseGpu}"
                                                  IsEnabled="{Binding GpuAvailable}"
-                                                 GroupName="Device" />
+                                                 GroupName="Device"
+                                                 SemanticProperties.Description="GPU device option. Faster training with CUDA support." />
                                     <Label Text="GPU"
                                            FontSize="14"
                                            VerticalOptions="Center"
@@ -200,7 +224,8 @@
                                 </HorizontalStackLayout>
                                 <HorizontalStackLayout Spacing="8">
                                     <RadioButton IsChecked="{Binding UseGpu, Converter={StaticResource InverseBoolConverter}}"
-                                                 GroupName="Device" />
+                                                 GroupName="Device"
+                                                 SemanticProperties.Description="CPU device option. Compatible with all systems." />
                                     <Label Text="CPU"
                                            FontSize="14"
                                            VerticalOptions="Center"
@@ -210,7 +235,8 @@
                             <!-- Device helper text -->
                             <Label Text="{Binding DeviceHelperText}"
                                    FontSize="12"
-                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   SemanticProperties.Description="{Binding DeviceHelperText}" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
@@ -224,10 +250,20 @@
                             Stroke="#FECACA"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 8"
-                            Padding="12,10">
-                        <Label Text="{Binding ErrorMessage}"
-                               TextColor="#DC2626"
-                               FontSize="13" />
+                            Padding="12,10"
+                            SemanticProperties.Description="{Binding ErrorMessage, StringFormat='Error: {0}'}">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="✕"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#DC2626"
+                                   VerticalOptions="Center"
+                                   SemanticProperties.Description="Error icon" />
+                            <Label Text="{Binding ErrorMessage}"
+                                   TextColor="#DC2626"
+                                   FontSize="13"
+                                   VerticalOptions="Center" />
+                        </HorizontalStackLayout>
                     </Border>
 
                     <!-- Start Button -->
@@ -240,7 +276,8 @@
                             Padding="24,16"
                             FontSize="16"
                             FontAttributes="Bold"
-                            HorizontalOptions="Fill" />
+                            HorizontalOptions="Fill"
+                            SemanticProperties.Description="Start Training button. Creates and starts the training run with configured settings." />
 
                 </VerticalStackLayout>
             </Border>

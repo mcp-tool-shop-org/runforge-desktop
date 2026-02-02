@@ -16,12 +16,14 @@
                     <Label Text="{Binding RunName}"
                            FontSize="28"
                            FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}"
+                           SemanticProperties.HeadingLevel="Level1" />
                     <Border BackgroundColor="{Binding StatusColor}"
                             StrokeThickness="0"
                             Padding="12,6"
                             StrokeShape="RoundRectangle 6"
-                            VerticalOptions="Center">
+                            VerticalOptions="Center"
+                            SemanticProperties.Description="{Binding StatusText, StringFormat='Status: {0}'}">
                         <Label Text="{Binding StatusText}"
                                FontSize="12"
                                FontAttributes="Bold"
@@ -67,7 +69,8 @@
                 <ProgressBar Progress="{Binding Progress}"
                              ProgressColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
                              BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
-                             HeightRequest="12" />
+                             HeightRequest="12"
+                             SemanticProperties.Description="{Binding Progress, StringFormat='Training progress: {0:P0}'}" />
 
                 <!-- Metrics row -->
                 <HorizontalStackLayout Spacing="32">
@@ -129,14 +132,17 @@
                        FontSize="14"
                        FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}"
-                       Margin="16,8,0,8" />
+                       Margin="16,8,0,8"
+                       SemanticProperties.HeadingLevel="Level2" />
 
                 <!-- GraphicsView with LossChartDrawable -->
                 <GraphicsView Grid.Row="1"
                               x:Name="LossChart"
                               Drawable="{Binding ChartDrawable}"
                               HeightRequest="200"
-                              Margin="0" />
+                              Margin="0"
+                              SemanticProperties.Description="Loss curve chart showing training loss over time"
+                              SemanticProperties.Hint="{Binding LossSummaryText}" />
             </Grid>
         </Border>
 
@@ -153,11 +159,14 @@
                        FontSize="12"
                        FontAttributes="Bold"
                        TextColor="#9CA3AF"
-                       Padding="16,12" />
+                       Padding="16,12"
+                       SemanticProperties.HeadingLevel="Level2" />
 
                 <CollectionView Grid.Row="1"
                                 ItemsSource="{Binding Logs}"
-                                ItemsUpdatingScrollMode="KeepLastItemInView">
+                                ItemsUpdatingScrollMode="KeepLastItemInView"
+                                SemanticProperties.Description="Live training logs"
+                                SemanticProperties.Hint="Shows the most recent output lines from the training runner">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
                             <Label Text="{Binding}"
@@ -179,8 +188,15 @@
                     Stroke="#EF4444"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 8"
-                    Padding="16,12">
+                    Padding="16,12"
+                    SemanticProperties.Description="{Binding ErrorMessage, StringFormat='Error: {0}'}">
                 <HorizontalStackLayout Spacing="8">
+                    <Label Text="✕"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="#DC2626"
+                           VerticalOptions="Center"
+                           SemanticProperties.Description="Error icon" />
                     <Label Text="Error:"
                            FontSize="13"
                            FontAttributes="Bold"
@@ -201,7 +217,9 @@
                         TextColor="White"
                         CornerRadius="8"
                         Padding="20,12"
-                        FontSize="14" />
+                        FontSize="14"
+                        SemanticProperties.Description="Cancel the current training run"
+                        SemanticProperties.Hint="Stops the training process. This cannot be undone." />
 
                 <!-- After completion: Primary actions -->
                 <Button Text="Open Artifacts"
@@ -211,7 +229,9 @@
                         TextColor="White"
                         CornerRadius="8"
                         Padding="20,12"
-                        FontSize="14" />
+                        FontSize="14"
+                        SemanticProperties.Description="Open artifacts folder"
+                        SemanticProperties.Hint="Opens the folder containing model checkpoints and outputs" />
 
                 <Button Text="View Logs"
                         Command="{Binding OpenLogsCommand}"
@@ -222,7 +242,9 @@
                         TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
                         CornerRadius="8"
                         Padding="20,12"
-                        FontSize="14" />
+                        FontSize="14"
+                        SemanticProperties.Description="View full log file"
+                        SemanticProperties.Hint="Opens the complete training log in your default text editor" />
 
                 <!-- Always available: secondary actions -->
                 <Button Text="Open Run Folder"
@@ -233,7 +255,9 @@
                         TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
                         CornerRadius="8"
                         Padding="20,12"
-                        FontSize="14" />
+                        FontSize="14"
+                        SemanticProperties.Description="Open run folder in file explorer"
+                        SemanticProperties.Hint="Opens the run directory containing all training files" />
 
                 <Button Text="Copy Command"
                         Command="{Binding CopyCommandCommand}"
@@ -243,7 +267,9 @@
                         TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
                         CornerRadius="8"
                         Padding="20,12"
-                        FontSize="14" />
+                        FontSize="14"
+                        SemanticProperties.Description="Copy training command to clipboard"
+                        SemanticProperties.Hint="Copies the Python command used to run this training" />
             </HorizontalStackLayout>
         </VerticalStackLayout>
 
