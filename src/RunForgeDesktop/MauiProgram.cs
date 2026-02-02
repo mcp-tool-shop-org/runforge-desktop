@@ -41,6 +41,7 @@ public static class MauiProgram
         // Register view models
         // RunsListViewModel is singleton so filter/search state persists across navigation
         builder.Services.AddSingleton<RunsListViewModel>();
+        builder.Services.AddSingleton<WorkspaceDashboardViewModel>();
         builder.Services.AddTransient<RunDetailViewModel>();
         builder.Services.AddTransient<InterpretabilityViewModel>();
         builder.Services.AddTransient<FeatureImportanceViewModel>();
@@ -52,7 +53,9 @@ public static class MauiProgram
         builder.Services.AddTransient<RunCompareViewModel>();
         builder.Services.AddSingleton<ActivityStripViewModel>();
 
-        // Register pages
+        // Register shell and pages
+        builder.Services.AddSingleton<AppShell>();
+        builder.Services.AddTransient<WorkspaceDashboardPage>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RunsListPage>();
         builder.Services.AddTransient<RunDetailPage>();

@@ -40,6 +40,7 @@
             <converters:SlotFilledToColorConverter x:Key="SlotFilledToColorConverter" />
             <converters:RunDisplayStateToColorConverter x:Key="RunDisplayStateToColorConverter" />
             <converters:ActivitySystemStateToColorConverter x:Key="ActivitySystemStateToColorConverter" />
+            <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

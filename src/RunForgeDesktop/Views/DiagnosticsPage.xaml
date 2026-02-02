@@ -274,7 +274,7 @@
                         <!-- Empty state -->
                         <Label Text="No runs found in workspace."
                                FontSize="12"
-                               FontStyle="Italic"
+                               FontAttributes="Italic"
                                TextColor="{AppThemeBinding Light=#888888, Dark=#777777}"
                                IsVisible="{Binding TopRuns.Count, Converter={StaticResource InverseBoolConverter}}" />
                     </VerticalStackLayout>

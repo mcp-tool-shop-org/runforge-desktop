@@ -1,5 +1,3 @@
-using RunForgeDesktop.Core.Services;
-
 namespace RunForgeDesktop;
 
 public partial class App : Application
@@ -14,11 +12,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        // Create RootPage with activity strip wrapping the shell
-        var activityMonitor = _serviceProvider.GetRequiredService<IActivityMonitorService>();
-        var workspaceService = _serviceProvider.GetRequiredService<IWorkspaceService>();
-
-        var rootPage = new RootPage(activityMonitor, workspaceService);
-        return new Window(rootPage);
+        var appShell = _serviceProvider.GetRequiredService<AppShell>();
+        return new Window(appShell);
     }
 }

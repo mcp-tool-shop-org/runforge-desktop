@@ -1,29 +1,48 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Services;
 using RunForgeDesktop.Views;
 
-namespace RunForgeDesktop;
+namespace RunForgeDesktop.ViewModels;
 
 /// <summary>
-/// Main landing page for RunForge Desktop.
-/// Displays workspace selection and navigation to run browsing.
+/// ViewModel for the Workspace Dashboard - the app's home screen.
 /// </summary>
-public partial class MainPage : ContentPage
+public partial class WorkspaceDashboardViewModel : ObservableObject
 {
     private readonly IWorkspaceService _workspaceService;
 
-    public MainPage(IWorkspaceService workspaceService)
+    [ObservableProperty]
+    private string? _workspacePath;
+
+    public bool HasWorkspace => !string.IsNullOrEmpty(WorkspacePath);
+
+    public WorkspaceDashboardViewModel(IWorkspaceService workspaceService)
     {
-        InitializeComponent();
         _workspaceService = workspaceService;
 
-        // Set build stamp for version verification
-        var asm = typeof(MainPage).Assembly;
-        var buildTime = File.GetLastWriteTime(asm.Location);
-        BuildStampLabel.Text = $"v0.5.0 | {buildTime:HH:mm:ss} | {Path.GetFileName(asm.Location)}";
+        // Initialize from current workspace
+        WorkspacePath = _workspaceService.CurrentWorkspacePath;
+
+        // Listen for workspace changes
+        _workspaceService.WorkspaceChanged += OnWorkspaceChanged;
 
         // Try to load last workspace on startup
         _ = TryLoadLastWorkspaceAsync();
+    }
+
+    partial void OnWorkspacePathChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasWorkspace));
+    }
+
+    private void OnWorkspaceChanged(object? sender, WorkspaceChangedEventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            WorkspacePath = e.NewPath;
+        });
     }
 
     private async Task TryLoadLastWorkspaceAsync()
@@ -36,8 +55,7 @@ public partial class MainPage : ContentPage
                 var result = await _workspaceService.SetWorkspaceAsync(lastPath);
                 if (result.IsValid)
                 {
-                    // Navigate directly to runs list
-                    await NavigateToRunsListAsync();
+                    WorkspacePath = lastPath;
                 }
             }
         }
@@ -47,11 +65,11 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void OnSelectWorkspaceClicked(object? sender, EventArgs e)
+    [RelayCommand]
+    private async Task SelectWorkspaceAsync()
     {
         try
         {
-            // Use Windows-native folder picker
             var folderPath = await FolderPickerService.PickFolderAsync();
 
             if (folderPath is not null)
@@ -61,34 +79,41 @@ public partial class MainPage : ContentPage
                 if (discoveryResult.IsValid)
                 {
                     await _workspaceService.SaveLastWorkspaceAsync();
-                    await NavigateToRunsListAsync();
+                    WorkspacePath = folderPath;
+
+                    // Navigate to runs list
+                    await Shell.Current.GoToAsync(nameof(RunsListPage));
                 }
                 else
                 {
-                    await DisplayAlertAsync(
+                    await Shell.Current.DisplayAlert(
                         "Invalid Workspace",
                         $"{discoveryResult.ErrorMessage}\n\n" +
-                        $"Please select a folder containing RunForge outputs " +
-                        $"(look for .ml/outputs/index.json or .ml/runs/ directory).",
+                        "Please select a folder containing RunForge outputs.",
                         "OK");
                 }
             }
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync(
+            await Shell.Current.DisplayAlert(
                 "Error",
                 $"Failed to select workspace: {ex.Message}",
                 "OK");
         }
     }
 
-    private async Task NavigateToRunsListAsync()
+    [RelayCommand]
+    private async Task BrowseRunsAsync()
     {
-        await Shell.Current.GoToAsync(nameof(RunsListPage));
+        if (HasWorkspace)
+        {
+            await Shell.Current.GoToAsync(nameof(RunsListPage));
+        }
     }
 
-    private async void OnDiagnosticsClicked(object? sender, EventArgs e)
+    [RelayCommand]
+    private async Task OpenDiagnosticsAsync()
     {
         await Shell.Current.GoToAsync(nameof(DiagnosticsPage));
     }

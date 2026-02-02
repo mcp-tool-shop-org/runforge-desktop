@@ -8,9 +8,10 @@
     Title="RunForge Desktop"
     Shell.FlyoutBehavior="Disabled">
 
+    <!-- Dashboard is the startup page -->
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Dashboard"
+        ContentTemplate="{DataTemplate views:WorkspaceDashboardPage}"
+        Route="dashboard" />
 
 </Shell>

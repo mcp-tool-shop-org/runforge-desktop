@@ -1,14 +1,16 @@
+using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop;
 
 public partial class AppShell : Shell
 {
-    public AppShell()
+    public AppShell(IActivityMonitorService activityMonitor, IWorkspaceService workspaceService)
     {
         InitializeComponent();
 
         // Register routes for navigation
+        Routing.RegisterRoute(nameof(WorkspaceDashboardPage), typeof(WorkspaceDashboardPage));
         Routing.RegisterRoute(nameof(RunsListPage), typeof(RunsListPage));
         Routing.RegisterRoute(nameof(RunDetailPage), typeof(RunDetailPage));
         Routing.RegisterRoute(nameof(InterpretabilityPage), typeof(InterpretabilityPage));
@@ -19,5 +21,10 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(RequestEditorPage), typeof(RequestEditorPage));
         Routing.RegisterRoute(nameof(RunComparePage), typeof(RunComparePage));
+
+        // Store services for future activity strip implementation
+        // Global activity strip will be added later via proper Shell template
+        _ = activityMonitor;
+        _ = workspaceService;
     }
 }

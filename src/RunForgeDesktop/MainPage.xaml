@@ -100,7 +100,7 @@
         <!-- Footer -->
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
             <Label Grid.Column="0"
-                   Text="v0.1.1 — Read-only by design"
+                   x:Name="BuildStampLabel"
                    FontSize="12"
                    TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
                    HorizontalTextAlignment="Center"
