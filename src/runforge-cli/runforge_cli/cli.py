@@ -6,7 +6,7 @@ Usage:
     runforge-cli run --run-dir <path> --dry-run --max-rows 200
     runforge-cli sweep --plan <path>
     runforge-cli sweep --plan <path> --enqueue
-    runforge-cli daemon --workspace <path> [--max-parallel 2]
+    runforge-cli daemon --workspace <path> [--max-parallel 2] [--gpu-slots 1]
     runforge-cli enqueue-run --run-id <id> --workspace <path>
     runforge-cli enqueue-sweep --plan <path>
     runforge-cli pause-group --group-id <id> --workspace <path>
@@ -240,6 +240,12 @@ def main() -> None:
         default=2,
         help="Maximum concurrent jobs (default: 2)",
     )
+    daemon_parser.add_argument(
+        "--gpu-slots",
+        type=int,
+        default=1,
+        help="Maximum concurrent GPU jobs (default: 1)",
+    )
 
     # enqueue-run command
     enqueue_run_parser = subparsers.add_parser(
@@ -397,7 +403,7 @@ def main() -> None:
             exit_code = sweep_command(args.plan)
         sys.exit(exit_code)
     elif args.command == "daemon":
-        exit_code = daemon_command(args.workspace, args.max_parallel)
+        exit_code = daemon_command(args.workspace, args.max_parallel, args.gpu_slots)
         sys.exit(exit_code)
     elif args.command == "enqueue-run":
         exit_code = enqueue_run_command(

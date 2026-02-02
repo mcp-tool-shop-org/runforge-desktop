@@ -16,6 +16,9 @@ public sealed record ExecutionQueue
     [JsonPropertyName("max_parallel")]
     public int MaxParallel { get; init; } = 2;
 
+    [JsonPropertyName("gpu_slots")]
+    public int GpuSlots { get; init; } = 1;
+
     [JsonPropertyName("jobs")]
     public IReadOnlyList<QueueJob> Jobs { get; init; } = [];
 
@@ -36,6 +39,12 @@ public sealed record ExecutionQueue
 
     /// <summary>Gets canceled jobs.</summary>
     public IEnumerable<QueueJob> CanceledJobs => Jobs.Where(j => j.State == "canceled");
+
+    /// <summary>Gets queued GPU jobs.</summary>
+    public IEnumerable<QueueJob> QueuedGpuJobs => Jobs.Where(j => j.State == "queued" && j.RequiresGpu);
+
+    /// <summary>Gets running GPU jobs.</summary>
+    public IEnumerable<QueueJob> RunningGpuJobs => Jobs.Where(j => j.State == "running" && j.RequiresGpu);
 }
 
 /// <summary>
@@ -63,6 +72,12 @@ public sealed record QueueJob
     /// </summary>
     [JsonPropertyName("state")]
     public required string State { get; init; }
+
+    /// <summary>
+    /// Whether this job requires a GPU slot.
+    /// </summary>
+    [JsonPropertyName("requires_gpu")]
+    public bool RequiresGpu { get; init; }
 
     [JsonPropertyName("attempt")]
     public int Attempt { get; init; } = 1;
@@ -109,8 +124,14 @@ public sealed record DaemonStatus
     [JsonPropertyName("max_parallel")]
     public int MaxParallel { get; init; } = 2;
 
+    [JsonPropertyName("gpu_slots")]
+    public int GpuSlots { get; init; } = 1;
+
     [JsonPropertyName("active_jobs")]
     public int ActiveJobs { get; init; }
+
+    [JsonPropertyName("active_gpu_jobs")]
+    public int ActiveGpuJobs { get; init; }
 
     /// <summary>
     /// State: "running", "stopping", "stopped".
@@ -144,4 +165,7 @@ public sealed record DaemonStatus
             return false;
         }
     }
+
+    /// <summary>Gets available GPU slots.</summary>
+    public int AvailableGpuSlots => GpuSlots - ActiveGpuJobs;
 }

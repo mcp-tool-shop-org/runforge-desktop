@@ -24,6 +24,7 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
+from .gpu import select_device
 from .logger import RunLogger
 from .request import RunRequest
 from .result import ArtifactInfo, EffectiveConfig, RunResult, timestamp_now
@@ -32,6 +33,7 @@ from .tokens import (
     STAGE_TRAINING,
     STAGE_EVALUATING,
     STAGE_WRITING_ARTIFACTS,
+    device_selected,
     epoch,
 )
 
@@ -139,16 +141,28 @@ def run_training(
         if request.model.hyperparameters:
             hyperparams.update(request.model.hyperparameters)
 
+        # Resolve device: GPU requested → check availability, fallback to CPU with reason
+        requested_device = request.device.type
+        actual_device, gpu_reason = select_device(requested_device)
+
+        # Emit device token
+        logger.raw(device_selected(actual_device, gpu_reason))
+        if gpu_reason:
+            logger.log(f"Device: {actual_device} (fallback from {requested_device}: {gpu_reason})")
+        else:
+            logger.log(f"Device: {actual_device}")
+
         # Capture effective configuration for result
         result.effective_config = EffectiveConfig(
             model_family=family,
             model_hyperparameters=hyperparams,
-            device_type=request.device.type,
+            device_type=actual_device,
+            gpu_reason=gpu_reason,
             preset=request.preset,
             dataset_path=request.dataset.path,
             label_column=request.dataset.label_column,
         )
-        logger.log(f"Effective config: family={family}, device={request.device.type}")
+        logger.log(f"Effective config: family={family}, device={actual_device}")
 
         model_class = MODEL_FAMILIES[family]
         model = model_class(**hyperparams)

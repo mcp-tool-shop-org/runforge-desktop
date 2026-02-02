@@ -20,17 +20,21 @@ class EffectiveConfig:
     model_family: str = ""
     model_hyperparameters: dict[str, Any] = field(default_factory=dict)
     device_type: str = "cpu"
+    gpu_reason: str | None = None  # Reason if GPU was requested but CPU used
     preset: str = "balanced"
     dataset_path: str = ""
     label_column: str = ""
 
     def to_dict(self) -> dict[str, Any]:
+        device_dict: dict[str, Any] = {"type": self.device_type}
+        if self.gpu_reason:
+            device_dict["gpu_reason"] = self.gpu_reason
         return {
             "model": {
                 "family": self.model_family,
                 "hyperparameters": self.model_hyperparameters,
             },
-            "device": {"type": self.device_type},
+            "device": device_dict,
             "preset": self.preset,
             "dataset": {
                 "path": self.dataset_path,

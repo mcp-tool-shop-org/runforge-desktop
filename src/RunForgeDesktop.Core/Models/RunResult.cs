@@ -191,10 +191,27 @@ public sealed record EffectiveModelConfig
 public sealed record EffectiveDeviceConfig
 {
     /// <summary>
-    /// Device type used.
+    /// Device type used ("cpu" or "gpu").
     /// </summary>
     [JsonPropertyName("type")]
     public string? Type { get; init; }
+
+    /// <summary>
+    /// Reason if GPU was requested but CPU was used.
+    /// Examples: "no_gpu_detected", "gpu_busy", "gpu_slot_unavailable".
+    /// </summary>
+    [JsonPropertyName("gpu_reason")]
+    public string? GpuReason { get; init; }
+
+    /// <summary>
+    /// Whether GPU was used.
+    /// </summary>
+    public bool IsGpu => Type?.Equals("gpu", StringComparison.OrdinalIgnoreCase) == true;
+
+    /// <summary>
+    /// Whether this was a fallback from GPU to CPU.
+    /// </summary>
+    public bool IsFallback => !string.IsNullOrEmpty(GpuReason);
 }
 
 /// <summary>

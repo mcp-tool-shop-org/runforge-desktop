@@ -5,12 +5,14 @@ Provides:
 - Daemon state file (.runforge/queue/daemon.json)
 - Job management (enqueue, dequeue, update status)
 - Atomic file updates
+- GPU slot tracking for GPU jobs
 
 Queue Schema (queue.json):
 {
     "version": 1,
     "kind": "execution_queue",
     "max_parallel": 2,
+    "gpu_slots": 1,
     "jobs": [
         {
             "job_id": "job_20260201_120000_0001",
@@ -19,6 +21,7 @@ Queue Schema (queue.json):
             "group_id": "grp_20260201_120000_Test" | null,
             "priority": 0,
             "state": "queued" | "running" | "succeeded" | "failed" | "canceled",
+            "requires_gpu": false,
             "attempt": 1,
             "created_at": "2026-02-01T12:00:00",
             "started_at": null,
@@ -35,7 +38,9 @@ Daemon Schema (daemon.json):
     "started_at": "2026-02-01T12:00:00",
     "last_heartbeat": "2026-02-01T12:05:00",
     "max_parallel": 2,
+    "gpu_slots": 1,
     "active_jobs": 1,
+    "active_gpu_jobs": 0,
     "state": "running" | "stopping" | "stopped"
 }
 """
@@ -63,6 +68,7 @@ class Job:
     state: str  # "queued", "running", "succeeded", "failed", "canceled"
     attempt: int
     created_at: str
+    requires_gpu: bool = False  # Whether this job needs a GPU slot
     started_at: str | None = None
     finished_at: str | None = None
     error: str | None = None
@@ -75,6 +81,7 @@ class Job:
             "group_id": self.group_id,
             "priority": self.priority,
             "state": self.state,
+            "requires_gpu": self.requires_gpu,
             "attempt": self.attempt,
             "created_at": self.created_at,
             "started_at": self.started_at,
@@ -91,6 +98,7 @@ class Job:
             group_id=data.get("group_id"),
             priority=data.get("priority", 0),
             state=data.get("state", "queued"),
+            requires_gpu=data.get("requires_gpu", False),
             attempt=data.get("attempt", 1),
             created_at=data.get("created_at", datetime.now().isoformat()),
             started_at=data.get("started_at"),
@@ -106,6 +114,7 @@ class QueueState:
     version: int = 1
     kind: str = "execution_queue"
     max_parallel: int = 2
+    gpu_slots: int = 1  # Number of concurrent GPU jobs allowed
     jobs: list[Job] = field(default_factory=list)
     last_served_group: str | None = None  # For round-robin fairness
 
@@ -114,6 +123,7 @@ class QueueState:
             "version": self.version,
             "kind": self.kind,
             "max_parallel": self.max_parallel,
+            "gpu_slots": self.gpu_slots,
             "jobs": [job.to_dict() for job in self.jobs],
             "last_served_group": self.last_served_group,
         }
@@ -125,6 +135,7 @@ class QueueState:
             version=data.get("version", 1),
             kind=data.get("kind", "execution_queue"),
             max_parallel=data.get("max_parallel", 2),
+            gpu_slots=data.get("gpu_slots", 1),
             jobs=jobs,
             last_served_group=data.get("last_served_group"),
         )
@@ -139,7 +150,9 @@ class DaemonState:
     started_at: str = ""
     last_heartbeat: str = ""
     max_parallel: int = 2
+    gpu_slots: int = 1  # Number of concurrent GPU jobs allowed
     active_jobs: int = 0
+    active_gpu_jobs: int = 0  # Number of GPU jobs currently running
     state: str = "stopped"  # "running", "stopping", "stopped"
 
     def to_dict(self) -> dict[str, Any]:
@@ -149,7 +162,9 @@ class DaemonState:
             "started_at": self.started_at,
             "last_heartbeat": self.last_heartbeat,
             "max_parallel": self.max_parallel,
+            "gpu_slots": self.gpu_slots,
             "active_jobs": self.active_jobs,
+            "active_gpu_jobs": self.active_gpu_jobs,
             "state": self.state,
         }
 
@@ -161,7 +176,9 @@ class DaemonState:
             started_at=data.get("started_at", ""),
             last_heartbeat=data.get("last_heartbeat", ""),
             max_parallel=data.get("max_parallel", 2),
+            gpu_slots=data.get("gpu_slots", 1),
             active_jobs=data.get("active_jobs", 0),
+            active_gpu_jobs=data.get("active_gpu_jobs", 0),
             state=data.get("state", "stopped"),
         )
 
@@ -245,6 +262,7 @@ class QueueManager:
         run_id: str,
         group_id: str | None = None,
         priority: int = 0,
+        requires_gpu: bool = False,
     ) -> Job:
         """Add a job to the queue. Returns the created job."""
         with self._lock:
@@ -262,6 +280,7 @@ class QueueManager:
                 group_id=group_id,
                 priority=priority,
                 state="queued",
+                requires_gpu=requires_gpu,
                 attempt=1,
                 created_at=datetime.now().isoformat(),
             )
@@ -269,14 +288,22 @@ class QueueManager:
             self.save_queue(state)
             return job
 
-    def dequeue_next(self, paused_groups: set[str] | None = None) -> Job | None:
+    def dequeue_next(
+        self,
+        paused_groups: set[str] | None = None,
+        gpu_slots_available: int = 1,
+    ) -> Job | None:
         """Get the next job to run using round-robin by group.
 
         Round-robin ensures fairness: after serving a group, we try to
         serve a different group next. Within a group, priority then FIFO.
 
+        GPU jobs are only scheduled if gpu_slots_available > 0.
+        CPU jobs ignore GPU slots and can always be scheduled.
+
         Args:
             paused_groups: Set of group IDs that are paused.
+            gpu_slots_available: Number of GPU slots currently available.
 
         Returns:
             Next job to run, or None if no jobs available.
@@ -288,10 +315,12 @@ class QueueManager:
             state = self.load_queue()
 
             # Get queued jobs not in paused groups
+            # GPU jobs only if slots available
             queued = [
                 j for j in state.jobs
                 if j.state == "queued"
                 and (j.group_id is None or j.group_id not in paused_groups)
+                and (not j.requires_gpu or gpu_slots_available > 0)
             ]
 
             if not queued:
@@ -422,16 +451,33 @@ class QueueManager:
         state = self.load_queue()
         return sum(1 for j in state.jobs if j.state == "running")
 
+    def get_running_gpu_count(self) -> int:
+        """Get count of currently running GPU jobs."""
+        state = self.load_queue()
+        return sum(1 for j in state.jobs if j.state == "running" and j.requires_gpu)
+
     def get_queued_count(self) -> int:
         """Get count of queued jobs."""
         state = self.load_queue()
         return sum(1 for j in state.jobs if j.state == "queued")
+
+    def get_queued_gpu_count(self) -> int:
+        """Get count of queued GPU jobs."""
+        state = self.load_queue()
+        return sum(1 for j in state.jobs if j.state == "queued" and j.requires_gpu)
 
     def set_max_parallel(self, max_parallel: int) -> None:
         """Update the max_parallel setting."""
         with self._lock:
             state = self.load_queue()
             state.max_parallel = max_parallel
+            self.save_queue(state)
+
+    def set_gpu_slots(self, gpu_slots: int) -> None:
+        """Update the gpu_slots setting."""
+        with self._lock:
+            state = self.load_queue()
+            state.gpu_slots = gpu_slots
             self.save_queue(state)
 
     def cleanup_old_jobs(self, max_age_days: int = 7) -> int:

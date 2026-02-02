@@ -31,6 +31,7 @@ The queue system provides:
     "version": 1,
     "kind": "execution_queue",
     "max_parallel": 2,
+    "gpu_slots": 1,
     "last_served_group": "grp_20260201_150000_Test",
     "jobs": [
         {
@@ -40,6 +41,7 @@ The queue system provides:
             "group_id": "grp_20260201_150000_Test",
             "priority": 0,
             "state": "queued",
+            "requires_gpu": false,
             "attempt": 1,
             "created_at": "2026-02-01T15:00:00",
             "started_at": null,
@@ -70,6 +72,7 @@ The queue system provides:
 | `group_id` | string? | Group ID (null for ungrouped runs) |
 | `priority` | int | Higher = scheduled first (default 0) |
 | `state` | string | Current state |
+| `requires_gpu` | bool | Whether job needs a GPU slot (v0.4.0+) |
 | `attempt` | int | Attempt number (increments on retry) |
 | `created_at` | ISO8601 | When job was created |
 | `started_at` | ISO8601? | When execution started |
@@ -85,7 +88,9 @@ The queue system provides:
     "started_at": "2026-02-01T15:00:00",
     "last_heartbeat": "2026-02-01T15:05:00",
     "max_parallel": 2,
+    "gpu_slots": 1,
     "active_jobs": 1,
+    "active_gpu_jobs": 0,
     "state": "running"
 }
 ```
@@ -117,7 +122,7 @@ Groups can be paused by setting `"paused": true` in `group.json`. When a group i
 
 ```bash
 # Start daemon
-runforge-cli daemon --workspace <path> [--max-parallel 2]
+runforge-cli daemon --workspace <path> [--max-parallel 2] [--gpu-slots 1]
 
 # Daemon runs until SIGINT/SIGTERM
 ```
@@ -175,6 +180,21 @@ The scheduler uses round-robin by group to ensure fairness:
 
 Higher priority jobs are scheduled first within their group. Priority is a simple integer (default 0).
 
+### GPU Slot Scheduling (v0.4.0+)
+
+GPU jobs are scheduled with additional constraints:
+
+1. Jobs with `requires_gpu: true` need a GPU slot to run
+2. GPU slots are separate from `max_parallel` (CPU jobs don't consume GPU slots)
+3. GPU jobs wait if all GPU slots are in use
+4. CPU jobs can always run if parallel slots are available
+
+Example: `--max-parallel 4 --gpu-slots 1`
+- Up to 4 jobs run concurrently
+- At most 1 GPU job runs at a time
+- CPU jobs fill remaining slots
+- GPU jobs wait for GPU slot, not blocked by CPU jobs
+
 ## Exit Codes
 
 | Code | Name | Description |
@@ -192,11 +212,24 @@ New tokens for queue mode:
 [RF:GROUP=ENQUEUED grp_xxx runs=N]   # Group enqueued to queue
 [RF:GROUP=PAUSED grp_xxx]            # Group paused
 [RF:GROUP=RESUMED grp_xxx]           # Group resumed
-[RF:DAEMON=STARTED pid=N max_parallel=N]  # Daemon started
+[RF:DAEMON=STARTED pid=N max_parallel=N gpu_slots=N]  # Daemon started
 [RF:DAEMON=STOPPED pid=N]            # Daemon stopped
 [RF:QUEUE=JOB_STARTED job_xxx run_id=xxx]  # Job started
+[RF:QUEUE=JOB_STARTED job_xxx run_id=xxx gpu=true]  # GPU job started
 [RF:QUEUE=JOB_DONE job_xxx run_id=xxx status=xxx]  # Job completed
+[RF:DEVICE=GPU]                      # Using GPU
+[RF:DEVICE=CPU gpu_reason=xxx]       # Fallback to CPU with reason
 ```
+
+### GPU Reasons
+
+| Reason | Description |
+|--------|-------------|
+| `no_gpu_detected` | No GPU available on the system |
+| `gpu_busy` | GPU is in use by another process |
+| `gpu_slot_unavailable` | No GPU slot available in the scheduler |
+| `unsupported_model` | Model family doesn't support GPU |
+| `user_requested_cpu` | User explicitly requested CPU |
 
 ## Atomic Updates
 

@@ -107,11 +107,13 @@ class ExecutionDaemon:
         self,
         workspace: Path,
         max_parallel: int = 2,
+        gpu_slots: int = 1,
         heartbeat_interval: float = 5.0,
         poll_interval: float = 1.0,
     ):
         self.workspace = workspace
         self.max_parallel = max_parallel
+        self.gpu_slots = gpu_slots
         self.heartbeat_interval = heartbeat_interval
         self.poll_interval = poll_interval
 
@@ -122,18 +124,23 @@ class ExecutionDaemon:
         self._shutdown_requested = False
         self._lock = threading.Lock()
         self._active_jobs: dict[str, Future[tuple[bool, str | None]]] = {}
+        self._active_gpu_jobs: set[str] = set()  # Track which active jobs are GPU jobs
         self._executor: ThreadPoolExecutor | None = None
         self._heartbeat_thread: threading.Thread | None = None
 
     def _write_daemon_state(self, state: str = "running") -> None:
         """Write daemon state file."""
+        with self._lock:
+            active_gpu = len(self._active_gpu_jobs)
         daemon_state = DaemonState(
             version=1,
             pid=os.getpid(),
             started_at=getattr(self, "_started_at", datetime.now().isoformat()),
             last_heartbeat=datetime.now().isoformat(),
             max_parallel=self.max_parallel,
+            gpu_slots=self.gpu_slots,
             active_jobs=len(self._active_jobs),
+            active_gpu_jobs=active_gpu,
             state=state,
         )
         self.queue_mgr.save_daemon(daemon_state)
@@ -144,13 +151,16 @@ class ExecutionDaemon:
             try:
                 with self._lock:
                     active = len(self._active_jobs)
+                    active_gpu = len(self._active_gpu_jobs)
                 daemon_state = DaemonState(
                     version=1,
                     pid=os.getpid(),
                     started_at=self._started_at,
                     last_heartbeat=datetime.now().isoformat(),
                     max_parallel=self.max_parallel,
+                    gpu_slots=self.gpu_slots,
                     active_jobs=active,
+                    active_gpu_jobs=active_gpu,
                     state="stopping" if self._shutdown_requested else "running",
                 )
                 self.queue_mgr.save_daemon(daemon_state)
@@ -288,6 +298,8 @@ class ExecutionDaemon:
 
             for job_id, future in completed:
                 del self._active_jobs[job_id]
+                # Remove from GPU tracking if applicable
+                self._active_gpu_jobs.discard(job_id)
 
                 try:
                     success, error = future.result()
@@ -299,7 +311,8 @@ class ExecutionDaemon:
                         if job.job_id == job_id:
                             self._update_group_on_completion(job, success)
                             status = "succeeded" if success else "failed"
-                            print(f"[DAEMON] Job {job_id} ({job.run_id}) {status}")
+                            gpu_tag = " [GPU]" if job.requires_gpu else ""
+                            print(f"[DAEMON] Job {job_id} ({job.run_id}){gpu_tag} {status}")
                             break
 
                 except Exception as e:
@@ -307,9 +320,10 @@ class ExecutionDaemon:
                     print(f"[DAEMON] Job {job_id} failed: {e}", file=sys.stderr)
 
     def _schedule_jobs(self) -> None:
-        """Schedule new jobs up to max_parallel."""
+        """Schedule new jobs up to max_parallel, respecting GPU slots."""
         with self._lock:
             available_slots = self.max_parallel - len(self._active_jobs)
+            gpu_slots_available = self.gpu_slots - len(self._active_gpu_jobs)
 
         if available_slots <= 0:
             return
@@ -317,15 +331,22 @@ class ExecutionDaemon:
         paused_groups = self.pause_mgr.get_paused_groups()
 
         for _ in range(available_slots):
-            job = self.queue_mgr.dequeue_next(paused_groups)
+            # Recalculate GPU slots in case we scheduled a GPU job
+            with self._lock:
+                gpu_slots_available = self.gpu_slots - len(self._active_gpu_jobs)
+
+            job = self.queue_mgr.dequeue_next(paused_groups, gpu_slots_available)
             if job is None:
                 break
 
-            print(f"[DAEMON] Starting job {job.job_id} ({job.run_id})")
+            gpu_tag = " [GPU]" if job.requires_gpu else ""
+            print(f"[DAEMON] Starting job {job.job_id} ({job.run_id}){gpu_tag}")
 
             with self._lock:
                 future = self._executor.submit(self._execute_job, job)
                 self._active_jobs[job.job_id] = future
+                if job.requires_gpu:
+                    self._active_gpu_jobs.add(job.job_id)
 
     def request_shutdown(self) -> None:
         """Request graceful shutdown."""
@@ -334,12 +355,24 @@ class ExecutionDaemon:
 
     def run(self) -> int:
         """Run the daemon. Returns exit code."""
+        from .gpu import detect_gpu, get_gpu_summary
+
         self._started_at = datetime.now().isoformat()
 
         print(f"[DAEMON] runforge-cli daemon v{__version__}")
         print(f"[DAEMON] Workspace: {self.workspace}")
         print(f"[DAEMON] Max parallel: {self.max_parallel}")
+        print(f"[DAEMON] GPU slots: {self.gpu_slots}")
         print(f"[DAEMON] PID: {os.getpid()}")
+
+        # GPU detection at startup
+        gpu_info = detect_gpu()
+        if gpu_info.available:
+            print(f"[DAEMON] {get_gpu_summary()}")
+        else:
+            print(f"[DAEMON] No GPU available ({gpu_info.error})")
+            if self.gpu_slots > 0:
+                print(f"[DAEMON] Warning: gpu_slots={self.gpu_slots} but no GPU detected")
 
         # Ensure queue directory exists
         self.queue_mgr.ensure_queue_dir()
@@ -351,8 +384,9 @@ class ExecutionDaemon:
             return 1
 
         try:
-            # Update queue max_parallel
+            # Update queue settings
             self.queue_mgr.set_max_parallel(self.max_parallel)
+            self.queue_mgr.set_gpu_slots(self.gpu_slots)
 
             # Write initial state
             self._write_daemon_state("running")
@@ -399,12 +433,13 @@ class ExecutionDaemon:
         return 0
 
 
-def daemon_command(workspace: Path, max_parallel: int = 2) -> int:
+def daemon_command(workspace: Path, max_parallel: int = 2, gpu_slots: int = 1) -> int:
     """Run the execution daemon.
 
     Args:
         workspace: Workspace root path
         max_parallel: Maximum concurrent jobs
+        gpu_slots: Maximum concurrent GPU jobs
 
     Returns:
         Exit code
@@ -413,7 +448,7 @@ def daemon_command(workspace: Path, max_parallel: int = 2) -> int:
         print(f"ERROR: Workspace not found: {workspace}", file=sys.stderr)
         return 1
 
-    daemon = ExecutionDaemon(workspace, max_parallel)
+    daemon = ExecutionDaemon(workspace, max_parallel, gpu_slots)
 
     # Setup signal handlers
     def handle_signal(signum: int, frame: Any) -> None:

@@ -51,11 +51,22 @@ def enqueue_run_command(
         print(f"ERROR: request.json not found in {run_dir}", file=sys.stderr)
         return 1
 
+    # Read request to determine if GPU is required
+    requires_gpu = False
+    try:
+        with open(request_file, "r", encoding="utf-8") as f:
+            request_data = json.load(f)
+        device_type = request_data.get("device", {}).get("type", "cpu")
+        requires_gpu = device_type == "gpu"
+    except Exception:
+        pass  # Default to CPU if can't read
+
     queue_mgr = QueueManager(workspace)
 
     try:
-        job = queue_mgr.enqueue(run_id, group_id, priority)
-        print(f"Enqueued run {run_id} as job {job.job_id}")
+        job = queue_mgr.enqueue(run_id, group_id, priority, requires_gpu)
+        gpu_tag = " [GPU]" if requires_gpu else ""
+        print(f"Enqueued run {run_id} as job {job.job_id}{gpu_tag}")
         return 0
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)
@@ -133,18 +144,26 @@ def enqueue_sweep_command(plan_path: Path, workspace: Path | None = None) -> int
     # Enqueue all runs
     queue_mgr = QueueManager(ws)
     enqueued = 0
+    gpu_count = 0
+
+    # Check if base request requires GPU
+    base_device = plan.base_request.get("device", {}).get("type", "cpu")
+    requires_gpu = base_device == "gpu"
 
     for rc in run_configs:
         try:
-            job = queue_mgr.enqueue(rc.run_id, group_id, priority=0)
+            job = queue_mgr.enqueue(rc.run_id, group_id, priority=0, requires_gpu=requires_gpu)
             enqueued += 1
+            if requires_gpu:
+                gpu_count += 1
         except ValueError as e:
             print(f"Warning: Could not enqueue {rc.run_id}: {e}", file=sys.stderr)
 
     # Update group.json to show runs as queued
     _update_group_runs_queued(orchestrator.group_dir / "group.json", run_configs)
 
-    print(f"Enqueued {enqueued}/{total} runs")
+    gpu_info = f" ({gpu_count} GPU)" if gpu_count > 0 else ""
+    print(f"Enqueued {enqueued}/{total} runs{gpu_info}")
     print(f"[RF:GROUP=ENQUEUED {group_id} runs={enqueued}]")
 
     return 0

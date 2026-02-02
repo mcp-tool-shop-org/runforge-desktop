@@ -77,9 +77,9 @@ def group_resumed(group_id: str) -> str:
 
 
 # Daemon tokens
-def daemon_started(pid: int, max_parallel: int) -> str:
+def daemon_started(pid: int, max_parallel: int, gpu_slots: int = 1) -> str:
     """Emit daemon started token."""
-    return f"[RF:DAEMON=STARTED pid={pid} max_parallel={max_parallel}]"
+    return f"[RF:DAEMON=STARTED pid={pid} max_parallel={max_parallel} gpu_slots={gpu_slots}]"
 
 
 def daemon_stopped(pid: int) -> str:
@@ -87,11 +87,20 @@ def daemon_stopped(pid: int) -> str:
     return f"[RF:DAEMON=STOPPED pid={pid}]"
 
 
-def queue_job_started(job_id: str, run_id: str) -> str:
+def queue_job_started(job_id: str, run_id: str, gpu: bool = False) -> str:
     """Emit queue job started token."""
-    return f"[RF:QUEUE=JOB_STARTED {job_id} run_id={run_id}]"
+    gpu_tag = " gpu=true" if gpu else ""
+    return f"[RF:QUEUE=JOB_STARTED {job_id} run_id={run_id}{gpu_tag}]"
 
 
 def queue_job_completed(job_id: str, run_id: str, status: str) -> str:
     """Emit queue job completed token."""
     return f"[RF:QUEUE=JOB_DONE {job_id} run_id={run_id} status={status}]"
+
+
+# Device tokens
+def device_selected(device_type: str, gpu_reason: str | None = None) -> str:
+    """Emit device selection token."""
+    if gpu_reason:
+        return f"[RF:DEVICE={device_type.upper()} gpu_reason={gpu_reason}]"
+    return f"[RF:DEVICE={device_type.upper()}]"

@@ -272,6 +272,25 @@ Before proposing changes, please review:
 
 ---
 
+## Reliability Gauntlets
+
+RunForge ships with a repeatable reliability suite you can run locally to validate queueing, pause/resume, cancellation, crash recovery, fairness, disk drift resilience, and Desktop reconnect behavior.
+
+| Gauntlet | Focus |
+|----------|-------|
+| G1 | max_parallel enforcement |
+| G2 | Pause/Resume |
+| G3 | Cancel determinism |
+| G4 | Crash recovery |
+| G5 | Fair scheduling |
+| G6 | Disk drift resilience |
+| G7 | Desktop reconnect |
+| G8-G10 | GPU support (v0.4.0+) |
+
+See: [`docs/GAUNTLETS.md`](docs/GAUNTLETS.md)
+
+---
+
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/mcp-tool-shop-org/runforge-desktop/issues)
