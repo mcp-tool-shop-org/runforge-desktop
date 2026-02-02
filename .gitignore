@@ -150,3 +150,5 @@ wheels/
 # Project-specific
 .runforge/
 runs/
+screenshots/
+store_screenshot.png
