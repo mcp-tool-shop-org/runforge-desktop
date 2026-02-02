@@ -1,13 +1,9 @@
-#if WINDOWS
-using Windows.Storage.Pickers;
-using WinRT.Interop;
-using Microsoft.Maui.Platform;
-#endif
+using CommunityToolkit.Maui.Storage;
 
 namespace RunForgeDesktop.Services;
 
 /// <summary>
-/// Windows-native folder picker service.
+/// Folder picker service using CommunityToolkit.Maui.
 /// </summary>
 public static class FolderPickerService
 {
@@ -17,50 +13,22 @@ public static class FolderPickerService
     /// <returns>The selected folder path, or null if cancelled.</returns>
     public static async Task<string?> PickFolderAsync()
     {
-#if WINDOWS
-        // Ensure we're on the UI thread for WinRT picker
-        if (!MainThread.IsMainThread)
+        try
         {
-            return await MainThread.InvokeOnMainThreadAsync(PickFolderInternalAsync);
-        }
-        return await PickFolderInternalAsync();
-#else
-        await Task.CompletedTask;
-        return null;
-#endif
-    }
+            var result = await FolderPicker.Default.PickAsync(CancellationToken.None);
 
-#if WINDOWS
-    private static async Task<string?> PickFolderInternalAsync()
-    {
-        var picker = new FolderPicker();
-        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-        picker.FileTypeFilter.Add("*");
-
-        // Get the window handle for the picker
-        // In MAUI, we need to get the native window handle for WinRT interop
-        var mauiWindow = Application.Current?.Windows.FirstOrDefault();
-        if (mauiWindow?.Handler?.PlatformView is MauiWinUIWindow winuiWindow)
-        {
-            var hwnd = WindowNative.GetWindowHandle(winuiWindow);
-            InitializeWithWindow.Initialize(picker, hwnd);
-        }
-        else
-        {
-            // Fallback: try to get handle from current process main window
-            var hwnd = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-            if (hwnd != IntPtr.Zero)
+            if (result.IsSuccessful && result.Folder is not null)
             {
-                InitializeWithWindow.Initialize(picker, hwnd);
+                return result.Folder.Path;
             }
-            else
-            {
-                throw new InvalidOperationException("Could not obtain window handle for folder picker.");
-            }
-        }
 
-        var folder = await picker.PickSingleFolderAsync();
-        return folder?.Path;
+            // User cancelled
+            return null;
+        }
+        catch (Exception ex)
+        {
+            // Re-throw with more context
+            throw new InvalidOperationException($"Folder picker failed: {ex.Message}", ex);
+        }
     }
-#endif
 }
