@@ -9,7 +9,24 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Register routes for navigation
+        // ═══════════════════════════════════════════════════════════════════
+        // v1.0.0 Routes - These are the only routes accessible from the UI
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Task flows
+        Routing.RegisterRoute("newrun", typeof(NewRunPage));
+        Routing.RegisterRoute("rundetail", typeof(LiveRunPage));
+
+        // Utility pages (accessible from Dashboard)
+        Routing.RegisterRoute("diagnostics", typeof(DiagnosticsPage));
+        Routing.RegisterRoute("settings", typeof(SettingsPage));
+
+#if LEGACY_INSPECTION
+        // ═══════════════════════════════════════════════════════════════════
+        // Legacy inspection routes - disabled for v1.0.0
+        // These were part of the original "read-only inspection" flow.
+        // Enable with LEGACY_INSPECTION compile flag if needed for debugging.
+        // ═══════════════════════════════════════════════════════════════════
         Routing.RegisterRoute(nameof(WorkspaceDashboardPage), typeof(WorkspaceDashboardPage));
         Routing.RegisterRoute(nameof(RunsListPage), typeof(RunsListPage));
         Routing.RegisterRoute(nameof(RunDetailPage), typeof(RunDetailPage));
@@ -17,16 +34,12 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(FeatureImportancePage), typeof(FeatureImportancePage));
         Routing.RegisterRoute(nameof(LinearCoefficientsPage), typeof(LinearCoefficientsPage));
         Routing.RegisterRoute(nameof(MetricsDetailPage), typeof(MetricsDetailPage));
-        Routing.RegisterRoute(nameof(DiagnosticsPage), typeof(DiagnosticsPage));
-        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(RequestEditorPage), typeof(RequestEditorPage));
         Routing.RegisterRoute(nameof(RunComparePage), typeof(RunComparePage));
         Routing.RegisterRoute(nameof(RunsDashboardPage), typeof(RunsDashboardPage));
-        Routing.RegisterRoute("newrun", typeof(NewRunPage));
-        Routing.RegisterRoute("rundetail", typeof(LiveRunPage));
+#endif
 
         // Store services for future activity strip implementation
-        // Global activity strip will be added later via proper Shell template
         _ = activityMonitor;
         _ = workspaceService;
     }

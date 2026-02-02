@@ -3,7 +3,6 @@ using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Services;
-using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -229,7 +228,7 @@ public partial class DiagnosticsViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenSettingsAsync()
     {
-        await Shell.Current.GoToAsync(nameof(SettingsPage));
+        await Shell.Current.GoToAsync("settings");
     }
 
     [RelayCommand]

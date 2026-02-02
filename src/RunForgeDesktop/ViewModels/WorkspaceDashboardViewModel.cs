@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Services;
-using RunForgeDesktop.Views;
 
 namespace RunForgeDesktop.ViewModels;
 
@@ -81,8 +80,8 @@ public partial class WorkspaceDashboardViewModel : ObservableObject
                     await _workspaceService.SaveLastWorkspaceAsync();
                     WorkspacePath = folderPath;
 
-                    // Navigate to runs list
-                    await Shell.Current.GoToAsync(nameof(RunsListPage));
+                    // Navigate to Runs tab
+                    await Shell.Current.GoToAsync("//runs");
                 }
                 else
                 {
@@ -108,13 +107,14 @@ public partial class WorkspaceDashboardViewModel : ObservableObject
     {
         if (HasWorkspace)
         {
-            await Shell.Current.GoToAsync(nameof(RunsListPage));
+            // Navigate to Runs tab
+            await Shell.Current.GoToAsync("//runs");
         }
     }
 
     [RelayCommand]
     private async Task OpenDiagnosticsAsync()
     {
-        await Shell.Current.GoToAsync(nameof(DiagnosticsPage));
+        await Shell.Current.GoToAsync("diagnostics");
     }
 }

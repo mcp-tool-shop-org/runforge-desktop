@@ -54,6 +54,15 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!-- Legacy pages excluded from v1.0.0 -->
+  <!-- These were part of the original "read-only inspection" flow. -->
+  <!-- Enable with LEGACY_INSPECTION compile flag if needed. -->
+  <ItemGroup>
+    <Compile Remove="Legacy\**\*.cs" />
+    <MauiXaml Remove="Legacy\**\*.xaml" />
+    <None Include="Legacy\**\*" />
+  </ItemGroup>
+
   <!-- RootPage disabled - Shell cannot be embedded in ContentView -->
   <ItemGroup>
     <Compile Remove="RootPage.xaml.cs" />

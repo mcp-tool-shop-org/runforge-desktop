@@ -18,63 +18,46 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Register services
+        // ═══════════════════════════════════════════════════════════════════
+        // v1.0.0 Services
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Core infrastructure
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
-        builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
-        builder.Services.AddSingleton<IRunDetailService, RunDetailService>();
-        builder.Services.AddSingleton<IInterpretabilityService, InterpretabilityService>();
-        builder.Services.AddSingleton<IExportService, ExportService>();
-        builder.Services.AddSingleton<ILiveLogService, LiveLogService>();
-        builder.Services.AddSingleton<IRunTimelineService, RunTimelineService>();
         builder.Services.AddSingleton<IStorageService, StorageService>();
+
+        // Python/training
         builder.Services.AddSingleton<IPythonDiscoveryService, PythonDiscoveryService>();
-        builder.Services.AddSingleton<ICliExecutionService, CliExecutionService>();
-        builder.Services.AddSingleton<IRunCreationService, RunCreationService>();
-        builder.Services.AddSingleton<IRunRequestService, RunRequestService>();
-        builder.Services.AddSingleton<IRunRequestComparer, RunRequestComparer>();
-        builder.Services.AddSingleton<IRunComparisonService, RunComparisonService>();
-        builder.Services.AddSingleton<ISweepService, SweepService>();
-        builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
-        builder.Services.AddSingleton<IActivityMonitorService, ActivityMonitorService>();
         builder.Services.AddSingleton<IRunnerService, RunnerService>();
 
-        // Register view models
-        // RunsListViewModel is singleton so filter/search state persists across navigation
-        builder.Services.AddSingleton<RunsListViewModel>();
+        // Monitoring (for future activity strip)
+        builder.Services.AddSingleton<IActivityMonitorService, ActivityMonitorService>();
+
+        // Diagnostics (run count display)
+        builder.Services.AddSingleton<IRunIndexService, RunIndexService>();
+
+        // ═══════════════════════════════════════════════════════════════════
+        // v1.0.0 ViewModels
+        // ═══════════════════════════════════════════════════════════════════
         builder.Services.AddSingleton<WorkspaceDashboardViewModel>();
-        builder.Services.AddTransient<RunDetailViewModel>();
-        builder.Services.AddTransient<InterpretabilityViewModel>();
-        builder.Services.AddTransient<FeatureImportanceViewModel>();
-        builder.Services.AddTransient<LinearCoefficientsViewModel>();
-        builder.Services.AddTransient<MetricsDetailViewModel>();
-        builder.Services.AddTransient<DiagnosticsViewModel>();
-        builder.Services.AddTransient<SettingsViewModel>();
-        builder.Services.AddTransient<RequestEditorViewModel>();
-        builder.Services.AddTransient<RunCompareViewModel>();
-        builder.Services.AddSingleton<ActivityStripViewModel>();
         builder.Services.AddSingleton<RunsDashboardViewModel>();
         builder.Services.AddTransient<NewRunViewModel>();
         builder.Services.AddTransient<LiveRunViewModel>();
+        builder.Services.AddTransient<DiagnosticsViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddSingleton<ActivityStripViewModel>();
 
-        // Register shell and pages
+        // ═══════════════════════════════════════════════════════════════════
+        // v1.0.0 Pages
+        // ═══════════════════════════════════════════════════════════════════
         builder.Services.AddSingleton<AppShell>();
-        // Note: RootPage (Activity Strip wrapper) disabled - Shell cannot be embedded in ContentView
         builder.Services.AddTransient<WorkspaceDashboardPage>();
-        builder.Services.AddTransient<MainPage>();
-        builder.Services.AddTransient<RunsListPage>();
-        builder.Services.AddTransient<RunDetailPage>();
-        builder.Services.AddTransient<InterpretabilityPage>();
-        builder.Services.AddTransient<FeatureImportancePage>();
-        builder.Services.AddTransient<LinearCoefficientsPage>();
-        builder.Services.AddTransient<MetricsDetailPage>();
-        builder.Services.AddTransient<DiagnosticsPage>();
-        builder.Services.AddTransient<SettingsPage>();
-        builder.Services.AddTransient<RequestEditorPage>();
-        builder.Services.AddTransient<RunComparePage>();
         builder.Services.AddTransient<RunsDashboardPage>();
         builder.Services.AddTransient<NewRunPage>();
         builder.Services.AddTransient<LiveRunPage>();
+        builder.Services.AddTransient<DiagnosticsPage>();
+        builder.Services.AddTransient<SettingsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
