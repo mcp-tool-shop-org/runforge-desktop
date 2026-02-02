@@ -18,3 +18,9 @@ MISSING_FILES = 3
 
 # Internal/tooling error (unexpected CLI bug)
 INTERNAL_ERROR = 4
+
+# Sweep/group canceled by user
+CANCELED = 5
+
+# Invalid sweep plan
+INVALID_PLAN = 6

@@ -4,6 +4,7 @@ Usage:
     runforge-cli run --run-dir <path>
     runforge-cli run --run-dir <path> --dry-run
     runforge-cli run --run-dir <path> --dry-run --max-rows 200
+    runforge-cli sweep --plan <path>
 
 Exit codes:
     0 - Success
@@ -11,6 +12,8 @@ Exit codes:
     2 - Invalid request.json
     3 - Missing files
     4 - Internal error
+    5 - Sweep canceled
+    6 - Invalid sweep plan
 """
 
 import argparse
@@ -24,6 +27,7 @@ from .exit_codes import FAILED, INTERNAL_ERROR, INVALID_REQUEST, MISSING_FILES, 
 from .logger import RunLogger
 from .request import RunRequest
 from .runner import run_training
+from .sweep import sweep_command
 from .tokens import STAGE_COMPLETED, STAGE_FAILED, STAGE_STARTING
 
 
@@ -181,6 +185,19 @@ def main() -> None:
         help="Maximum rows to load from dataset (useful for testing)",
     )
 
+    # sweep command
+    sweep_parser = subparsers.add_parser(
+        "sweep",
+        help="Execute a sweep from a plan file",
+        description="Execute multiple runs from a sweep plan (grid/list strategy)",
+    )
+    sweep_parser.add_argument(
+        "--plan",
+        type=Path,
+        required=True,
+        help="Path to the sweep_plan.json file",
+    )
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -190,6 +207,9 @@ def main() -> None:
             dry_run=args.dry_run,
             max_rows=args.max_rows,
         )
+        sys.exit(exit_code)
+    elif args.command == "sweep":
+        exit_code = sweep_command(args.plan)
         sys.exit(exit_code)
 
 
