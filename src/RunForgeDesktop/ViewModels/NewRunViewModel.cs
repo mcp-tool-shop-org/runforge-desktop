@@ -80,15 +80,15 @@ public partial class NewRunViewModel : ObservableObject
     /// Helper text for device selection based on availability.
     /// </summary>
     public string DeviceHelperText => GpuAvailable
-        ? $"GPU available: {GpuName}"
+        ? $"GPU detected: {GpuName}"
         : GpuUnavailableReason;
 
     /// <summary>
     /// Helper text for dataset field - always visible to clarify optional behavior.
     /// </summary>
     public string DatasetHelperText => string.IsNullOrEmpty(DatasetPath)
-        ? "Optional. Uses built-in simulation data if empty."
-        : "Custom dataset selected";
+        ? "Leave empty to use built-in simulation data."
+        : $"Using: {Path.GetFileName(DatasetPath)}";
 
     /// <summary>
     /// Path to current workspace for display.

@@ -10,7 +10,8 @@ public enum RunStatus
     Pending,
     Running,
     Failed,
-    Completed
+    Completed,
+    Cancelled
 }
 
 /// <summary>

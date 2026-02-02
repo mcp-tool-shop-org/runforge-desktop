@@ -103,8 +103,10 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
     public bool IsRunning => Status == RunStatus.Running;
     public bool IsCompleted => Status == RunStatus.Completed;
     public bool IsFailed => Status == RunStatus.Failed;
+    public bool IsCancelled => Status == RunStatus.Cancelled;
     public bool CanCancel => Status == RunStatus.Running || Status == RunStatus.Pending;
     public bool ShowError => IsFailed && !string.IsNullOrEmpty(ErrorMessage);
+    public bool IsFinished => IsCompleted || IsFailed || IsCancelled;
 
     /// <summary>
     /// Accessibility hint for loss chart - summarizes current loss value and trend.
@@ -250,6 +252,7 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
             RunStatus.Running => "Running",
             RunStatus.Completed => "Completed",
             RunStatus.Failed => "Failed",
+            RunStatus.Cancelled => "Cancelled",
             _ => "Unknown"
         };
 
@@ -259,6 +262,7 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
             RunStatus.Running => Color.FromArgb("#3B82F6"),
             RunStatus.Completed => Color.FromArgb("#22C55E"),
             RunStatus.Failed => Color.FromArgb("#EF4444"),
+            RunStatus.Cancelled => Color.FromArgb("#F59E0B"), // Amber for cancelled
             _ => Color.FromArgb("#9CA3AF")
         };
 
@@ -283,6 +287,8 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsCompleted));
         OnPropertyChanged(nameof(IsFailed));
+        OnPropertyChanged(nameof(IsCancelled));
+        OnPropertyChanged(nameof(IsFinished));
         OnPropertyChanged(nameof(CanCancel));
         OnPropertyChanged(nameof(ShowError));
     }

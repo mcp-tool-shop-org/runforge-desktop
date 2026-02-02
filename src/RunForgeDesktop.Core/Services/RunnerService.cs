@@ -194,9 +194,9 @@ public class RunnerService : IRunnerService
                 var manifest = await GetRunAsync(runId);
                 if (manifest != null)
                 {
-                    manifest.Status = RunStatus.Failed;
+                    manifest.Status = RunStatus.Cancelled;
                     manifest.CompletedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    manifest.Error = "Cancelled by user";
+                    manifest.Error = null; // Not an error - user cancelled
                     await SaveManifestAsync(manifest);
                 }
 
