@@ -339,6 +339,89 @@ public class RunnerService : IRunnerService
         return metrics;
     }
 
+    public async Task<(List<MetricsEntry> NewEntries, long NewOffset)> TailMetricsAsync(string runId, long fromOffset)
+    {
+        var workspace = _workspaceService.CurrentWorkspacePath;
+        if (string.IsNullOrEmpty(workspace))
+            return (new List<MetricsEntry>(), fromOffset);
+
+        var runFolder = RunContract.GetRunFolder(workspace, runId);
+        var metricsPath = RunContract.GetMetricsPath(runFolder);
+
+        if (!File.Exists(metricsPath))
+            return (new List<MetricsEntry>(), 0);
+
+        var entries = new List<MetricsEntry>();
+
+        try
+        {
+            using var fs = new FileStream(metricsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            // If file is smaller than offset, it was reset - start from beginning
+            if (fs.Length < fromOffset)
+                fromOffset = 0;
+
+            fs.Seek(fromOffset, SeekOrigin.Begin);
+            using var reader = new StreamReader(fs);
+
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                try
+                {
+                    var entry = JsonSerializer.Deserialize<MetricsEntry>(line);
+                    if (entry != null)
+                        entries.Add(entry);
+                }
+                catch
+                {
+                    // Skip malformed lines
+                }
+            }
+
+            return (entries, fs.Position);
+        }
+        catch
+        {
+            return (entries, fromOffset);
+        }
+    }
+
+    public async Task<(string[] NewLines, long NewOffset)> TailLogsIncrementalAsync(string runId, long fromOffset)
+    {
+        var workspace = _workspaceService.CurrentWorkspacePath;
+        if (string.IsNullOrEmpty(workspace))
+            return (Array.Empty<string>(), fromOffset);
+
+        var runFolder = RunContract.GetRunFolder(workspace, runId);
+        var stdoutPath = RunContract.GetStdoutPath(runFolder);
+
+        if (!File.Exists(stdoutPath))
+            return (Array.Empty<string>(), 0);
+
+        try
+        {
+            using var fs = new FileStream(stdoutPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            // If file is smaller than offset, it was reset - start from beginning
+            if (fs.Length < fromOffset)
+                fromOffset = 0;
+
+            fs.Seek(fromOffset, SeekOrigin.Begin);
+            using var reader = new StreamReader(fs);
+
+            var content = await reader.ReadToEndAsync();
+            var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            return (lines, fs.Position);
+        }
+        catch
+        {
+            return (Array.Empty<string>(), fromOffset);
+        }
+    }
+
     private async Task SaveManifestAsync(RunManifest manifest)
     {
         var workspace = _workspaceService.CurrentWorkspacePath;

@@ -61,6 +61,18 @@ public interface IRunnerService
     Task<List<MetricsEntry>> GetMetricsAsync(string runId);
 
     /// <summary>
+    /// Incremental tail for metrics - only reads new data since last call.
+    /// Returns new entries and updated byte offset.
+    /// </summary>
+    Task<(List<MetricsEntry> NewEntries, long NewOffset)> TailMetricsAsync(string runId, long fromOffset);
+
+    /// <summary>
+    /// Incremental tail for logs - only reads new data since last call.
+    /// Returns new lines and updated byte offset.
+    /// </summary>
+    Task<(string[] NewLines, long NewOffset)> TailLogsIncrementalAsync(string runId, long fromOffset);
+
+    /// <summary>
     /// Check for orphaned runs (marked Running but process dead) and mark them as Failed.
     /// Call on app startup.
     /// </summary>

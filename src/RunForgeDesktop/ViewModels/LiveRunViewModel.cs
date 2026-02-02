@@ -17,6 +17,18 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
     private bool _disposed;
     private readonly List<MetricPoint> _metricPoints = new();
 
+    // Incremental tail state
+    private long _metricsOffset;
+    private long _logsOffset;
+    private readonly List<MetricsEntry> _allMetrics = new();
+    private readonly Queue<string> _logRingBuffer = new();
+    private const int MaxLogLines = 100;
+    private const int MaxChartPoints = 500;
+
+    // Chart throttling
+    private DateTime _lastChartInvalidation = DateTime.MinValue;
+    private static readonly TimeSpan ChartThrottleInterval = TimeSpan.FromMilliseconds(200);
+
     public LiveRunViewModel(IRunnerService runnerService)
     {
         _runnerService = runnerService;
@@ -105,11 +117,19 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
 
     private async Task LoadRunAsync()
     {
+        // Reset incremental state for new run
+        _metricsOffset = 0;
+        _logsOffset = 0;
+        _allMetrics.Clear();
+        _logRingBuffer.Clear();
+        _metricPoints.Clear();
+
         var manifest = await _runnerService.GetRunAsync(RunId);
         if (manifest == null) return;
 
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
+            Logs.Clear();
             UpdateFromManifest(manifest);
         });
 
@@ -129,20 +149,39 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
                 await MainThread.InvokeOnMainThreadAsync(() => UpdateFromManifest(manifest));
             }
 
-            // Refresh logs
-            var logs = await _runnerService.TailLogsAsync(RunId, 50);
-            await MainThread.InvokeOnMainThreadAsync(() =>
+            // Incremental log refresh - only read new data
+            var (newLogLines, newLogOffset) = await _runnerService.TailLogsIncrementalAsync(RunId, _logsOffset);
+            if (newLogLines.Length > 0)
             {
-                Logs.Clear();
-                foreach (var line in logs)
-                    Logs.Add(line);
-            });
+                _logsOffset = newLogOffset;
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    // Add new lines to ring buffer
+                    foreach (var line in newLogLines)
+                    {
+                        _logRingBuffer.Enqueue(line);
+                        while (_logRingBuffer.Count > MaxLogLines)
+                            _logRingBuffer.Dequeue();
+                    }
 
-            // Refresh metrics
-            var metrics = await _runnerService.GetMetricsAsync(RunId);
-            if (metrics.Count > 0)
+                    // Only update UI if we have changes
+                    if (Logs.Count != _logRingBuffer.Count || newLogLines.Length > 0)
+                    {
+                        Logs.Clear();
+                        foreach (var line in _logRingBuffer)
+                            Logs.Add(line);
+                    }
+                });
+            }
+
+            // Incremental metrics refresh - only read new data
+            var (newMetrics, newMetricsOffset) = await _runnerService.TailMetricsAsync(RunId, _metricsOffset);
+            if (newMetrics.Count > 0)
             {
-                var latest = metrics.Last();
+                _metricsOffset = newMetricsOffset;
+                _allMetrics.AddRange(newMetrics);
+
+                var latest = _allMetrics.Last();
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     CurrentStep = latest.Step;
@@ -152,17 +191,28 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
                     Progress = (double)latest.Epoch / TotalEpochs;
                     ProgressText = $"Epoch {latest.Epoch} / {TotalEpochs}";
 
-                    // Update chart data - only keep last 200 points for performance
+                    // Update chart data - only keep last N points for performance
                     _metricPoints.Clear();
-                    foreach (var m in metrics.TakeLast(200))
+                    foreach (var m in _allMetrics.TakeLast(MaxChartPoints))
                     {
                         _metricPoints.Add(new MetricPoint(m.Step, m.Epoch, (float)m.Loss));
                     }
                     ChartDrawable.Points = _metricPoints;
 
-                    // Signal chart needs redraw
-                    ChartInvalidated?.Invoke();
+                    // Throttled chart invalidation - max 5 FPS
+                    var now = DateTime.UtcNow;
+                    if (now - _lastChartInvalidation >= ChartThrottleInterval)
+                    {
+                        _lastChartInvalidation = now;
+                        ChartInvalidated?.Invoke();
+                    }
                 });
+
+                // Trim _allMetrics to avoid unbounded growth
+                if (_allMetrics.Count > MaxChartPoints * 2)
+                {
+                    _allMetrics.RemoveRange(0, _allMetrics.Count - MaxChartPoints);
+                }
             }
 
             // Stop polling if completed
