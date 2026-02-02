@@ -95,9 +95,12 @@ public partial class WorkspaceDashboardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            var message = string.IsNullOrEmpty(ex.Message)
+                ? $"{ex.GetType().Name}: {ex.InnerException?.Message ?? "Unknown error"}"
+                : ex.Message;
             await Shell.Current.DisplayAlert(
                 "Error",
-                $"Failed to select workspace: {ex.Message}",
+                $"Failed to select workspace: {message}",
                 "OK");
         }
     }
