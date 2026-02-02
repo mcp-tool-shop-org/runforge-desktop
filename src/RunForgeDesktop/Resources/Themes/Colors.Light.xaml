@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Light Theme Colors (suffixed with _Light for AppThemeBinding) -->
+
+    <!-- Surfaces -->
+    <Color x:Key="AppBackground_Light">#F6F7FA</Color>
+    <Color x:Key="Surface1_Light">#FFFFFF</Color>
+    <Color x:Key="Surface2_Light">#EEF1F7</Color>
+    <Color x:Key="Outline_Light">#D6DCE8</Color>
+
+    <!-- Text -->
+    <Color x:Key="TextPrimary_Light">#141823</Color>
+    <Color x:Key="TextSecondary_Light">#4D586B</Color>
+    <Color x:Key="TextMuted_Light">#9CA3AF</Color>
+
+    <!-- Semantic -->
+    <Color x:Key="Accent_Light">#2E6BFF</Color>
+    <Color x:Key="Success_Light">#119D67</Color>
+    <Color x:Key="Warning_Light">#C27A00</Color>
+    <Color x:Key="Danger_Light">#D52B3A</Color>
+
+    <!-- Run/Queue states -->
+    <Color x:Key="StateRunning_Light">#2E6BFF</Color>
+    <Color x:Key="StateQueued_Light">#C27A00</Color>
+    <Color x:Key="StateCompleted_Light">#6A7487</Color>
+    <Color x:Key="StateFailed_Light">#D52B3A</Color>
+    <Color x:Key="StateStalled_Light">#C27A00</Color>
+    <Color x:Key="StateIdle_Light">#6A7487</Color>
+
+    <!-- GPU accent -->
+    <Color x:Key="GpuAccent_Light">#6A3DFF</Color>
+
+    <!-- Activity Strip -->
+    <Color x:Key="StripBackground_Light">#E8EBF0</Color>
+    <Color x:Key="StripBorder_Light">#D1D5DB</Color>
+
+    <!-- Pills/Badges -->
+    <Color x:Key="PillBackground_Light">#E5E7EB</Color>
+    <Color x:Key="PillText_Light">#374151</Color>
+
+</ResourceDictionary>

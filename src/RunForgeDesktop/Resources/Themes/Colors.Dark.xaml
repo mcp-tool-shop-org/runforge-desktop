@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Dark Theme Colors (suffixed with _Dark for AppThemeBinding) -->
+
+    <!-- Surfaces -->
+    <Color x:Key="AppBackground_Dark">#0E0F12</Color>
+    <Color x:Key="Surface1_Dark">#151823</Color>
+    <Color x:Key="Surface2_Dark">#1B2130</Color>
+    <Color x:Key="Outline_Dark">#2A3348</Color>
+
+    <!-- Text -->
+    <Color x:Key="TextPrimary_Dark">#E7E9EE</Color>
+    <Color x:Key="TextSecondary_Dark">#A7B0C0</Color>
+    <Color x:Key="TextMuted_Dark">#6B7280</Color>
+
+    <!-- Semantic -->
+    <Color x:Key="Accent_Dark">#4A8CFF</Color>
+    <Color x:Key="Success_Dark">#35C98B</Color>
+    <Color x:Key="Warning_Dark">#F5B342</Color>
+    <Color x:Key="Danger_Dark">#FF5A6A</Color>
+
+    <!-- Run/Queue states -->
+    <Color x:Key="StateRunning_Dark">#4A8CFF</Color>
+    <Color x:Key="StateQueued_Dark">#F5B342</Color>
+    <Color x:Key="StateCompleted_Dark">#7D879A</Color>
+    <Color x:Key="StateFailed_Dark">#FF5A6A</Color>
+    <Color x:Key="StateStalled_Dark">#F5B342</Color>
+    <Color x:Key="StateIdle_Dark">#7D879A</Color>
+
+    <!-- GPU accent -->
+    <Color x:Key="GpuAccent_Dark">#8B5CFF</Color>
+
+    <!-- Activity Strip -->
+    <Color x:Key="StripBackground_Dark">#0A0B0E</Color>
+    <Color x:Key="StripBorder_Dark">#1F2937</Color>
+
+    <!-- Pills/Badges -->
+    <Color x:Key="PillBackground_Dark">#1F2937</Color>
+    <Color x:Key="PillText_Dark">#D1D5DB</Color>
+
+</ResourceDictionary>

@@ -7,11 +7,149 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Original styles (legacy, will migrate) -->
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+
+                <!-- Theme system: Light + Dark color definitions -->
+                <ResourceDictionary Source="Resources/Themes/Colors.Light.xaml" />
+                <ResourceDictionary Source="Resources/Themes/Colors.Dark.xaml" />
+                <ResourceDictionary Source="Resources/Themes/Controls.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Value Converters -->
+            <!-- ═══════════════════════════════════════════════════════════════
+                 THEME TOKENS (AppThemeBinding for automatic Light/Dark switching)
+                 Use these keys throughout UI - never hardcode hex colors
+                 ═══════════════════════════════════════════════════════════════ -->
+
+            <!-- Surfaces -->
+            <Color x:Key="AppBackground">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource AppBackground_Light}" Dark="{StaticResource AppBackground_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Surface1">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Surface1_Light}" Dark="{StaticResource Surface1_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Surface2">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Surface2_Light}" Dark="{StaticResource Surface2_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Outline">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Outline_Light}" Dark="{StaticResource Outline_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- Text -->
+            <Color x:Key="TextPrimary">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource TextPrimary_Light}" Dark="{StaticResource TextPrimary_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="TextSecondary">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource TextSecondary_Light}" Dark="{StaticResource TextSecondary_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="TextMuted">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource TextMuted_Light}" Dark="{StaticResource TextMuted_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- Semantic Colors -->
+            <Color x:Key="Accent">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Accent_Light}" Dark="{StaticResource Accent_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Success">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Success_Light}" Dark="{StaticResource Success_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Warning">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Warning_Light}" Dark="{StaticResource Warning_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="Danger">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource Danger_Light}" Dark="{StaticResource Danger_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- Run/Queue State Colors -->
+            <Color x:Key="StateRunning">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateRunning_Light}" Dark="{StaticResource StateRunning_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StateQueued">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateQueued_Light}" Dark="{StaticResource StateQueued_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StateCompleted">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateCompleted_Light}" Dark="{StaticResource StateCompleted_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StateFailed">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateFailed_Light}" Dark="{StaticResource StateFailed_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StateStalled">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateStalled_Light}" Dark="{StaticResource StateStalled_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StateIdle">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StateIdle_Light}" Dark="{StaticResource StateIdle_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- GPU Accent -->
+            <Color x:Key="GpuAccent">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource GpuAccent_Light}" Dark="{StaticResource GpuAccent_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- Activity Strip -->
+            <Color x:Key="StripBackground">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StripBackground_Light}" Dark="{StaticResource StripBackground_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="StripBorder">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource StripBorder_Light}" Dark="{StaticResource StripBorder_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- Pills/Badges -->
+            <Color x:Key="PillBackground">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource PillBackground_Light}" Dark="{StaticResource PillBackground_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+            <Color x:Key="PillText">
+                <Color.AppThemeBinding>
+                    <AppThemeBinding Light="{StaticResource PillText_Light}" Dark="{StaticResource PillText_Dark}" />
+                </Color.AppThemeBinding>
+            </Color>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 VALUE CONVERTERS
+                 ═══════════════════════════════════════════════════════════════ -->
+
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <converters:IntToInverseBoolConverter x:Key="IntToInverseBoolConverter" />

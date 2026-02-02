@@ -8,6 +8,9 @@ public partial class App : Application
     {
         InitializeComponent();
         _serviceProvider = serviceProvider;
+
+        // Default to dark theme
+        UserAppTheme = AppTheme.Dark;
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
