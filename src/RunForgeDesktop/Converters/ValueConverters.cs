@@ -523,3 +523,88 @@ public class IntToBoolConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+// ============================================
+// Visual Activity System Converters (v0.5.0)
+// ============================================
+
+/// <summary>
+/// Converts a slot filled boolean to a color.
+/// True = Blue (filled), False = Gray (empty).
+/// Supports light/dark theme via AppThemeBinding in XAML.
+/// </summary>
+public class SlotFilledToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isFilled)
+        {
+            return isFilled
+                ? Color.FromArgb("#2196F3") // Blue - filled
+                : Color.FromArgb("#E0E0E0"); // Light gray - empty
+        }
+        return Color.FromArgb("#E0E0E0");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a RunDisplayState enum to a color.
+/// Queued = Amber, Running = Blue, Completed = Gray, Failed = Red, Stalled = Orange.
+/// </summary>
+public class RunDisplayStateToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is RunForgeDesktop.Core.Models.RunDisplayState state)
+        {
+            return state switch
+            {
+                RunForgeDesktop.Core.Models.RunDisplayState.Queued => Color.FromArgb("#FFA726"),    // Amber
+                RunForgeDesktop.Core.Models.RunDisplayState.Running => Color.FromArgb("#2196F3"),   // Blue
+                RunForgeDesktop.Core.Models.RunDisplayState.Completed => Color.FromArgb("#9E9E9E"), // Gray
+                RunForgeDesktop.Core.Models.RunDisplayState.Failed => Color.FromArgb("#F44336"),    // Red
+                RunForgeDesktop.Core.Models.RunDisplayState.Stalled => Color.FromArgb("#FF9800"),   // Orange
+                _ => Color.FromArgb("#9E9E9E") // Gray for Unknown
+            };
+        }
+        return Color.FromArgb("#9E9E9E");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts an ActivitySystemState enum to a color.
+/// Idle = Gray, Busy = Blue, Stalled = Amber, Error = Red.
+/// </summary>
+public class ActivitySystemStateToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is RunForgeDesktop.Core.Services.ActivitySystemState state)
+        {
+            return state switch
+            {
+                RunForgeDesktop.Core.Services.ActivitySystemState.Idle => Color.FromArgb("#9E9E9E"),    // Gray
+                RunForgeDesktop.Core.Services.ActivitySystemState.Busy => Color.FromArgb("#2196F3"),    // Blue
+                RunForgeDesktop.Core.Services.ActivitySystemState.Stalled => Color.FromArgb("#FFA726"), // Amber
+                RunForgeDesktop.Core.Services.ActivitySystemState.Error => Color.FromArgb("#F44336"),   // Red
+                _ => Color.FromArgb("#9E9E9E")
+            };
+        }
+        return Color.FromArgb("#9E9E9E");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

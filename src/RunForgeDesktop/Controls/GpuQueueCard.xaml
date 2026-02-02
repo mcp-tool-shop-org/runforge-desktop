@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RunForgeDesktop.Controls.GpuQueueCard">
+
+    <Frame Padding="12"
+           CornerRadius="8"
+           Margin="0,4"
+           BackgroundColor="{AppThemeBinding Light=#FFF3E0, Dark=#3E2723}"
+           BorderColor="{AppThemeBinding Light=#FFE0B2, Dark=#5D4037}">
+
+        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+            <!-- Header -->
+            <HorizontalStackLayout Grid.Row="0" Spacing="8">
+                <Label Text="GPU"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+                <Label x:Name="SlotUsageLabel"
+                       FontSize="12"
+                       TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}" />
+            </HorizontalStackLayout>
+
+            <!-- Slot indicators -->
+            <HorizontalStackLayout Grid.Row="1" x:Name="SlotIndicators" Spacing="4" />
+
+            <!-- Waiting count -->
+            <Label Grid.Row="2"
+                   x:Name="WaitingLabel"
+                   FontSize="11"
+                   TextColor="{AppThemeBinding Light=#E65100, Dark=#FFB74D}" />
+        </Grid>
+
+    </Frame>
+
+</ContentView>

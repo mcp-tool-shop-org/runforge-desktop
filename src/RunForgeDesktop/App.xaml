@@ -35,6 +35,11 @@
             <converters:SeverityToIconConverter x:Key="SeverityToIconConverter" />
             <converters:BoolToFontAttributeConverter x:Key="BoolToFontAttributeConverter" />
             <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
+
+            <!-- Visual Activity System Converters -->
+            <converters:SlotFilledToColorConverter x:Key="SlotFilledToColorConverter" />
+            <converters:RunDisplayStateToColorConverter x:Key="RunDisplayStateToColorConverter" />
+            <converters:ActivitySystemStateToColorConverter x:Key="ActivitySystemStateToColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -138,4 +138,10 @@ public sealed record QueueStatusSummary
 
     /// <summary>Paused group IDs.</summary>
     public IReadOnlyList<string> PausedGroups { get; init; } = [];
+
+    /// <summary>Jobs requiring GPU that are queued.</summary>
+    public int QueuedGpuCount { get; init; }
+
+    /// <summary>GPU slots configuration.</summary>
+    public int GpuSlots { get; init; }
 }

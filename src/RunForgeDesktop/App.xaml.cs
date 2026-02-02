@@ -1,14 +1,24 @@
-﻿namespace RunForgeDesktop;
+using RunForgeDesktop.Core.Services;
+
+namespace RunForgeDesktop;
 
 public partial class App : Application
 {
-	public App()
-	{
-		InitializeComponent();
-	}
+    private readonly IServiceProvider _serviceProvider;
 
-	protected override Window CreateWindow(IActivationState? activationState)
-	{
-		return new Window(new AppShell());
-	}
+    public App(IServiceProvider serviceProvider)
+    {
+        InitializeComponent();
+        _serviceProvider = serviceProvider;
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        // Create RootPage with activity strip wrapping the shell
+        var activityMonitor = _serviceProvider.GetRequiredService<IActivityMonitorService>();
+        var workspaceService = _serviceProvider.GetRequiredService<IWorkspaceService>();
+
+        var rootPage = new RootPage(activityMonitor, workspaceService);
+        return new Window(rootPage);
+    }
 }

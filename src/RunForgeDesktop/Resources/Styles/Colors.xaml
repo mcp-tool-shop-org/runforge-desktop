@@ -42,4 +42,28 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Activity System Colors (Visual Activity System v1) -->
+    <Color x:Key="ActivityActive">#2196F3</Color>
+    <Color x:Key="ActivityWaiting">#FFA726</Color>
+    <Color x:Key="ActivityIdle">#9E9E9E</Color>
+    <Color x:Key="ActivityError">#F44336</Color>
+    <Color x:Key="ActivitySuccess">#4CAF50</Color>
+
+    <!-- Activity Strip Background -->
+    <Color x:Key="ActivityStripBgLight">#F5F5F5</Color>
+    <Color x:Key="ActivityStripBgDark">#1A1A1A</Color>
+
+    <!-- Slot Indicators -->
+    <Color x:Key="SlotFilledLight">#2196F3</Color>
+    <Color x:Key="SlotFilledDark">#64B5F6</Color>
+    <Color x:Key="SlotEmptyLight">#E0E0E0</Color>
+    <Color x:Key="SlotEmptyDark">#424242</Color>
+
+    <!-- Activity Brushes -->
+    <SolidColorBrush x:Key="ActivityActiveBrush" Color="{StaticResource ActivityActive}"/>
+    <SolidColorBrush x:Key="ActivityWaitingBrush" Color="{StaticResource ActivityWaiting}"/>
+    <SolidColorBrush x:Key="ActivityIdleBrush" Color="{StaticResource ActivityIdle}"/>
+    <SolidColorBrush x:Key="ActivityErrorBrush" Color="{StaticResource ActivityError}"/>
+    <SolidColorBrush x:Key="ActivitySuccessBrush" Color="{StaticResource ActivitySuccess}"/>
 </ResourceDictionary>

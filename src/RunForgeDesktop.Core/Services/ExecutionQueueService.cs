@@ -311,6 +311,8 @@ public sealed partial class ExecutionQueueService : IExecutionQueueService
             CanceledCount = queue.CanceledJobs.Count(),
             DaemonStatus = daemon,
             PausedGroups = paused,
+            QueuedGpuCount = queue.QueuedGpuJobs.Count(),
+            GpuSlots = queue.GpuSlots,
         };
     }
 

@@ -36,6 +36,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRunComparisonService, RunComparisonService>();
         builder.Services.AddSingleton<ISweepService, SweepService>();
         builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
+        builder.Services.AddSingleton<IActivityMonitorService, ActivityMonitorService>();
 
         // Register view models
         // RunsListViewModel is singleton so filter/search state persists across navigation
@@ -49,6 +50,7 @@ public static class MauiProgram
         builder.Services.AddTransient<SettingsViewModel>();
         builder.Services.AddTransient<RequestEditorViewModel>();
         builder.Services.AddTransient<RunCompareViewModel>();
+        builder.Services.AddSingleton<ActivityStripViewModel>();
 
         // Register pages
         builder.Services.AddTransient<MainPage>();

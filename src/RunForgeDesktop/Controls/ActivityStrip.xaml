@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Controls.ActivityStrip"
+             x:DataType="vm:ActivityStripViewModel"
+             HeightRequest="28"
+             BackgroundColor="{AppThemeBinding Light={StaticResource ActivityStripBgLight}, Dark={StaticResource ActivityStripBgDark}}">
+
+    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto"
+          Padding="16,0"
+          ColumnSpacing="20"
+          VerticalOptions="Center">
+
+        <!-- Column 0: CPU Slots -->
+        <HorizontalStackLayout Grid.Column="0" Spacing="3" VerticalOptions="Center">
+            <Label Text="CPU"
+                   FontSize="11"
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}" />
+            <BindableLayout.ItemsSource>
+                <Binding Path="CpuSlots" />
+            </BindableLayout.ItemsSource>
+            <CollectionView ItemsSource="{Binding CpuSlots}"
+                            ItemsLayout="HorizontalList"
+                            HeightRequest="16"
+                            VerticalOptions="Center">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SlotIndicatorModel">
+                        <BoxView WidthRequest="12"
+                                 HeightRequest="12"
+                                 CornerRadius="2"
+                                 Margin="1,0"
+                                 Color="{Binding IsFilled, Converter={StaticResource SlotFilledToColorConverter}}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </HorizontalStackLayout>
+
+        <!-- Column 1: GPU Slots (visible only if configured) -->
+        <HorizontalStackLayout Grid.Column="1"
+                               Spacing="3"
+                               VerticalOptions="Center"
+                               IsVisible="{Binding HasGpuSlots}">
+            <Label Text="GPU"
+                   FontSize="11"
+                   VerticalOptions="Center"
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#AAAAAA}" />
+            <CollectionView ItemsSource="{Binding GpuSlots}"
+                            ItemsLayout="HorizontalList"
+                            HeightRequest="16"
+                            VerticalOptions="Center">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SlotIndicatorModel">
+                        <BoxView WidthRequest="12"
+                                 HeightRequest="12"
+                                 CornerRadius="2"
+                                 Margin="1,0"
+                                 Color="{Binding IsFilled, Converter={StaticResource SlotFilledToColorConverter}}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </HorizontalStackLayout>
+
+        <!-- Column 2: Queue Count -->
+        <Label Grid.Column="2"
+               Text="{Binding QueueCountText}"
+               FontSize="12"
+               VerticalOptions="Center"
+               IsVisible="{Binding ShowQueueCount}"
+               TextColor="{StaticResource ActivityWaiting}" />
+
+        <!-- Column 3: Spacer (auto-fills) -->
+
+        <!-- Column 4: Daemon State + System State -->
+        <HorizontalStackLayout Grid.Column="4" Spacing="12" VerticalOptions="Center">
+            <!-- Daemon indicator -->
+            <Label Text="{Binding DaemonStateIcon}"
+                   FontSize="12"
+                   TextColor="{Binding DaemonStateColor}"
+                   VerticalOptions="Center" />
+
+            <!-- System state text -->
+            <Label Text="{Binding SystemStateText}"
+                   FontSize="12"
+                   TextColor="{Binding SystemStateColor}"
+                   VerticalOptions="Center"
+                   MinimumWidthRequest="60" />
+        </HorizontalStackLayout>
+
+    </Grid>
+</ContentView>
