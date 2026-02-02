@@ -32,6 +32,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRunnerService, RunnerService>();
 
         // Monitoring (for future activity strip)
+        builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
         builder.Services.AddSingleton<IActivityMonitorService, ActivityMonitorService>();
 
         // Diagnostics (run count display)
