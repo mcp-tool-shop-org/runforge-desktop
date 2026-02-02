@@ -21,7 +21,43 @@
                        TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
             </VerticalStackLayout>
 
-            <!-- Form Card -->
+            <!-- No Workspace Banner - blocks form until workspace selected -->
+            <Border IsVisible="{Binding HasWorkspace, Converter={StaticResource InverseBoolConverter}}"
+                    BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#1C1917}"
+                    Stroke="{AppThemeBinding Light=#FCD34D, Dark=#44403C}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="20">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Workspace Required"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
+                    <Label Text="Select a workspace from the Dashboard tab before starting a training run."
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Workspace Info - shown when workspace is set -->
+            <Border IsVisible="{Binding HasWorkspace}"
+                    BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#14532D}"
+                    Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="16,12">
+                <HorizontalStackLayout Spacing="8">
+                    <Label Text="Workspace:"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}" />
+                    <Label Text="{Binding WorkspaceDisplayName}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#15803D, Dark=#4ADE80}" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Form Card - only interactive when workspace exists -->
             <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
                     Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
                     StrokeThickness="1"
@@ -124,11 +160,10 @@
                                         Padding="16,8"
                                         FontSize="13" />
                             </Grid>
-                            <!-- Dataset helper text -->
+                            <!-- Dataset helper text - always visible -->
                             <Label Text="{Binding DatasetHelperText}"
                                    FontSize="12"
-                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
-                                   IsVisible="{Binding DatasetHelperText, Converter={StaticResource StringToBoolConverter}}" />
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 

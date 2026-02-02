@@ -193,6 +193,7 @@
 
             <!-- Action Buttons -->
             <HorizontalStackLayout Spacing="12">
+                <!-- During run: Cancel -->
                 <Button Text="Cancel Run"
                         Command="{Binding CancelCommand}"
                         IsVisible="{Binding CanCancel}"
@@ -202,11 +203,34 @@
                         Padding="20,12"
                         FontSize="14" />
 
+                <!-- After completion: Primary actions -->
                 <Button Text="Open Artifacts"
                         Command="{Binding OpenArtifactsCommand}"
                         IsVisible="{Binding IsCompleted}"
                         BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
                         TextColor="White"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14" />
+
+                <Button Text="View Logs"
+                        Command="{Binding OpenLogsCommand}"
+                        IsVisible="{Binding IsCompleted}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14" />
+
+                <!-- Always available: secondary actions -->
+                <Button Text="Open Run Folder"
+                        Command="{Binding OpenFolderCommand}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
                         CornerRadius="8"
                         Padding="20,12"
                         FontSize="14" />

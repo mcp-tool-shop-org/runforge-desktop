@@ -22,9 +22,30 @@ public partial class NewRunViewModel : ObservableObject
     private void DetectGpu()
     {
         // Simple GPU detection - in production, would use CUDA/DirectX queries
-        // For now, assume GPU available on Windows with decent hardware
-        GpuAvailable = true;
-        GpuName = "GPU"; // Would detect actual name like "RTX 5080"
+        // Check for NVIDIA GPU via environment or registry
+        try
+        {
+            var cudaPath = Environment.GetEnvironmentVariable("CUDA_PATH");
+            GpuAvailable = !string.IsNullOrEmpty(cudaPath);
+            if (GpuAvailable)
+            {
+                // Extract version hint from CUDA path
+                var cudaVersion = Path.GetFileName(cudaPath ?? "");
+                GpuName = $"CUDA GPU ({cudaVersion})";
+            }
+            else
+            {
+                GpuName = "";
+                GpuUnavailableReason = "CUDA not detected. Install NVIDIA drivers + CUDA toolkit.";
+            }
+        }
+        catch
+        {
+            GpuAvailable = false;
+            GpuName = "";
+            GpuUnavailableReason = "GPU detection failed";
+        }
+
         UseGpu = GpuAvailable;
     }
 
@@ -44,7 +65,10 @@ public partial class NewRunViewModel : ObservableObject
     private bool _gpuAvailable = true;
 
     [ObservableProperty]
-    private string _gpuName = "GPU";
+    private string _gpuName = "";
+
+    [ObservableProperty]
+    private string _gpuUnavailableReason = "";
 
     [ObservableProperty]
     private bool _isCreating;
@@ -56,15 +80,32 @@ public partial class NewRunViewModel : ObservableObject
     /// Helper text for device selection based on availability.
     /// </summary>
     public string DeviceHelperText => GpuAvailable
-        ? $"GPU recommended (detected: {GpuName})"
-        : "GPU unavailable — CPU fallback";
+        ? $"GPU available: {GpuName}"
+        : GpuUnavailableReason;
 
     /// <summary>
-    /// Helper text for dataset field.
+    /// Helper text for dataset field - always visible to clarify optional behavior.
     /// </summary>
     public string DatasetHelperText => string.IsNullOrEmpty(DatasetPath)
-        ? "If empty, preset default dataset will be used"
+        ? "Optional. Uses built-in simulation data if empty."
+        : "Custom dataset selected";
+
+    /// <summary>
+    /// Path to current workspace for display.
+    /// </summary>
+    public string? WorkspacePath => _workspaceService.CurrentWorkspacePath;
+
+    /// <summary>
+    /// Short workspace name for display.
+    /// </summary>
+    public string WorkspaceDisplayName => HasWorkspace
+        ? Path.GetFileName(_workspaceService.CurrentWorkspacePath!) ?? "Workspace"
         : "";
+
+    /// <summary>
+    /// Can the form be submitted?
+    /// </summary>
+    public bool CanSubmit => HasWorkspace && !IsCreating && !string.IsNullOrWhiteSpace(RunName);
 
     public string[] AvailablePresets { get; } =
     [

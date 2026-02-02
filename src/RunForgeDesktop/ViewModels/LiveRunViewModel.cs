@@ -267,6 +267,44 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand]
+    private async Task OpenFolder()
+    {
+        var manifest = await _runnerService.GetRunAsync(RunId);
+        if (manifest != null && !string.IsNullOrEmpty(manifest.OutputPath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("explorer.exe", manifest.OutputPath);
+            }
+            catch
+            {
+                // Ignore errors
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenLogs()
+    {
+        var manifest = await _runnerService.GetRunAsync(RunId);
+        if (manifest != null && !string.IsNullOrEmpty(manifest.OutputPath))
+        {
+            try
+            {
+                var logPath = Path.Combine(manifest.OutputPath, "stdout.log");
+                if (File.Exists(logPath))
+                {
+                    System.Diagnostics.Process.Start("notepad.exe", logPath);
+                }
+            }
+            catch
+            {
+                // Ignore errors
+            }
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
