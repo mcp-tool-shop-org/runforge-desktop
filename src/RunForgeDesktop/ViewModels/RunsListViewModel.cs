@@ -8,7 +8,7 @@ using RunForgeDesktop.Views;
 namespace RunForgeDesktop.ViewModels;
 
 /// <summary>
-/// ViewModel for the runs list page.
+/// ViewModel for the runs list page with multi-select support.
 /// </summary>
 public partial class RunsListViewModel : ObservableObject
 {
@@ -51,7 +51,31 @@ public partial class RunsListViewModel : ObservableObject
     [ObservableProperty]
     private bool _isFromCache;
 
+    [ObservableProperty]
+    private bool _isMultiSelectMode;
+
+    [ObservableProperty]
+    private int _selectedCount;
+
+    [ObservableProperty]
+    private string? _selectionHint;
+
     public ObservableCollection<RunIndexEntry> Runs { get; } = [];
+
+    /// <summary>
+    /// Currently selected runs in multi-select mode.
+    /// </summary>
+    public ObservableCollection<object> SelectedRuns { get; } = [];
+
+    /// <summary>
+    /// Whether exactly 2 runs are selected (Compare enabled).
+    /// </summary>
+    public bool CanCompareSelected => SelectedCount == 2;
+
+    /// <summary>
+    /// Whether the action bar should be visible.
+    /// </summary>
+    public bool ShowActionBar => IsMultiSelectMode && SelectedCount > 0;
 
     public RunsListViewModel(IRunIndexService runIndexService, IWorkspaceService workspaceService)
     {
@@ -59,14 +83,51 @@ public partial class RunsListViewModel : ObservableObject
         _workspaceService = workspaceService;
 
         _workspaceService.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Track selection changes
+        SelectedRuns.CollectionChanged += (s, e) =>
+        {
+            SelectedCount = SelectedRuns.Count;
+            UpdateSelectionHint();
+            OnPropertyChanged(nameof(CanCompareSelected));
+            OnPropertyChanged(nameof(ShowActionBar));
+        };
     }
 
     partial void OnSelectedRunChanged(RunIndexEntry? value)
     {
-        if (value is not null)
+        // Only navigate in single-select mode
+        if (!IsMultiSelectMode && value is not null)
         {
             _ = NavigateToRunDetailAsync(value);
         }
+    }
+
+    partial void OnIsMultiSelectModeChanged(bool value)
+    {
+        if (!value)
+        {
+            // Exiting multi-select mode - clear selections
+            SelectedRuns.Clear();
+        }
+        OnPropertyChanged(nameof(ShowActionBar));
+    }
+
+    partial void OnSelectedCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(CanCompareSelected));
+        OnPropertyChanged(nameof(ShowActionBar));
+    }
+
+    private void UpdateSelectionHint()
+    {
+        SelectionHint = SelectedCount switch
+        {
+            0 => null,
+            1 => "Select one more run to compare",
+            2 => null,
+            _ => "Select exactly 2 runs to compare"
+        };
     }
 
     private async Task NavigateToRunDetailAsync(RunIndexEntry run)
@@ -266,5 +327,69 @@ public partial class RunsListViewModel : ObservableObject
         }
 
         await Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private void ToggleMultiSelectMode()
+    {
+        IsMultiSelectMode = !IsMultiSelectMode;
+    }
+
+    [RelayCommand]
+    private void ClearSelection()
+    {
+        SelectedRuns.Clear();
+    }
+
+    [RelayCommand]
+    private void ExitMultiSelectMode()
+    {
+        IsMultiSelectMode = false;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCompareSelected))]
+    private async Task CompareSelectedRunsAsync()
+    {
+        if (SelectedRuns.Count != 2)
+        {
+            return;
+        }
+
+        var runA = SelectedRuns[0] as RunIndexEntry;
+        var runB = SelectedRuns[1] as RunIndexEntry;
+
+        if (runA is null || runB is null)
+        {
+            return;
+        }
+
+        // Navigate to compare page with both runs
+        var parameters = new Dictionary<string, object>
+        {
+            { "runIdA", runA.RunId },
+            { "runNameA", runA.Name },
+            { "runDirA", runA.RunDir },
+            { "runIdB", runB.RunId },
+            { "runNameB", runB.Name },
+            { "runDirB", runB.RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(RunComparePage), parameters);
+
+        // Exit multi-select mode after navigation
+        IsMultiSelectMode = false;
+    }
+
+    /// <summary>
+    /// Called when selection changes in the CollectionView.
+    /// </summary>
+    public void OnSelectionChanged(IList<object> currentSelection)
+    {
+        // Sync with our observable collection
+        SelectedRuns.Clear();
+        foreach (var item in currentSelection)
+        {
+            SelectedRuns.Add(item);
+        }
     }
 }

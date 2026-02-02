@@ -23,4 +23,15 @@ public partial class RunsListPage : ContentPage
             vm.LoadRunsCommand.Execute(null);
         }
     }
+
+    /// <summary>
+    /// Handles selection changes in multi-select mode.
+    /// </summary>
+    private void OnMultiSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BindingContext is RunsListViewModel vm && sender is CollectionView collectionView)
+        {
+            vm.OnSelectionChanged(collectionView.SelectedItems.Cast<object>().ToList());
+        }
+    }
 }
