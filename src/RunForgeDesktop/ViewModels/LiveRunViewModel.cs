@@ -227,10 +227,15 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
                 }
             }
 
-            // Stop polling if completed
+            // Stop polling if finished (completed/failed/cancelled)
+            // Do one final chart invalidation to ensure UI is up to date
             if (Status != RunStatus.Running && Status != RunStatus.Pending)
             {
                 _refreshTimer.Stop();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ChartInvalidated?.Invoke();
+                });
             }
         }
         catch

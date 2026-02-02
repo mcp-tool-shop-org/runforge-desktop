@@ -66,8 +66,36 @@ public class RunManifest
     [JsonPropertyName("total_epochs")]
     public int TotalEpochs { get; set; } = 50;
 
+    [JsonPropertyName("batch_size")]
+    public int BatchSize { get; set; } = 64;
+
+    [JsonPropertyName("learning_rate")]
+    public double LearningRate { get; set; } = 0.001;
+
+    [JsonPropertyName("num_samples")]
+    public int NumSamples { get; set; } = 5000;
+
+    [JsonPropertyName("optimizer")]
+    public string Optimizer { get; set; } = "Adam";
+
+    [JsonPropertyName("scheduler")]
+    public string Scheduler { get; set; } = "StepLR";
+
     [JsonPropertyName("pid")]
     public int? ProcessId { get; set; }
+}
+
+/// <summary>
+/// Training configuration passed to CreateRunAsync.
+/// </summary>
+public class TrainingConfig
+{
+    public int Epochs { get; set; } = 10;
+    public int BatchSize { get; set; } = 64;
+    public double LearningRate { get; set; } = 0.001;
+    public int NumSamples { get; set; } = 5000;
+    public string Optimizer { get; set; } = "Adam";
+    public string Scheduler { get; set; } = "StepLR";
 }
 
 /// <summary>

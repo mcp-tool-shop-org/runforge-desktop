@@ -24,10 +24,12 @@ public class RunnerService : IRunnerService
         _pythonDiscovery = pythonDiscovery;
     }
 
-    public async Task<RunManifest> CreateRunAsync(string name, string preset, string datasetPath, DeviceType device)
+    public async Task<RunManifest> CreateRunAsync(string name, string preset, string datasetPath, DeviceType device, TrainingConfig? config = null)
     {
         var workspace = _workspaceService.CurrentWorkspacePath
             ?? throw new InvalidOperationException("No workspace selected");
+
+        config ??= new TrainingConfig();
 
         var runId = RunContract.GenerateRunId(name);
         var runFolder = RunContract.GetRunFolder(workspace, runId);
@@ -46,7 +48,12 @@ public class RunnerService : IRunnerService
             DatasetPath = datasetPath,
             OutputPath = runFolder,
             CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            TotalEpochs = 10 // Default - fast demo (20s total)
+            TotalEpochs = config.Epochs,
+            BatchSize = config.BatchSize,
+            LearningRate = config.LearningRate,
+            NumSamples = config.NumSamples,
+            Optimizer = config.Optimizer,
+            Scheduler = config.Scheduler
         };
 
         // Write manifest
@@ -108,7 +115,7 @@ public class RunnerService : IRunnerService
         var psi = new ProcessStartInfo
         {
             FileName = pythonPath,
-            Arguments = $"\"{runnerScript}\" \"{runFolder}\" {manifest.TotalEpochs} {manifest.Device}",
+            Arguments = $"\"{runnerScript}\" \"{runFolder}\"",
             WorkingDirectory = workspace,
             UseShellExecute = false,
             RedirectStandardOutput = true,
@@ -444,61 +451,174 @@ public class RunnerService : IRunnerService
 
     private async Task CreateSimulatorScriptAsync(string scriptPath)
     {
-        // Create a Python script that simulates training
+        // Real PyTorch training script - reads config from run.json
         const string script = """
             #!/usr/bin/env python3
-            '''Training simulator for RunForge Desktop.'''
+            '''RunForge Desktop - PyTorch Training Runner'''
             import sys
             import json
             import time
-            import random
             import os
 
             def main():
-                if len(sys.argv) < 4:
-                    print("Usage: runner.py <run_folder> <epochs> <device>")
+                if len(sys.argv) < 2:
+                    print("Usage: runner.py <run_folder>")
                     sys.exit(1)
 
                 run_folder = sys.argv[1]
-                total_epochs = int(sys.argv[2])
-                device = sys.argv[3]
+
+                # Load config from run.json
+                manifest_path = os.path.join(run_folder, "run.json")
+                with open(manifest_path) as f:
+                    config = json.load(f)
+
+                total_epochs = config.get("total_epochs", 10)
+                batch_size = config.get("batch_size", 64)
+                learning_rate = config.get("learning_rate", 0.001)
+                num_samples = config.get("num_samples", 5000)
+                optimizer_name = config.get("optimizer", "Adam")
+                scheduler_name = config.get("scheduler", "StepLR")
+                device_arg = config.get("device", "CPU").upper()
+
+                # Import PyTorch
+                try:
+                    import torch
+                    import torch.nn as nn
+                    import torch.optim as optim
+                    from torch.utils.data import DataLoader, TensorDataset
+                except ImportError:
+                    print("ERROR: PyTorch not installed. Run: pip install torch")
+                    sys.exit(1)
+
+                # Device selection
+                if device_arg == "GPU" and torch.cuda.is_available():
+                    device = torch.device("cuda")
+                    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+                    print(f"CUDA version: {torch.version.cuda}")
+                else:
+                    device = torch.device("cpu")
+                    print(f"Using CPU (CUDA available: {torch.cuda.is_available()})")
 
                 metrics_path = os.path.join(run_folder, "metrics.jsonl")
 
-                print(f"Starting training simulation on {device}")
+                print(f"═══════════════════════════════════════════════")
+                print(f"RunForge Training Session")
+                print(f"═══════════════════════════════════════════════")
                 print(f"Run folder: {run_folder}")
-                print(f"Total epochs: {total_epochs}")
+                print(f"Epochs: {total_epochs}")
+                print(f"Batch size: {batch_size}")
+                print(f"Learning rate: {learning_rate}")
+                print(f"Samples: {num_samples}")
+                print(f"Optimizer: {optimizer_name}")
+                print(f"Scheduler: {scheduler_name}")
+                print(f"═══════════════════════════════════════════════")
 
-                loss = 2.5  # Starting loss
+                # Simple CNN for image classification
+                class SimpleCNN(nn.Module):
+                    def __init__(self):
+                        super().__init__()
+                        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
+                        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+                        self.conv3 = nn.Conv2d(64, 128, 3, padding=1)
+                        self.pool = nn.MaxPool2d(2, 2)
+                        self.fc1 = nn.Linear(128 * 4 * 4, 256)
+                        self.fc2 = nn.Linear(256, 10)
+                        self.relu = nn.ReLU()
+                        self.dropout = nn.Dropout(0.5)
+
+                    def forward(self, x):
+                        x = self.pool(self.relu(self.conv1(x)))
+                        x = self.pool(self.relu(self.conv2(x)))
+                        x = self.pool(self.relu(self.conv3(x)))
+                        x = x.view(-1, 128 * 4 * 4)
+                        x = self.dropout(self.relu(self.fc1(x)))
+                        return self.fc2(x)
+
+                # Generate synthetic dataset
+                print("Generating training data...")
+                X = torch.randn(num_samples, 3, 32, 32)
+                y = torch.randint(0, 10, (num_samples,))
+                dataset = TensorDataset(X, y)
+                loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=(device.type == "cuda"))
+
+                # Model
+                model = SimpleCNN().to(device)
+                criterion = nn.CrossEntropyLoss()
+
+                # Optimizer selection
+                if optimizer_name == "Adam":
+                    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+                elif optimizer_name == "AdamW":
+                    optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
+                elif optimizer_name == "SGD":
+                    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+                elif optimizer_name == "RMSprop":
+                    optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
+                else:
+                    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+                # Scheduler selection
+                if scheduler_name == "StepLR":
+                    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=max(1, total_epochs // 3), gamma=0.5)
+                elif scheduler_name == "CosineAnnealing":
+                    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_epochs)
+                elif scheduler_name == "OneCycleLR":
+                    scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate * 10, epochs=total_epochs, steps_per_epoch=len(loader))
+                else:
+                    scheduler = None
+
+                print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
+                print(f"Batches per epoch: {len(loader)}")
+                print("Starting training...")
+                print()
+
                 step = 0
-                lr = 0.001
-
                 for epoch in range(1, total_epochs + 1):
-                    steps_per_epoch = 20  # Fewer steps for faster demo
-                    for s in range(steps_per_epoch):
+                    model.train()
+                    epoch_loss = 0.0
+                    num_batches = 0
+
+                    for batch_idx, (data, target) in enumerate(loader):
+                        data, target = data.to(device), target.to(device)
                         step += 1
 
-                        # Simulate loss decreasing with noise
-                        loss = loss * 0.98 + random.gauss(0, 0.02)
-                        loss = max(0.01, loss)  # Don't go negative
+                        optimizer.zero_grad()
+                        output = model(data)
+                        loss = criterion(output, target)
+                        loss.backward()
+                        optimizer.step()
 
-                        # Write metrics every step for smooth chart
+                        if scheduler_name == "OneCycleLR" and scheduler:
+                            scheduler.step()
+
+                        epoch_loss += loss.item()
+                        num_batches += 1
+
+                        # Log every batch
                         entry = {
                             "step": step,
                             "epoch": epoch,
-                            "loss": round(loss, 4),
-                            "lr": lr,
+                            "loss": round(loss.item(), 4),
+                            "lr": optimizer.param_groups[0]['lr'],
                             "time": int(time.time())
                         }
                         with open(metrics_path, "a") as f:
                             f.write(json.dumps(entry) + "\n")
 
-                        print(f"step {step} epoch {epoch}/{total_epochs} loss={loss:.4f}")
+                        print(f"step {step} epoch {epoch}/{total_epochs} loss={loss.item():.4f} lr={optimizer.param_groups[0]['lr']:.6f}")
 
-                        # Simulate work - faster for demo (20 steps * 0.1s * 10 epochs = 20s)
-                        time.sleep(0.1)
+                    if scheduler and scheduler_name != "OneCycleLR":
+                        scheduler.step()
 
+                    avg_loss = epoch_loss / num_batches
+                    print(f">>> Epoch {epoch} complete - avg loss: {avg_loss:.4f}")
+                    print()
+
+                print("═══════════════════════════════════════════════")
                 print("Training complete!")
+                print(f"Final loss: {avg_loss:.4f}")
+                print(f"Total steps: {step}")
+                print("═══════════════════════════════════════════════")
 
             if __name__ == "__main__":
                 main()

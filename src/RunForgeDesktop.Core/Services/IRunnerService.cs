@@ -22,7 +22,7 @@ public interface IRunnerService
     /// <summary>
     /// Create a new run folder and manifest.
     /// </summary>
-    Task<RunManifest> CreateRunAsync(string name, string preset, string datasetPath, DeviceType device);
+    Task<RunManifest> CreateRunAsync(string name, string preset, string datasetPath, DeviceType device, TrainingConfig? config = null);
 
     /// <summary>
     /// Start the training process for a run.

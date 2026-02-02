@@ -243,6 +243,156 @@
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
+                    <!-- Divider -->
+                    <BoxView HeightRequest="1"
+                             Color="{AppThemeBinding Light=#E5E7EB, Dark=#2D3748}"
+                             Margin="0,4" />
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         SECTION: Advanced (Collapsible)
+                         ═══════════════════════════════════════════════════════════ -->
+                    <VerticalStackLayout Spacing="12">
+                        <!-- Toggle Header -->
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="ADVANCED"
+                                   FontSize="11"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   CharacterSpacing="1"
+                                   VerticalOptions="Center" />
+                            <Button Text="{Binding ShowAdvanced, Converter={StaticResource BoolToStringConverter}, ConverterParameter='▲ Hide|▼ Show'}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}"
+                                    FontSize="12"
+                                    Padding="8,4"
+                                    Command="{Binding ToggleAdvancedCommand}"
+                                    SemanticProperties.Description="Toggle advanced training settings" />
+                        </HorizontalStackLayout>
+
+                        <!-- Advanced Settings Panel -->
+                        <VerticalStackLayout Spacing="16" IsVisible="{Binding ShowAdvanced}">
+
+                            <!-- Epochs -->
+                            <Grid ColumnDefinitions="*,120" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Epochs"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Number of full passes through the dataset"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Entry Grid.Column="1"
+                                       Text="{Binding Epochs}"
+                                       Keyboard="Numeric"
+                                       FontSize="14"
+                                       HorizontalTextAlignment="Center"
+                                       BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                       TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                            <!-- Batch Size -->
+                            <Grid ColumnDefinitions="*,120" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Batch Size"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Samples per training step (32, 64, 128, 256)"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Entry Grid.Column="1"
+                                       Text="{Binding BatchSize}"
+                                       Keyboard="Numeric"
+                                       FontSize="14"
+                                       HorizontalTextAlignment="Center"
+                                       BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                       TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                            <!-- Learning Rate -->
+                            <Grid ColumnDefinitions="*,120" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Learning Rate"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Step size for gradient descent (e.g., 0.001)"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Entry Grid.Column="1"
+                                       Text="{Binding LearningRate}"
+                                       Keyboard="Numeric"
+                                       FontSize="14"
+                                       HorizontalTextAlignment="Center"
+                                       BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                       TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                            <!-- Num Samples -->
+                            <Grid ColumnDefinitions="*,120" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Training Samples"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Synthetic data size (more = longer training)"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Entry Grid.Column="1"
+                                       Text="{Binding NumSamples}"
+                                       Keyboard="Numeric"
+                                       FontSize="14"
+                                       HorizontalTextAlignment="Center"
+                                       BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                       TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                            <!-- Optimizer -->
+                            <Grid ColumnDefinitions="*,140" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Optimizer"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Gradient descent algorithm"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Picker Grid.Column="1"
+                                        ItemsSource="{Binding AvailableOptimizers}"
+                                        SelectedItem="{Binding SelectedOptimizer}"
+                                        FontSize="14"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                        TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                            <!-- Scheduler -->
+                            <Grid ColumnDefinitions="*,140" ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="LR Scheduler"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                                    <Label Text="Learning rate decay strategy"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                                </VerticalStackLayout>
+                                <Picker Grid.Column="1"
+                                        ItemsSource="{Binding AvailableSchedulers}"
+                                        SelectedItem="{Binding SelectedScheduler}"
+                                        FontSize="14"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                        TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            </Grid>
+
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
                     <!-- ═══════════════════════════════════════════════════════════
                          ERROR + ACTION
                          ═══════════════════════════════════════════════════════════ -->

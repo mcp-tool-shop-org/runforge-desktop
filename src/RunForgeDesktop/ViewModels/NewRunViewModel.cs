@@ -76,6 +76,33 @@ public partial class NewRunViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    // === ADVANCED SETTINGS ===
+
+    [ObservableProperty]
+    private bool _showAdvanced;
+
+    [ObservableProperty]
+    private int _epochs = 10;
+
+    [ObservableProperty]
+    private int _batchSize = 64;
+
+    [ObservableProperty]
+    private double _learningRate = 0.001;
+
+    [ObservableProperty]
+    private int _numSamples = 5000;
+
+    [ObservableProperty]
+    private string _selectedOptimizer = "Adam";
+
+    [ObservableProperty]
+    private string _selectedScheduler = "StepLR";
+
+    public string[] AvailableOptimizers { get; } = ["Adam", "AdamW", "SGD", "RMSprop"];
+
+    public string[] AvailableSchedulers { get; } = ["None", "StepLR", "CosineAnnealing", "OneCycleLR"];
+
     /// <summary>
     /// Helper text for device selection based on availability.
     /// </summary>
@@ -123,6 +150,12 @@ public partial class NewRunViewModel : ObservableObject
     partial void OnDatasetPathChanged(string value)
     {
         OnPropertyChanged(nameof(DatasetHelperText));
+    }
+
+    [RelayCommand]
+    private void ToggleAdvanced()
+    {
+        ShowAdvanced = !ShowAdvanced;
     }
 
     [RelayCommand]
@@ -176,12 +209,23 @@ public partial class NewRunViewModel : ObservableObject
         {
             var device = UseGpu ? Core.Models.DeviceType.GPU : Core.Models.DeviceType.CPU;
 
+            var config = new Core.Models.TrainingConfig
+            {
+                Epochs = Epochs,
+                BatchSize = BatchSize,
+                LearningRate = LearningRate,
+                NumSamples = NumSamples,
+                Optimizer = SelectedOptimizer,
+                Scheduler = SelectedScheduler
+            };
+
             // Create the run manifest
             var manifest = await _runnerService.CreateRunAsync(
                 RunName,
                 SelectedPreset,
                 DatasetPath,
-                device);
+                device,
+                config);
 
             // Navigate immediately - motion = confidence
             // The live view will show "Starting..." state while runner spawns
