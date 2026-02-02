@@ -373,3 +373,153 @@ public class StringEqualsConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts a run status string to a color.
+/// "succeeded" = green, "failed" = red, else gray.
+/// </summary>
+public class StatusToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string status)
+        {
+            return status.ToLowerInvariant() switch
+            {
+                "succeeded" => Color.FromArgb("#4CAF50"), // Green
+                "failed" => Color.FromArgb("#F44336"), // Red
+                "running" => Color.FromArgb("#2196F3"), // Blue
+                "cancelled" => Color.FromArgb("#FF9800"), // Orange
+                _ => Color.FromArgb("#9E9E9E") // Gray
+            };
+        }
+        return Color.FromArgb("#9E9E9E");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a metric severity string to a color.
+/// "improved" = green, "degraded" = red, "unchanged" = gray, "unknown" = gray.
+/// </summary>
+public class SeverityToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string severity)
+        {
+            return severity.ToLowerInvariant() switch
+            {
+                "improved" => Color.FromArgb("#4CAF50"), // Green
+                "degraded" => Color.FromArgb("#F44336"), // Red
+                "unchanged" => Color.FromArgb("#9E9E9E"), // Gray
+                _ => Color.FromArgb("#9E9E9E") // Gray
+            };
+        }
+        return Color.FromArgb("#9E9E9E");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a metric severity string to a text color.
+/// "improved" = dark green, "degraded" = dark red, "unchanged" = gray.
+/// </summary>
+public class SeverityToTextColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string severity)
+        {
+            return severity.ToLowerInvariant() switch
+            {
+                "improved" => Color.FromArgb("#2E7D32"), // Dark green
+                "degraded" => Color.FromArgb("#C62828"), // Dark red
+                "unchanged" => Color.FromArgb("#757575"), // Medium gray
+                _ => Color.FromArgb("#757575") // Medium gray
+            };
+        }
+        return Color.FromArgb("#757575");
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a metric severity string to an icon/emoji.
+/// "improved" = ↑, "degraded" = ↓, "unchanged" = ─.
+/// </summary>
+public class SeverityToIconConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string severity)
+        {
+            return severity.ToLowerInvariant() switch
+            {
+                "improved" => "↑",
+                "degraded" => "↓",
+                "unchanged" => "─",
+                _ => "?"
+            };
+        }
+        return "?";
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a boolean to FontAttributes.
+/// True = Bold, False = None.
+/// </summary>
+public class BoolToFontAttributeConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool b)
+        {
+            return b ? FontAttributes.Bold : FontAttributes.None;
+        }
+        return FontAttributes.None;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts an int to boolean (true if greater than zero).
+/// </summary>
+public class IntToBoolConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is int i)
+        {
+            return i > 0;
+        }
+        return false;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

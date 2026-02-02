@@ -29,6 +29,12 @@
             <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
             <converters:StringNotNullConverter x:Key="StringNotNullConverter" />
             <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
+            <converters:StatusToColorConverter x:Key="StatusToColorConverter" />
+            <converters:SeverityToColorConverter x:Key="SeverityToColorConverter" />
+            <converters:SeverityToTextColorConverter x:Key="SeverityToTextColorConverter" />
+            <converters:SeverityToIconConverter x:Key="SeverityToIconConverter" />
+            <converters:BoolToFontAttributeConverter x:Key="BoolToFontAttributeConverter" />
+            <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

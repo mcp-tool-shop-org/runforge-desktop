@@ -29,6 +29,14 @@
                         FontSize="12"
                         Padding="8,4"
                         ToolTipProperties.Text="Open run folder in file explorer" />
+                <Button Text="Compare with Parent"
+                        Command="{Binding NavigateToComparePageCommand}"
+                        IsVisible="{Binding HasParent}"
+                        BackgroundColor="{AppThemeBinding Light=#FF9800, Dark=#E65100}"
+                        TextColor="White"
+                        CornerRadius="4"
+                        Padding="16,8"
+                        ToolTipProperties.Text="Compare this run with its parent (metrics, config, artifacts)" />
                 <Button Text="Interpretability"
                         Command="{Binding NavigateToInterpretabilityCommand}"
                         BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
@@ -562,24 +570,21 @@
                                         Padding="8,4" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Status:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
                                 <Label Grid.Row="0" Grid.Column="1"
                                        Text="{Binding Result.Status}"
                                        FontAttributes="Bold"
                                        TextColor="{Binding Result.IsSucceeded, Converter={StaticResource SuccessToColorConverter}}" />
 
-                                <Label Grid.Row="1" Grid.Column="0" Text="Exit Code:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Result.ExitCode}" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="Duration:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Result.Duration, StringFormat='{0:mm\\:ss\\.fff}'}" />
 
-                                <Label Grid.Row="2" Grid.Column="0" Text="Duration:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
-                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Result.Duration, StringFormat='{0:mm\\:ss\\.fff}'}" />
-
-                                <Label Grid.Row="3" Grid.Column="0" Text="Error:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
-                                       IsVisible="{Binding Result.Error, Converter={StaticResource StringToBoolConverter}}" />
-                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding Result.Error}"
+                                <Label Grid.Row="2" Grid.Column="0" Text="Error:" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                       IsVisible="{Binding Result.Error, Converter={StaticResource ObjectToBoolConverter}}" />
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Result.Error.Message}"
                                        TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}"
-                                       IsVisible="{Binding Result.Error, Converter={StaticResource StringToBoolConverter}}" />
+                                       IsVisible="{Binding Result.Error, Converter={StaticResource ObjectToBoolConverter}}" />
                             </Grid>
                         </VerticalStackLayout>
                     </Frame>

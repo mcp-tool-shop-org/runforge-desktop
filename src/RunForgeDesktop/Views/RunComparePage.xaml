@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             xmlns:models="clr-namespace:RunForgeDesktop.Core.Models;assembly=RunForgeDesktop.Core"
+             x:Class="RunForgeDesktop.Views.RunComparePage"
+             x:DataType="vm:RunCompareViewModel"
+             Title="Compare Runs">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,16">
+            <Button Grid.Column="0"
+                    Text="← Back"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                    FontSize="14"
+                    Padding="0"
+                    VerticalOptions="Center" />
+
+            <VerticalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="Center">
+                <Label Text="Run Comparison"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#1E3A5F, Dark=#E0E0E0}"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding PageTitle}"
+                       FontSize="13"
+                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="2"
+                    Text="Copy Summary"
+                    Command="{Binding CopySummaryCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+                    TextColor="White"
+                    CornerRadius="4"
+                    Padding="12,8"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Content -->
+        <ScrollView Grid.Row="1">
+            <Grid>
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   Color="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}" />
+
+                <!-- Error message -->
+                <Frame IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                       BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#3E2723}"
+                       BorderColor="{AppThemeBinding Light=#EF5350, Dark=#D32F2F}"
+                       CornerRadius="8"
+                       Padding="16"
+                       Margin="0,0,0,16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Comparison Error"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#C62828, Dark=#EF5350}" />
+                        <Label Text="{Binding ErrorMessage}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Comparison content -->
+                <VerticalStackLayout Spacing="16"
+                                     IsVisible="{Binding HasComparison}">
+
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- RESULTS OVERVIEW SECTION -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Comparison.Results, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="16">
+                            <Label Text="Results Overview"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Status badges -->
+                            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="16">
+                                <!-- Parent status -->
+                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="Parent"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           HorizontalOptions="Center" />
+                                    <Frame BackgroundColor="{Binding Comparison.Results.ParentStatus, Converter={StaticResource StatusToColorConverter}}"
+                                           CornerRadius="12"
+                                           Padding="16,8"
+                                           HasShadow="False">
+                                        <Label Text="{Binding Comparison.Results.ParentStatus}"
+                                               TextColor="White"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center" />
+                                    </Frame>
+                                    <Label Text="{Binding Comparison.Results.ParentDurationFormatted}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+
+                                <!-- Arrow -->
+                                <Label Grid.Column="1"
+                                       Text="→"
+                                       FontSize="24"
+                                       TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
+                                       VerticalOptions="Center" />
+
+                                <!-- Child status -->
+                                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="Child"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           HorizontalOptions="Center" />
+                                    <Frame BackgroundColor="{Binding Comparison.Results.ChildStatus, Converter={StaticResource StatusToColorConverter}}"
+                                           CornerRadius="12"
+                                           Padding="16,8"
+                                           HasShadow="False">
+                                        <Label Text="{Binding Comparison.Results.ChildStatus}"
+                                               TextColor="White"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="Center" />
+                                    </Frame>
+                                    <Label Text="{Binding Comparison.Results.ChildDurationFormatted}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <!-- Duration delta -->
+                            <Frame BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1A1A1A}"
+                                   BorderColor="Transparent"
+                                   CornerRadius="4"
+                                   Padding="12"
+                                   HasShadow="False">
+                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                    <Label Text="Duration change:"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                           VerticalOptions="Center" />
+                                    <Label Text="{Binding Comparison.Results.DurationDeltaFormatted}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Frame>
+
+                            <!-- Primary metric (big display) -->
+                            <Frame IsVisible="{Binding Comparison.Results.PrimaryMetric, Converter={StaticResource ObjectToBoolConverter}}"
+                                   BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#0D47A1}"
+                                   BorderColor="Transparent"
+                                   CornerRadius="8"
+                                   Padding="16"
+                                   HasShadow="False">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="{Binding Comparison.Results.PrimaryMetric.DisplayName, StringFormat='Primary Metric: {0}'}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}"
+                                           HorizontalOptions="Center" />
+
+                                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="16" HorizontalOptions="Center">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Comparison.Results.PrimaryMetric.ParentValueFormatted}"
+                                               FontSize="24"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}"
+                                               HorizontalOptions="End" />
+                                        <Label Grid.Column="1"
+                                               Text="→"
+                                               FontSize="20"
+                                               TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                               VerticalOptions="Center" />
+                                        <Label Grid.Column="2"
+                                               Text="{Binding Comparison.Results.PrimaryMetric.ChildValueFormatted}"
+                                               FontSize="24"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#1565C0, Dark=#90CAF9}"
+                                               HorizontalOptions="Start" />
+                                    </Grid>
+
+                                    <!-- Delta badge -->
+                                    <Frame HorizontalOptions="Center"
+                                           CornerRadius="12"
+                                           Padding="12,6"
+                                           HasShadow="False"
+                                           BackgroundColor="{Binding Comparison.Results.PrimaryMetric.Severity, Converter={StaticResource SeverityToColorConverter}}">
+                                        <Label Text="{Binding Comparison.Results.PrimaryMetric.DeltaFormatted}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalOptions="Center" />
+                                    </Frame>
+                                </VerticalStackLayout>
+                            </Frame>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- EFFECTIVE CONFIG CHANGES -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Comparison.HasEffectiveConfigDifferences}">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="Configuration Changes"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <Label Text="Effective config differences (what was actually used)"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+
+                            <!-- Config diff table -->
+                            <Grid ColumnDefinitions="120,*,*" ColumnSpacing="8">
+                                <Label Grid.Column="0" Text="Field" FontAttributes="Bold" FontSize="12" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Column="1" Text="Parent" FontAttributes="Bold" FontSize="12" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Column="2" Text="Child" FontAttributes="Bold" FontSize="12" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#404040}" />
+
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Comparison.EffectiveConfigDifferences}" Spacing="6">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:DiffItem">
+                                        <Grid ColumnDefinitions="120,*,*" ColumnSpacing="8">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding DisplayName}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                            <Frame Grid.Column="1"
+                                                   BackgroundColor="{AppThemeBinding Light=#FFEBEE, Dark=#3E2723}"
+                                                   BorderColor="Transparent"
+                                                   CornerRadius="4"
+                                                   Padding="6,4"
+                                                   HasShadow="False">
+                                                <Label Text="{Binding ParentValue}"
+                                                       FontSize="11"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       TextColor="{AppThemeBinding Light=#C62828, Dark=#EF9A9A}"
+                                                       LineBreakMode="TailTruncation" />
+                                            </Frame>
+                                            <Frame Grid.Column="2"
+                                                   BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B3D20}"
+                                                   BorderColor="Transparent"
+                                                   CornerRadius="4"
+                                                   Padding="6,4"
+                                                   HasShadow="False">
+                                                <Label Text="{Binding CurrentValue}"
+                                                       FontSize="11"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       TextColor="{AppThemeBinding Light=#2E7D32, Dark=#A5D6A7}"
+                                                       LineBreakMode="TailTruncation" />
+                                            </Frame>
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- No config changes message -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B3D20}"
+                           BorderColor="Transparent"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Comparison.HasEffectiveConfigDifferences, Converter={StaticResource InverseBoolConverter}}">
+                        <Label Text="No configuration changes - same effective config was used."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light=#2E7D32, Dark=#A5D6A7}"
+                               HorizontalOptions="Center" />
+                    </Frame>
+
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- ALL METRICS COMPARISON -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Comparison.Results.BothSucceeded}">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="All Metrics"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+
+                            <!-- Metrics table -->
+                            <Grid ColumnDefinitions="100,80,80,80,60" ColumnSpacing="8">
+                                <Label Grid.Column="0" Text="Metric" FontAttributes="Bold" FontSize="11" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <Label Grid.Column="1" Text="Parent" FontAttributes="Bold" FontSize="11" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="2" Text="Child" FontAttributes="Bold" FontSize="11" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="3" Text="Delta" FontAttributes="Bold" FontSize="11" TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" HorizontalTextAlignment="End" />
+                                <Label Grid.Column="4" Text="" FontSize="11" />
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E0E0E0, Dark=#404040}" />
+
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Comparison.Results.MetricDeltas}" Spacing="4">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="models:MetricDelta">
+                                        <Grid ColumnDefinitions="100,80,80,80,60" ColumnSpacing="8">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding DisplayName}"
+                                                   FontSize="12"
+                                                   FontAttributes="{Binding IsPrimary, Converter={StaticResource BoolToFontAttributeConverter}}"
+                                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding ParentValueFormatted}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                                   HorizontalTextAlignment="End" />
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding ChildValueFormatted}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}"
+                                                   HorizontalTextAlignment="End" />
+                                            <Label Grid.Column="3"
+                                                   Text="{Binding DeltaFormatted}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{Binding Severity, Converter={StaticResource SeverityToTextColorConverter}}"
+                                                   HorizontalTextAlignment="End" />
+                                            <Label Grid.Column="4"
+                                                   Text="{Binding Severity, Converter={StaticResource SeverityToIconConverter}}"
+                                                   FontSize="12"
+                                                   HorizontalTextAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <!-- ARTIFACTS COMPARISON -->
+                    <!-- ═══════════════════════════════════════════════════════════════════ -->
+                    <Frame BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
+                           BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+                           CornerRadius="8"
+                           Padding="16"
+                           IsVisible="{Binding Comparison.Artifacts, Converter={StaticResource ObjectToBoolConverter}}">
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="Artifacts"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#333333, Dark=#EEEEEE}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding Comparison.Artifacts.ParentCount, StringFormat='Parent: {0} | '}"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                            </Grid>
+
+                            <!-- Common artifacts -->
+                            <VerticalStackLayout IsVisible="{Binding Comparison.Artifacts.Common.Count, Converter={StaticResource IntToBoolConverter}}" Spacing="4">
+                                <Label Text="Common"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}" />
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Comparison.Artifacts.Common}" Spacing="2">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ArtifactPair">
+                                            <Grid ColumnDefinitions="*,80,80" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding Child.Path}"
+                                                       FontSize="11"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       TextColor="{AppThemeBinding Light=#333333, Dark=#CCCCCC}" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding Parent.FormattedSize}"
+                                                       FontSize="10"
+                                                       TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
+                                                       HorizontalTextAlignment="End" />
+                                                <Label Grid.Column="2"
+                                                       Text="{Binding Child.FormattedSize}"
+                                                       FontSize="10"
+                                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Added in child -->
+                            <VerticalStackLayout IsVisible="{Binding Comparison.Artifacts.AddedInChild.Count, Converter={StaticResource IntToBoolConverter}}" Spacing="4">
+                                <Label Text="Added in Child"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#2E7D32, Dark=#A5D6A7}" />
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Comparison.Artifacts.AddedInChild}" Spacing="2">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ArtifactInfo">
+                                            <Grid ColumnDefinitions="*,80" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding Path}"
+                                                       FontSize="11"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       TextColor="{AppThemeBinding Light=#2E7D32, Dark=#A5D6A7}" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding FormattedSize}"
+                                                       FontSize="10"
+                                                       TextColor="{AppThemeBinding Light=#666666, Dark=#999999}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Removed from parent -->
+                            <VerticalStackLayout IsVisible="{Binding Comparison.Artifacts.RemovedFromParent.Count, Converter={StaticResource IntToBoolConverter}}" Spacing="4">
+                                <Label Text="Removed (in Parent only)"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#C62828, Dark=#EF9A9A}" />
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Comparison.Artifacts.RemovedFromParent}" Spacing="2">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ArtifactInfo">
+                                            <Grid ColumnDefinitions="*,80" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding Path}"
+                                                       FontSize="11"
+                                                       FontFamily="Consolas, Courier New, monospace"
+                                                       TextColor="{AppThemeBinding Light=#C62828, Dark=#EF9A9A}"
+                                                       TextDecorations="Strikethrough" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding FormattedSize}"
+                                                       FontSize="10"
+                                                       TextColor="{AppThemeBinding Light=#999999, Dark=#666666}"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                </VerticalStackLayout>
+            </Grid>
+        </ScrollView>
+
+        <!-- Status message toast -->
+        <Frame Grid.Row="2"
+               IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+               BackgroundColor="{AppThemeBinding Light=#1E3A5F, Dark=#4A7BA7}"
+               CornerRadius="4"
+               Padding="12,8"
+               Margin="0,8,0,0"
+               HorizontalOptions="Center">
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="White"
+                   FontSize="13" />
+        </Frame>
+
+    </Grid>
+
+</ContentPage>

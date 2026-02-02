@@ -798,6 +798,24 @@ public partial class RunDetailViewModel : ObservableObject, IQueryAttributable, 
         CurrentJsonContent = null;
     }
 
+    [RelayCommand]
+    private async Task NavigateToComparePageAsync()
+    {
+        if (string.IsNullOrEmpty(RunId) || string.IsNullOrEmpty(RunDir) || !HasParent)
+        {
+            return;
+        }
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "runId", RunId },
+            { "runName", RunName ?? RunId },
+            { "runDir", RunDir }
+        };
+
+        await Shell.Current.GoToAsync(nameof(RunComparePage), parameters);
+    }
+
     #endregion
 
     #region Commands - Live Log
