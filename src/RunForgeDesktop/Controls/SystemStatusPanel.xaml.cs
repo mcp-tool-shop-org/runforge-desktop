@@ -101,37 +101,38 @@ public partial class SystemStatusPanel : ContentView
 
     private void UpdateDisplay()
     {
+        // Colors aligned with Visual Activity System theme tokens
         switch (SystemState)
         {
             case ActivitySystemState.Idle:
                 StatusIcon.Text = "\u2713"; // ✓
-                StatusIcon.TextColor = Color.FromArgb("#4CAF50"); // Green
+                StatusIcon.TextColor = Color.FromArgb("#10B981"); // StateIdle green
                 StatusTitle.Text = "System idle";
-                StatusTitle.TextColor = Color.FromArgb("#4CAF50");
+                StatusTitle.TextColor = Color.FromArgb("#10B981");
                 StatusSubtitle.Text = StatusReason ?? "Ready for work";
                 break;
 
             case ActivitySystemState.Busy:
                 StatusIcon.Text = "\u25b6"; // ▶
-                StatusIcon.TextColor = Color.FromArgb("#2196F3"); // Blue
+                StatusIcon.TextColor = Color.FromArgb("#3B82F6"); // StateRunning blue
                 StatusTitle.Text = "Executing";
-                StatusTitle.TextColor = Color.FromArgb("#2196F3");
+                StatusTitle.TextColor = Color.FromArgb("#3B82F6");
                 StatusSubtitle.Text = BuildBusySubtitle();
                 break;
 
             case ActivitySystemState.Stalled:
                 StatusIcon.Text = "\u26a0"; // ⚠
-                StatusIcon.TextColor = Color.FromArgb("#FFA726"); // Amber
+                StatusIcon.TextColor = Color.FromArgb("#F97316"); // StateStalled orange
                 StatusTitle.Text = "Stalled";
-                StatusTitle.TextColor = Color.FromArgb("#FFA726");
+                StatusTitle.TextColor = Color.FromArgb("#F97316");
                 StatusSubtitle.Text = StatusReason ?? "No recent activity";
                 break;
 
             case ActivitySystemState.Error:
                 StatusIcon.Text = "\u26d4"; // ⛔
-                StatusIcon.TextColor = Color.FromArgb("#F44336"); // Red
+                StatusIcon.TextColor = Color.FromArgb("#EF4444"); // StateFailed red
                 StatusTitle.Text = "Error";
-                StatusTitle.TextColor = Color.FromArgb("#F44336");
+                StatusTitle.TextColor = Color.FromArgb("#EF4444");
                 StatusSubtitle.Text = StatusReason ?? "Daemon not running";
                 break;
         }

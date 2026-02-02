@@ -1,6 +1,7 @@
 #if WINDOWS
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using Microsoft.Maui.Platform;
 #endif
 
 namespace RunForgeDesktop.Services;
@@ -22,10 +23,11 @@ public static class FolderPickerService
         picker.FileTypeFilter.Add("*");
 
         // Get the window handle for the picker
+        // In MAUI, PlatformView is MauiWinUIWindow, not Microsoft.UI.Xaml.Window
         var window = Application.Current?.Windows.FirstOrDefault()?.Handler?.PlatformView;
-        if (window is Microsoft.UI.Xaml.Window win)
+        if (window is MauiWinUIWindow mauiWindow)
         {
-            var hwnd = WindowNative.GetWindowHandle(win);
+            var hwnd = WindowNative.GetWindowHandle(mauiWindow);
             InitializeWithWindow.Initialize(picker, hwnd);
         }
 

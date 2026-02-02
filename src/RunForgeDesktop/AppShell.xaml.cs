@@ -21,6 +21,9 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
         Routing.RegisterRoute(nameof(RequestEditorPage), typeof(RequestEditorPage));
         Routing.RegisterRoute(nameof(RunComparePage), typeof(RunComparePage));
+        Routing.RegisterRoute(nameof(RunsDashboardPage), typeof(RunsDashboardPage));
+        Routing.RegisterRoute("newrun", typeof(NewRunPage));
+        Routing.RegisterRoute("rundetail", typeof(LiveRunPage));
 
         // Store services for future activity strip implementation
         // Global activity strip will be added later via proper Shell template

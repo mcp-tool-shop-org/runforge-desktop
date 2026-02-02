@@ -375,8 +375,8 @@ public class StringEqualsConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts a run status string to a color.
-/// "succeeded" = green, "failed" = red, else gray.
+/// Converts a run status string to a color for the Visual Activity System.
+/// "succeeded" = gray (completed), "failed" = red, "running" = blue, "queued" = amber.
 /// </summary>
 public class StatusToColorConverter : IValueConverter
 {
@@ -386,14 +386,16 @@ public class StatusToColorConverter : IValueConverter
         {
             return status.ToLowerInvariant() switch
             {
-                "succeeded" => Color.FromArgb("#4CAF50"), // Green
-                "failed" => Color.FromArgb("#F44336"), // Red
-                "running" => Color.FromArgb("#2196F3"), // Blue
-                "cancelled" => Color.FromArgb("#FF9800"), // Orange
-                _ => Color.FromArgb("#9E9E9E") // Gray
+                "succeeded" => Color.FromArgb("#6B7280"), // Gray - completed successfully
+                "failed" => Color.FromArgb("#EF4444"), // Red - failed
+                "running" => Color.FromArgb("#3B82F6"), // Blue - actively running
+                "queued" => Color.FromArgb("#F59E0B"), // Amber - waiting in queue
+                "stalled" => Color.FromArgb("#F97316"), // Orange - running but no activity
+                "cancelled" => Color.FromArgb("#F59E0B"), // Amber - cancelled
+                _ => Color.FromArgb("#6B7280") // Gray - unknown/default
             };
         }
-        return Color.FromArgb("#9E9E9E");
+        return Color.FromArgb("#6B7280");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -530,8 +532,8 @@ public class IntToBoolConverter : IValueConverter
 
 /// <summary>
 /// Converts a slot filled boolean to a color.
-/// True = Blue (filled), False = Gray (empty).
-/// Supports light/dark theme via AppThemeBinding in XAML.
+/// True = Blue (active), False = Gray (empty).
+/// Works with both light and dark themes.
 /// </summary>
 public class SlotFilledToColorConverter : IValueConverter
 {
@@ -540,10 +542,10 @@ public class SlotFilledToColorConverter : IValueConverter
         if (value is bool isFilled)
         {
             return isFilled
-                ? Color.FromArgb("#2196F3") // Blue - filled
-                : Color.FromArgb("#E0E0E0"); // Light gray - empty
+                ? Color.FromArgb("#3B82F6") // Blue - active/filled
+                : Color.FromArgb("#D1D5DB"); // Light gray - empty
         }
-        return Color.FromArgb("#E0E0E0");
+        return Color.FromArgb("#D1D5DB");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -625,6 +627,51 @@ public class BoolToStringConverter : IValueConverter
             }
         }
         return value?.ToString() ?? string.Empty;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a Color to a semi-transparent background version for pill backgrounds.
+/// Used in Activity Strip for system state pills.
+/// </summary>
+public class ColorToBackgroundConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        // Just return the color as-is for the pill background
+        if (value is Color color)
+        {
+            return color;
+        }
+        return Color.FromArgb("#6B7280"); // Gray fallback
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
+/// Converts a loss value (0-3) to a chart bar height (max 100px).
+/// Used for simple bar chart visualization.
+/// </summary>
+public class LossToHeightConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is double loss)
+        {
+            // Clamp loss between 0 and 3, then scale to max 100px
+            var clamped = Math.Max(0, Math.Min(3, loss));
+            return (clamped / 3.0) * 100;
+        }
+        return 10.0; // Minimum height
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

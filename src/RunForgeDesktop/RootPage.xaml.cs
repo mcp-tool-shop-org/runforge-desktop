@@ -14,12 +14,16 @@ public partial class RootPage : ContentPage
 
     public RootPage(
         IActivityMonitorService activityMonitorService,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        AppShell appShell)
     {
         InitializeComponent();
 
         _workspaceService = workspaceService;
         _activityStripViewModel = new ActivityStripViewModel(activityMonitorService);
+
+        // Inject the AppShell into the container
+        ShellContainer.Content = appShell;
 
         // Bind the activity strip to its view model
         ActivityStripControl.BindingContext = _activityStripViewModel;

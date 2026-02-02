@@ -8,10 +8,22 @@
     Title="RunForge Desktop"
     Shell.FlyoutBehavior="Disabled">
 
-    <!-- Dashboard is the startup page -->
-    <ShellContent
-        Title="Dashboard"
-        ContentTemplate="{DataTemplate views:WorkspaceDashboardPage}"
-        Route="dashboard" />
+    <TabBar>
+        <!-- Dashboard Tab -->
+        <Tab Title="Dashboard">
+            <ShellContent
+                Title="Dashboard"
+                ContentTemplate="{DataTemplate views:WorkspaceDashboardPage}"
+                Route="dashboard" />
+        </Tab>
+
+        <!-- Training Runs Tab -->
+        <Tab Title="Runs">
+            <ShellContent
+                Title="Runs"
+                ContentTemplate="{DataTemplate views:RunsDashboardPage}"
+                Route="runs" />
+        </Tab>
+    </TabBar>
 
 </Shell>

@@ -2,12 +2,15 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Theme-aware control styles -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         THEME-AWARE CONTROL STYLES
+         Use AppThemeBinding directly on properties for theme switching.
+         ═══════════════════════════════════════════════════════════════ -->
 
     <!-- Card/Panel Border Style -->
     <Style x:Key="CardBorderStyle" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{DynamicResource Surface1}" />
-        <Setter Property="Stroke" Value="{DynamicResource Outline}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Surface1_Light}, Dark={StaticResource Surface1_Dark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Outline_Light}, Dark={StaticResource Outline_Dark}}" />
         <Setter Property="StrokeThickness" Value="1" />
         <Setter Property="Padding" Value="16" />
         <Setter Property="StrokeShape">
@@ -19,8 +22,8 @@
 
     <!-- Elevated Card Style (Surface2) -->
     <Style x:Key="ElevatedCardStyle" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{DynamicResource Surface2}" />
-        <Setter Property="Stroke" Value="{DynamicResource Outline}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Surface2_Light}, Dark={StaticResource Surface2_Dark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Outline_Light}, Dark={StaticResource Outline_Dark}}" />
         <Setter Property="StrokeThickness" Value="1" />
         <Setter Property="Padding" Value="12" />
         <Setter Property="StrokeShape">
@@ -32,8 +35,8 @@
 
     <!-- Activity Strip Style -->
     <Style x:Key="ActivityStripStyle" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{DynamicResource StripBackground}" />
-        <Setter Property="Stroke" Value="{DynamicResource StripBorder}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource StripBackground_Light}, Dark={StaticResource StripBackground_Dark}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource StripBorder_Light}, Dark={StaticResource StripBorder_Dark}}" />
         <Setter Property="StrokeThickness" Value="0,0,0,1" />
         <Setter Property="Padding" Value="12,6" />
         <Setter Property="HeightRequest" Value="28" />
@@ -41,7 +44,7 @@
 
     <!-- Status Pill Style -->
     <Style x:Key="StatusPillStyle" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{DynamicResource PillBackground}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PillBackground_Light}, Dark={StaticResource PillBackground_Dark}}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="StrokeShape">
             <Setter.Value>
@@ -52,23 +55,23 @@
 
     <!-- Primary Label (default text) -->
     <Style x:Key="PrimaryLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextPrimary_Light}, Dark={StaticResource TextPrimary_Dark}}" />
     </Style>
 
     <!-- Secondary Label (muted text) -->
     <Style x:Key="SecondaryLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextSecondary_Light}, Dark={StaticResource TextSecondary_Dark}}" />
     </Style>
 
     <!-- Muted Label (very subtle) -->
     <Style x:Key="MutedLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{DynamicResource TextMuted}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextMuted_Light}, Dark={StaticResource TextMuted_Dark}}" />
         <Setter Property="FontSize" Value="11" />
     </Style>
 
     <!-- Primary Button -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{DynamicResource Accent}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Accent_Light}, Dark={StaticResource Accent_Dark}}" />
         <Setter Property="TextColor" Value="White" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="16,10" />
@@ -78,8 +81,8 @@
     <!-- Secondary Button (outline/ghost) -->
     <Style x:Key="SecondaryButtonStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="TextColor" Value="{DynamicResource Accent}" />
-        <Setter Property="BorderColor" Value="{DynamicResource Outline}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Accent_Light}, Dark={StaticResource Accent_Dark}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Outline_Light}, Dark={StaticResource Outline_Dark}}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="12,8" />
@@ -88,7 +91,7 @@
 
     <!-- Danger Button -->
     <Style x:Key="DangerButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{DynamicResource Danger}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Danger_Light}, Dark={StaticResource Danger_Dark}}" />
         <Setter Property="TextColor" Value="White" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="16,10" />
@@ -97,7 +100,7 @@
 
     <!-- Success Button -->
     <Style x:Key="SuccessButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{DynamicResource Success}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Success_Light}, Dark={StaticResource Success_Dark}}" />
         <Setter Property="TextColor" Value="White" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="16,10" />

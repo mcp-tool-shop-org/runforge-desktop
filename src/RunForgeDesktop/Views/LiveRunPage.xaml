@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.LiveRunPage"
+             x:DataType="vm:LiveRunViewModel"
+             Title="{Binding RunName}"
+             BackgroundColor="{AppThemeBinding Light=#F5F7FA, Dark=#121317}">
+
+    <Grid RowDefinitions="Auto,Auto,*,200,Auto" Padding="32,24" RowSpacing="20">
+
+        <!-- Row 0: Header with status -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <VerticalStackLayout Grid.Column="0" Spacing="8">
+                <HorizontalStackLayout Spacing="16">
+                    <Label Text="{Binding RunName}"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                    <Border BackgroundColor="{Binding StatusColor}"
+                            StrokeThickness="0"
+                            Padding="12,6"
+                            StrokeShape="RoundRectangle 6"
+                            VerticalOptions="Center">
+                        <Label Text="{Binding StatusText}"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                    </Border>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="24">
+                    <Label Text="{Binding Device, StringFormat='Device: {0}'}"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                    <Label Text="{Binding Elapsed, StringFormat='Elapsed: {0}'}"
+                           FontSize="13"
+                           FontFamily="Consolas"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Row 1: Progress Section -->
+        <Border Grid.Row="1"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="24">
+
+            <VerticalStackLayout Spacing="16">
+                <!-- Progress text -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0"
+                           Text="{Binding ProgressText}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    <Label Grid.Column="1"
+                           Text="{Binding Progress, StringFormat='{0:P0}'}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}" />
+                </Grid>
+
+                <!-- Progress bar -->
+                <ProgressBar Progress="{Binding Progress}"
+                             ProgressColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                             BackgroundColor="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                             HeightRequest="12" />
+
+                <!-- Metrics row -->
+                <HorizontalStackLayout Spacing="32">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Loss"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="{Binding CurrentLoss, StringFormat='{0:F4}'}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               FontFamily="Consolas"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Step"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="{Binding CurrentStep}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               FontFamily="Consolas"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Epoch"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <HorizontalStackLayout>
+                            <Label Text="{Binding CurrentEpoch}"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   FontFamily="Consolas"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                            <Label Text=" / "
+                                   FontSize="20"
+                                   FontFamily="Consolas"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                            <Label Text="{Binding TotalEpochs}"
+                                   FontSize="20"
+                                   FontFamily="Consolas"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Row 2: Loss Chart (GraphicsView) -->
+        <Border Grid.Row="2"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="8">
+
+            <Grid RowDefinitions="Auto,*">
+                <Label Grid.Row="0"
+                       Text="Loss Curve"
+                       FontSize="14"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}"
+                       Margin="16,8,0,8" />
+
+                <!-- GraphicsView with LossChartDrawable -->
+                <GraphicsView Grid.Row="1"
+                              x:Name="LossChart"
+                              Drawable="{Binding ChartDrawable}"
+                              HeightRequest="200"
+                              Margin="0" />
+            </Grid>
+        </Border>
+
+        <!-- Row 3: Live Logs -->
+        <Border Grid.Row="3"
+                BackgroundColor="{AppThemeBinding Light=#1F2937, Dark=#0F172A}"
+                Stroke="{AppThemeBinding Light=#374151, Dark=#1E293B}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 8">
+
+            <Grid RowDefinitions="Auto,*">
+                <Label Grid.Row="0"
+                       Text="Live Logs"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       TextColor="#9CA3AF"
+                       Padding="16,12" />
+
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Logs}"
+                                ItemsUpdatingScrollMode="KeepLastItemInView">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Label Text="{Binding}"
+                                   FontSize="11"
+                                   FontFamily="Consolas"
+                                   TextColor="#D1D5DB"
+                                   Padding="16,2" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+
+        <!-- Row 4: Error + Action Buttons -->
+        <VerticalStackLayout Grid.Row="4" Spacing="12">
+            <!-- Error Message (shown when failed) -->
+            <Border IsVisible="{Binding ShowError}"
+                    BackgroundColor="#FEE2E2"
+                    Stroke="#EF4444"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="16,12">
+                <HorizontalStackLayout Spacing="8">
+                    <Label Text="Error:"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="#DC2626" />
+                    <Label Text="{Binding ErrorMessage}"
+                           FontSize="13"
+                           TextColor="#7F1D1D" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Action Buttons -->
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Cancel Run"
+                        Command="{Binding CancelCommand}"
+                        IsVisible="{Binding CanCancel}"
+                        BackgroundColor="#EF4444"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14" />
+
+                <Button Text="Open Artifacts"
+                        Command="{Binding OpenArtifactsCommand}"
+                        IsVisible="{Binding IsCompleted}"
+                        BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14" />
+
+                <Button Text="Copy Command"
+                        Command="{Binding CopyCommandCommand}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

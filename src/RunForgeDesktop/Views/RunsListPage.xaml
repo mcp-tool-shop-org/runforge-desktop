@@ -6,7 +6,7 @@
              xmlns:controls="clr-namespace:RunForgeDesktop.Controls"
              x:Class="RunForgeDesktop.Views.RunsListPage"
              x:DataType="vm:RunsListViewModel"
-             Title="Browse Runs">
+             Title="Runs">
 
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Padding="16">
 
@@ -218,11 +218,11 @@
                                    BackgroundColor="{AppThemeBinding Light=#FAFAFA, Dark=#2A2A2A}"
                                    BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}">
                                 <Grid ColumnDefinitions="4,*">
-                                    <!-- Progress edge indicator (4px left edge) -->
+                                    <!-- Progress edge indicator (4px left edge) - Visual Activity System -->
                                     <BoxView Grid.Column="0"
                                              WidthRequest="4"
                                              VerticalOptions="Fill"
-                                             Color="{Binding IsSucceeded, Converter={StaticResource SuccessToColorConverter}}" />
+                                             Color="{Binding Status, Converter={StaticResource StatusToColorConverter}}" />
 
                                     <!-- Run content -->
                                     <Grid Grid.Column="1" Padding="12" ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -273,11 +273,11 @@
                                    BackgroundColor="{AppThemeBinding Light=#FAFAFA, Dark=#2A2A2A}"
                                    BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}">
                                 <Grid ColumnDefinitions="4,*">
-                                    <!-- Progress edge indicator (4px left edge) -->
+                                    <!-- Progress edge indicator (4px left edge) - Visual Activity System -->
                                     <BoxView Grid.Column="0"
                                              WidthRequest="4"
                                              VerticalOptions="Fill"
-                                             Color="{Binding IsSucceeded, Converter={StaticResource SuccessToColorConverter}}" />
+                                             Color="{Binding Status, Converter={StaticResource StatusToColorConverter}}" />
 
                                     <!-- Run content -->
                                     <Grid Grid.Column="1" Padding="12" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">

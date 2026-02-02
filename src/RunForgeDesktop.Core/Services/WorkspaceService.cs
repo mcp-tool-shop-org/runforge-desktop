@@ -134,7 +134,7 @@ public sealed class WorkspaceService : IWorkspaceService
 
     /// <summary>
     /// Discovers RunForge artifacts in the workspace.
-    /// Does NOT create any directories or files.
+    /// Creates the .ml/runs directory if it doesn't exist (for training mode).
     /// </summary>
     private static WorkspaceDiscoveryResult DiscoverRunForge(string workspacePath)
     {
@@ -166,7 +166,7 @@ public sealed class WorkspaceService : IWorkspaceService
             }
         }
 
-        // 2. Fallback: Check for .ml/runs directory with run subdirectories
+        // 2. Check for .ml/runs directory with run subdirectories
         var runsDir = Path.Combine(workspacePath, WorkspacePaths.RunsDir.Replace('/', Path.DirectorySeparatorChar));
         if (Directory.Exists(runsDir))
         {
@@ -176,18 +176,37 @@ public sealed class WorkspaceService : IWorkspaceService
                 // Found runs directory with contents - valid but no index
                 return WorkspaceDiscoveryResult.Success(workspacePath, null, WorkspaceDiscoveryMethod.RunsDirectory);
             }
+            // Empty runs directory - still valid for creating new runs
+            return WorkspaceDiscoveryResult.Success(workspacePath, null, WorkspaceDiscoveryMethod.RunsDirectory);
         }
 
-        // 3. Check if .ml directory exists but is empty/incomplete
+        // 3. Check if .ml directory exists - create runs dir for training mode
         var mlRoot = Path.Combine(workspacePath, WorkspacePaths.MlRoot);
         if (Directory.Exists(mlRoot))
         {
-            return WorkspaceDiscoveryResult.Failure(workspacePath,
-                "Found .ml directory but no index file or runs. This workspace may be empty or incomplete.");
+            // Create runs directory to enable training
+            try
+            {
+                Directory.CreateDirectory(runsDir);
+                return WorkspaceDiscoveryResult.Success(workspacePath, null, WorkspaceDiscoveryMethod.RunsDirectory);
+            }
+            catch (Exception ex)
+            {
+                return WorkspaceDiscoveryResult.Failure(workspacePath,
+                    $"Found .ml directory but could not create runs folder: {ex.Message}");
+            }
         }
 
-        // 4. No RunForge artifacts found
-        return WorkspaceDiscoveryResult.Failure(workspacePath,
-            "No RunForge workspace found. Expected .ml/outputs/index.json or .ml/runs/ directory.");
+        // 4. No .ml directory - create it for a new workspace
+        try
+        {
+            Directory.CreateDirectory(runsDir);
+            return WorkspaceDiscoveryResult.Success(workspacePath, null, WorkspaceDiscoveryMethod.RunsDirectory);
+        }
+        catch (Exception ex)
+        {
+            return WorkspaceDiscoveryResult.Failure(workspacePath,
+                $"Could not initialize workspace: {ex.Message}");
+        }
     }
 }

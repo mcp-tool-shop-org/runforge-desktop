@@ -37,6 +37,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISweepService, SweepService>();
         builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
         builder.Services.AddSingleton<IActivityMonitorService, ActivityMonitorService>();
+        builder.Services.AddSingleton<IRunnerService, RunnerService>();
 
         // Register view models
         // RunsListViewModel is singleton so filter/search state persists across navigation
@@ -52,9 +53,13 @@ public static class MauiProgram
         builder.Services.AddTransient<RequestEditorViewModel>();
         builder.Services.AddTransient<RunCompareViewModel>();
         builder.Services.AddSingleton<ActivityStripViewModel>();
+        builder.Services.AddSingleton<RunsDashboardViewModel>();
+        builder.Services.AddTransient<NewRunViewModel>();
+        builder.Services.AddTransient<LiveRunViewModel>();
 
         // Register shell and pages
         builder.Services.AddSingleton<AppShell>();
+        // Note: RootPage (Activity Strip wrapper) disabled - Shell cannot be embedded in ContentView
         builder.Services.AddTransient<WorkspaceDashboardPage>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RunsListPage>();
@@ -67,6 +72,9 @@ public static class MauiProgram
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<RequestEditorPage>();
         builder.Services.AddTransient<RunComparePage>();
+        builder.Services.AddTransient<RunsDashboardPage>();
+        builder.Services.AddTransient<NewRunPage>();
+        builder.Services.AddTransient<LiveRunPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

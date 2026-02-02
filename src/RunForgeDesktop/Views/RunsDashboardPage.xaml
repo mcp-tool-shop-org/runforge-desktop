@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.RunsDashboardPage"
+             x:DataType="vm:RunsDashboardViewModel"
+             Title="Runs"
+             BackgroundColor="{AppThemeBinding Light=#F5F7FA, Dark=#121317}">
+
+    <Grid RowDefinitions="Auto,*" Padding="32,24">
+
+        <!-- Header with New Run button -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                <Label Text="Training Runs"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                <Label Text="Monitor and manage your training jobs"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text="+ New Run"
+                    Command="{Binding NewRunCommand}"
+                    IsEnabled="{Binding HasWorkspace}"
+                    BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                    TextColor="White"
+                    CornerRadius="8"
+                    Padding="20,12"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- No Workspace Banner - shown when no workspace selected -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding HasWorkspace, Converter={StaticResource InverseBoolConverter}}"
+                BackgroundColor="{AppThemeBinding Light=#FFFBEB, Dark=#1C1917}"
+                Stroke="{AppThemeBinding Light=#FDE68A, Dark=#44403C}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="32"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                MaximumWidthRequest="500">
+            <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+                <Label Text="⚠"
+                       FontSize="48"
+                       HorizontalOptions="Center"
+                       TextColor="{AppThemeBinding Light=#D97706, Dark=#FBBF24}" />
+                <Label Text="No Workspace Selected"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
+                <Label Text="Select a workspace from the Dashboard tab to start training runs."
+                       FontSize="14"
+                       HorizontalTextAlignment="Center"
+                       TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Runs Table - only shown when workspace exists -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding HasWorkspace}"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12">
+
+            <Grid RowDefinitions="Auto,*">
+                <!-- Table Header -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="2*,Auto,Auto,Auto"
+                      Padding="20,16"
+                      BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#151823}">
+                    <Label Grid.Column="0"
+                           Text="RUN NAME"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                    <Label Grid.Column="1"
+                           Text="STATUS"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                           WidthRequest="100" />
+                    <Label Grid.Column="2"
+                           Text="DEVICE"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                           WidthRequest="80" />
+                    <Label Grid.Column="3"
+                           Text="ELAPSED"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                           WidthRequest="80"
+                           HorizontalTextAlignment="End" />
+                </Grid>
+
+                <!-- Runs List -->
+                <CollectionView Grid.Row="1"
+                                ItemsSource="{Binding Runs}"
+                                SelectionMode="Single"
+                                SelectionChangedCommand="{Binding OpenRunCommand}"
+                                SelectionChangedCommandParameter="{Binding SelectedItem, Source={RelativeSource Self}}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RunDisplayItem">
+                            <Border Padding="20,16"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0">
+                                <Grid ColumnDefinitions="2*,Auto,Auto,Auto">
+                                    <!-- Run Name -->
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
+                                           VerticalOptions="Center" />
+
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="1"
+                                            BackgroundColor="{Binding StatusColor}"
+                                            StrokeThickness="0"
+                                            Padding="10,4"
+                                            StrokeShape="RoundRectangle 4"
+                                            WidthRequest="100"
+                                            VerticalOptions="Center">
+                                        <Label Text="{Binding StatusText}"
+                                               FontSize="11"
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalTextAlignment="Center" />
+                                    </Border>
+
+                                    <!-- Device -->
+                                    <Label Grid.Column="2"
+                                           Text="{Binding Device}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                                           WidthRequest="80"
+                                           VerticalOptions="Center" />
+
+                                    <!-- Elapsed -->
+                                    <Label Grid.Column="3"
+                                           Text="{Binding Elapsed}"
+                                           FontSize="13"
+                                           FontFamily="Consolas"
+                                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                                           WidthRequest="80"
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center" />
+                                </Grid>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup Name="CommonStates">
+                                        <VisualState Name="Normal" />
+                                        <VisualState Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#F3F4F6, Dark=#252A36}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#EEF2FF, Dark=#312E81}" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout VerticalOptions="Center"
+                                             HorizontalOptions="Center"
+                                             Padding="40"
+                                             Spacing="16">
+                            <Label Text="No training runs yet"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Click '+ New Run' to start your first training job"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</ContentPage>

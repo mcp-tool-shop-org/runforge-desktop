@@ -12,9 +12,9 @@
         <controls:ActivityStrip Grid.Row="0"
                                 x:Name="ActivityStripControl" />
 
-        <!-- Row 1: Main Application Shell -->
-        <local:AppShell Grid.Row="1"
-                        x:Name="MainAppShell" />
+        <!-- Row 1: Main Application Shell (injected via code-behind) -->
+        <ContentView Grid.Row="1"
+                     x:Name="ShellContainer" />
     </Grid>
 
 </ContentPage>

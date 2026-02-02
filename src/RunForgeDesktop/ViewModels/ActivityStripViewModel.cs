@@ -130,11 +130,11 @@ public partial class ActivityStripViewModel : ObservableObject
 
     public Color SystemStateColor => _activityMonitor.SystemState switch
     {
-        ActivitySystemState.Idle => Color.FromArgb("#9E9E9E"),    // Gray
-        ActivitySystemState.Busy => Color.FromArgb("#2196F3"),    // Blue
-        ActivitySystemState.Stalled => Color.FromArgb("#FFA726"), // Amber
-        ActivitySystemState.Error => Color.FromArgb("#F44336"),   // Red
-        _ => Color.FromArgb("#9E9E9E")
+        ActivitySystemState.Idle => Color.FromArgb("#9CA3AF"),    // Gray - idle/ready
+        ActivitySystemState.Busy => Color.FromArgb("#3B82F6"),    // Blue - working
+        ActivitySystemState.Stalled => Color.FromArgb("#F59E0B"), // Amber - warning
+        ActivitySystemState.Error => Color.FromArgb("#EF4444"),   // Red - error
+        _ => Color.FromArgb("#9CA3AF")                            // Gray fallback
     };
 
     // === Monitor Control ===

@@ -54,6 +54,14 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!-- RootPage disabled - Shell cannot be embedded in ContentView -->
+  <ItemGroup>
+    <Compile Remove="RootPage.xaml.cs" />
+    <MauiXaml Remove="RootPage.xaml" />
+    <None Include="RootPage.xaml" />
+    <None Include="RootPage.xaml.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />

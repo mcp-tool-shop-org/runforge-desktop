@@ -1,3 +1,5 @@
+using RunForgeDesktop.Core.Services;
+
 namespace RunForgeDesktop;
 
 public partial class App : Application
@@ -11,6 +13,22 @@ public partial class App : Application
 
         // Default to dark theme
         UserAppTheme = AppTheme.Dark;
+
+        // Recover any orphaned runs from previous crash
+        _ = RecoverOrphanedRunsAsync();
+    }
+
+    private async Task RecoverOrphanedRunsAsync()
+    {
+        try
+        {
+            var runnerService = _serviceProvider.GetRequiredService<IRunnerService>();
+            await runnerService.RecoverOrphanedRunsAsync();
+        }
+        catch
+        {
+            // Ignore startup recovery errors
+        }
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
