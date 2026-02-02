@@ -36,14 +36,14 @@ public partial class NewRunViewModel : ObservableObject
             else
             {
                 GpuName = "";
-                GpuUnavailableReason = "CUDA not detected. Install NVIDIA drivers + CUDA toolkit.";
+                GpuUnavailableReason = "GPU unavailable. Install NVIDIA drivers and CUDA toolkit, or use CPU.";
             }
         }
         catch
         {
             GpuAvailable = false;
             GpuName = "";
-            GpuUnavailableReason = "GPU detection failed";
+            GpuUnavailableReason = "GPU detection failed. Using CPU instead.";
         }
 
         UseGpu = GpuAvailable;
@@ -151,20 +151,20 @@ public partial class NewRunViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RunName))
         {
-            ErrorMessage = "Enter a run name to continue";
+            ErrorMessage = "Run name required. Enter a name to identify this run.";
             return;
         }
 
         if (!HasWorkspace)
         {
-            ErrorMessage = "Select a workspace from the Dashboard first";
+            ErrorMessage = "No workspace selected. Go to Dashboard → Select Workspace.";
             return;
         }
 
         // Check for existing active run
         if (await _runnerService.HasActiveRunAsync())
         {
-            ErrorMessage = "A run is already in progress. Cancel it first or wait for completion.";
+            ErrorMessage = "A run is already active. Wait for it to complete or cancel it first.";
             return;
         }
 

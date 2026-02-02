@@ -246,11 +246,11 @@ public partial class LiveRunViewModel : ObservableObject, IDisposable
 
         StatusText = manifest.Status switch
         {
-            RunStatus.Pending => "PENDING",
-            RunStatus.Running => "RUNNING",
-            RunStatus.Completed => "COMPLETED",
-            RunStatus.Failed => "FAILED",
-            _ => "UNKNOWN"
+            RunStatus.Pending => "Pending",
+            RunStatus.Running => "Running",
+            RunStatus.Completed => "Completed",
+            RunStatus.Failed => "Failed",
+            _ => "Unknown"
         };
 
         StatusColor = manifest.Status switch

@@ -222,7 +222,7 @@
                         SemanticProperties.Hint="Stops the training process. This cannot be undone." />
 
                 <!-- After completion: Primary actions -->
-                <Button Text="Open Artifacts"
+                <Button Text="Open Output Folder"
                         Command="{Binding OpenArtifactsCommand}"
                         IsVisible="{Binding IsCompleted}"
                         BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
@@ -230,10 +230,10 @@
                         CornerRadius="8"
                         Padding="20,12"
                         FontSize="14"
-                        SemanticProperties.Description="Open artifacts folder"
+                        SemanticProperties.Description="Open output folder"
                         SemanticProperties.Hint="Opens the folder containing model checkpoints and outputs" />
 
-                <Button Text="View Logs"
+                <Button Text="Open Logs"
                         Command="{Binding OpenLogsCommand}"
                         IsVisible="{Binding IsCompleted}"
                         BackgroundColor="Transparent"
@@ -243,21 +243,8 @@
                         CornerRadius="8"
                         Padding="20,12"
                         FontSize="14"
-                        SemanticProperties.Description="View full log file"
-                        SemanticProperties.Hint="Opens the complete training log in your default text editor" />
-
-                <!-- Always available: secondary actions -->
-                <Button Text="Open Run Folder"
-                        Command="{Binding OpenFolderCommand}"
-                        BackgroundColor="Transparent"
-                        BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
-                        BorderWidth="1"
-                        TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
-                        CornerRadius="8"
-                        Padding="20,12"
-                        FontSize="14"
-                        SemanticProperties.Description="Open run folder in file explorer"
-                        SemanticProperties.Hint="Opens the run directory containing all training files" />
+                        SemanticProperties.Description="Open log file"
+                        SemanticProperties.Hint="Opens the full training log in your default text editor" />
 
                 <Button Text="Copy Command"
                         Command="{Binding CopyCommandCommand}"

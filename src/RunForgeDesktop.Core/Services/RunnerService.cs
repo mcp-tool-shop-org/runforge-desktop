@@ -70,7 +70,7 @@ public class RunnerService : IRunnerService
         var workspace = _workspaceService.CurrentWorkspacePath;
         if (string.IsNullOrEmpty(workspace))
         {
-            await MarkRunFailedAsync(manifest, "No workspace selected. Select a workspace from the Dashboard first.");
+            await MarkRunFailedAsync(manifest, "No workspace selected. Go to Dashboard → Select Workspace.");
             return StartRunResult.Fail(manifest.Error!);
         }
 
