@@ -108,7 +108,7 @@
                                            FontSize="14"
                                            FontAttributes="Bold"
                                            TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
-                                    <Label Text="Select a folder containing your .ml directory"
+                                    <Label Text="Select any folder to use as your experiment directory."
                                            FontSize="12"
                                            TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
                                 </VerticalStackLayout>

@@ -1,8 +1,8 @@
 # RunForge Desktop
 
-**RunForge Desktop** is a Windows-native, read-only desktop application for browsing, inspecting, and exporting deterministic ML runs produced by RunForge.
+**RunForge Desktop** is a Windows-native desktop application for creating, monitoring, and inspecting ML training runs.
 
-It provides a visual control plane for RunForge artifacts—without modifying them—making ML runs auditable, inspectable, and exportable from a native Windows app.
+It provides a visual control plane for ML experiments—creating runs, monitoring live training progress with real-time charts, and browsing completed runs with full artifact inspection.
 
 > **Canonical upstream (artifacts, schemas, guarantees):**
 > https://github.com/mcp-tool-shop-org/runforge-vscode
@@ -30,126 +30,111 @@ See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation options.
 ### Usage
 
 1. **Launch** RunForge Desktop
-2. **Select Workspace** - Click "Select Workspace" and choose a folder containing RunForge outputs
-3. **Browse Runs** - View all runs with filtering by status or search
-4. **Inspect Details** - Click any run to view request, result, and metrics
-5. **View Interpretability** - Navigate to interpretability artifacts for model insights
-6. **Export** - Export metrics, feature importance, or coefficients to CSV
+2. **Select Workspace** - Click "Select Workspace" and choose a folder for your ML experiments
+3. **Start Training** - Click "+ New Run" to configure and launch a training run
+4. **Monitor Live** - Watch training progress with real-time loss charts and logs
+5. **Browse Runs** - View all runs with filtering by status
+6. **Inspect Details** - Click any run to view metrics, artifacts, and outputs
 
 ---
 
 ## Features
 
+### Training Run Creation
+- Configure new training runs with presets (SLOAQ, ResNet, BERT, GPT2, etc.)
+- GPU/CPU device selection with automatic detection
+- Optional custom dataset path
+- One-click training launch
+
+### Live Monitoring
+- Real-time loss chart with automatic updates
+- Live log streaming from training process
+- Progress tracking (epoch, step, elapsed time)
+- Cancel running training at any time
+
 ### Run Browsing
 - Browse runs with newest-first ordering
-- Filter by status: All, Succeeded, Failed, In-progress
-- Search by run ID
+- Filter by status: Pending, Running, Completed, Failed, Cancelled
+- View run details and outputs
 
-### Run Detail View
-- **Request** - Training parameters (preset, device, GPU reason)
-- **Result** - Status, exit code, duration, errors
-- **Metrics** - Accuracy and sample/feature counts
-- **Open JSON** - View raw artifact files
-
-### Interpretability Index
-- **Metrics v1** - Categorized metrics with formatted values
-- **Feature Importance v1** - Ranked features with visual bars (RandomForest)
-- **Linear Coefficients v1** - Per-class coefficients with class selector (LogisticRegression)
-
-### Export
-- Export feature importance to CSV (Rank, Feature, Importance)
-- Export linear coefficients to CSV (Class, Feature, Coefficient)
-- Export metrics to CSV (Category, Metric, Value)
+### Run Inspection
+- **Metrics** - Loss curves, accuracy, training statistics
+- **Logs** - Full stdout/stderr from training process
+- **Artifacts** - Open output folder, copy training command
 
 ### Diagnostics
 - View app version, framework, and memory usage
-- View workspace path, discovery method, and index location
+- View workspace path and Python configuration
 - Copy diagnostics to clipboard for support
 
 ---
 
 ## What RunForge Desktop Is
 
-RunForge Desktop is a **companion application** to RunForge tooling.
-It focuses on **inspection, transparency, and trust**, not execution.
+RunForge Desktop is a **standalone ML experiment tracker** for Windows.
+It focuses on **local execution, transparency, and simplicity**.
 
 With RunForge Desktop you can:
 
-- **Select** a local workspace containing RunForge outputs
-- **Browse** runs safely (newest first)
-- **View** run summaries derived from `run.json`
-- **Navigate** model-aware interpretability artifacts
-- **Export** data to CSV for further analysis
+- **Create** training runs with preset configurations
+- **Monitor** live training with real-time charts and logs
+- **Browse** completed runs and their outputs
+- **Inspect** metrics, logs, and artifacts
+- **Manage** runs (cancel, view outputs, copy commands)
 
-All data is read directly from artifacts on disk.
+All training runs locally on your machine using Python.
 
 ---
 
-## What It Explicitly Does Not Do
+## What It Does Not Do
 
 RunForge Desktop does **not**:
 
-- Train or re-train models
-- Modify any RunForge output
-- Rewrite schemas or artifacts
 - Upload data to the cloud
 - Collect telemetry
 - Require accounts or sign-in
-
-**This app is read-only by design.**
+- Require internet access (after installation)
 
 ---
 
 ## Core Principles
 
-RunForge Desktop follows the same principles as RunForge itself:
+### Local-first
+All training runs on your machine. No cloud required.
 
-### Artifacts are the source of truth
-The app renders what exists; it does not invent or infer data.
+### Transparent
+See exactly what's happening: live logs, real-time metrics, full process control.
 
-### Truthful rendering
-The UI distinguishes clearly between:
-- "present" vs "missing"
-- "unsupported" vs "not generated"
-- "corrupt" vs "empty"
+### Simple
+One workspace, clear presets, no configuration files to manage.
 
-### Determinism preserved
-Exported artifacts preserve original bytes exactly.
-
-### Auditor-safe UX
-Calm, explicit UI with clear diagnostics and no hidden behavior.
+### Auditable
+All run artifacts saved to disk for inspection and reproducibility.
 
 ---
 
-## How It Fits in the RunForge Ecosystem
+## How It Works
 
 ```
-Dataset
+RunForge Desktop
+  │
+  ├── Select Workspace (any folder)
+  │
+  ├── Create Run (preset + device + optional dataset)
+  │
+  ├── Spawn Python training process
   │
   ▼
-RunForge training (CLI / VS Code)
-  │
-  ▼
-.runforge/
-  ├── index.json
+.ml/
   └── runs/
-      └── run_20240101_123456/
-          ├── run.json
-          ├── request.json
-          ├── result.json
-          ├── metrics.json
-          └── interpretability/
-              ├── interpretability.index.v1.json
-              ├── metrics.v1.json
-              ├── feature_importance.v1.json   (if supported)
-              └── linear_coefficients.v1.json  (if supported)
-  │
-  ▼
-RunForge Desktop (this app)
+      └── 20240101-123456-myrun-abc1/
+          ├── run.json       (manifest)
+          ├── metrics.jsonl  (live metrics)
+          ├── stdout.log     (live logs)
+          └── stderr.log     (errors)
 ```
 
-RunForge Desktop does not replace VS Code integration.
-It complements it with a Windows-native browsing and inspection experience.
+RunForge Desktop manages the full lifecycle: creation, execution, monitoring, and inspection.
 
 ---
 
@@ -160,6 +145,8 @@ It complements it with a Windows-native browsing and inspection experience.
 | OS | Windows 10 (1809+) or Windows 11 |
 | Architecture | x64 |
 | Runtime | .NET 10 (bundled in MSIX) |
+| Python | 3.10+ (for training) |
+| GPU | Optional (CUDA for GPU training) |
 | Disk Space | ~100 MB |
 
 ---
@@ -181,11 +168,10 @@ The app follows standard Windows permission models for file access.
 
 | Attribute | Value |
 |-----------|-------|
-| Current version | v0.1.1 |
-| Scope | Read-only inspection and export |
-| Acceptance criteria | [docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md](docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md) |
+| Current version | v1.0.0 |
+| Scope | ML training, monitoring, and inspection |
 
-Phase-style acceptance criteria are used to prevent scope drift.
+See [RELEASE_NOTES_v0.4.0.md](RELEASE_NOTES_v0.4.0.md) for recent changes.
 
 ---
 
@@ -246,11 +232,10 @@ RunForge Desktop **consumes** those artifacts faithfully.
 
 ## Intended Audience
 
-- Developers training models locally
-- Researchers who need inspectable results
-- Auditors and reviewers
-- Teams that value determinism and provenance
-- Windows users who prefer native tooling
+- Developers training models locally on Windows
+- Researchers who need simple, inspectable experiment tracking
+- Anyone who wants a native Windows ML training UI
+- Teams that want local-first, no-cloud ML workflows
 
 ---
 
@@ -262,13 +247,11 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions should respect the core constraint:
+Contributions welcome. Please respect the core principles:
 
-> **No feature may compromise read-only guarantees or artifact integrity.**
-
-Before proposing changes, please review:
-- [docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md](docs/PHASE-DESKTOP-0.1-ACCEPTANCE.md)
-- [TRUST_MODEL.md](https://github.com/mcp-tool-shop-org/runforge-vscode/blob/main/docs/TRUST_MODEL.md) (in the RunForge repo)
+- Keep it simple and local-first
+- No cloud dependencies or telemetry
+- Clear, actionable error messages
 
 ---
 
