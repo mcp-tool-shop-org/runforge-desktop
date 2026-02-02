@@ -1,4 +1,5 @@
 using RunForgeDesktop.Core.Services;
+using RunForgeDesktop.ViewModels;
 
 namespace RunForgeDesktop;
 
@@ -11,11 +12,40 @@ public partial class App : Application
         InitializeComponent();
         _serviceProvider = serviceProvider;
 
-        // Default to dark theme
-        UserAppTheme = AppTheme.Dark;
+        // Load and apply theme from settings (default to dark)
+        _ = LoadAndApplyThemeAsync();
 
         // Recover any orphaned runs from previous crash
         _ = RecoverOrphanedRunsAsync();
+    }
+
+    private async Task LoadAndApplyThemeAsync()
+    {
+        try
+        {
+            var settings = _serviceProvider.GetRequiredService<ISettingsService>();
+            await settings.LoadAsync();
+            ApplyTheme(settings.AppTheme);
+        }
+        catch
+        {
+            // Default to dark on error
+            UserAppTheme = AppTheme.Dark;
+        }
+    }
+
+    /// <summary>
+    /// Applies the specified theme to the application.
+    /// </summary>
+    /// <param name="theme">Theme name: "Dark", "Light", or "System"</param>
+    public void ApplyTheme(string theme)
+    {
+        UserAppTheme = theme switch
+        {
+            "Light" => AppTheme.Light,
+            "System" => AppTheme.Unspecified,
+            _ => AppTheme.Dark  // Default to dark
+        };
     }
 
     private async Task RecoverOrphanedRunsAsync()

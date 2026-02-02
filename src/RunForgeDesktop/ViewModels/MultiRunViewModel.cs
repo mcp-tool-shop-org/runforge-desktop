@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RunForgeDesktop.Core;
 using RunForgeDesktop.Core.Models;
 using RunForgeDesktop.Core.Services;
 
@@ -239,17 +240,17 @@ public partial class MultiRunViewModel : ObservableObject
             if (completedRuns.Any())
             {
                 var best = completedRuns.OrderBy(r => r.FinalLoss).First();
-                StatusMessage = $"Sweep complete! Best: Run {best.RunNumber} (loss={best.FinalLoss:F4}, lr={best.LearningRate}, batch={best.BatchSize}, opt={best.Optimizer})";
+                StatusMessage = ErrorMessages.Sweep.BestRunFound(best.RunNumber, best.FinalLoss!.Value);
             }
             else
             {
-                StatusMessage = "Sweep complete. No successful runs.";
+                StatusMessage = ErrorMessages.Sweep.NoSuccessfulRuns;
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
-            StatusMessage = "Sweep failed";
+            ErrorMessage = ErrorMessages.FromException(ex, "hyperparameter sweep");
+            StatusMessage = null;
         }
         finally
         {
@@ -268,7 +269,7 @@ public partial class MultiRunViewModel : ObservableObject
             preview.Status = "Cancelled";
         }
         IsRunning = false;
-        StatusMessage = "Sweep cancelled";
+        StatusMessage = ErrorMessages.Sweep.CancelledMidway;
         OnPropertyChanged(nameof(CanStart));
     }
 

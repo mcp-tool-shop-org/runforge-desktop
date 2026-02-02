@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RunForgeDesktop.Core;
 using RunForgeDesktop.Core.Services;
 
 namespace RunForgeDesktop.ViewModels;
@@ -262,9 +263,11 @@ public partial class DiagnosticsViewModel : ObservableObject
         }
         catch
         {
-            TotalStorageSize = "Error";
+            TotalStorageSize = "—";
             TotalLogsSize = "—";
             TotalArtifactsSize = "—";
+            StatusMessage = ErrorMessages.Storage.CalculationFailed;
+            _ = ClearStatusAfterDelayAsync();
         }
         finally
         {
@@ -343,7 +346,7 @@ public partial class DiagnosticsViewModel : ObservableObject
 
         if (success)
         {
-            StatusMessage = $"Deleted run: {runToDelete.Name}";
+            StatusMessage = ErrorMessages.Storage.DeleteRunSuccess(runToDelete.Name);
             TopRuns.Remove(runToDelete);
 
             // Reload storage to update totals
@@ -355,11 +358,15 @@ public partial class DiagnosticsViewModel : ObservableObject
         }
         else
         {
-            StatusMessage = $"Failed to delete run: {runToDelete.Name}";
+            StatusMessage = ErrorMessages.Storage.DeleteRunFailed(runToDelete.Name);
         }
 
-        // Clear message after 3 seconds
-        await Task.Delay(3000);
+        _ = ClearStatusAfterDelayAsync();
+    }
+
+    private async Task ClearStatusAfterDelayAsync()
+    {
+        await Task.Delay(4000);
         StatusMessage = null;
     }
 

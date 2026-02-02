@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RunForgeDesktop.Core;
 using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Services;
 
@@ -87,20 +88,16 @@ public partial class WorkspaceDashboardViewModel : ObservableObject
                 {
                     await Shell.Current.DisplayAlert(
                         "Invalid Workspace",
-                        $"{discoveryResult.ErrorMessage}\n\n" +
-                        "Please select a folder containing RunForge outputs.",
+                        ErrorMessages.Workspace.InvalidFolder,
                         "OK");
                 }
             }
         }
         catch (Exception ex)
         {
-            var message = string.IsNullOrEmpty(ex.Message)
-                ? $"{ex.GetType().Name}: {ex.InnerException?.Message ?? "Unknown error"}"
-                : ex.Message;
             await Shell.Current.DisplayAlert(
-                "Error",
-                $"Failed to select workspace: {message}",
+                "Workspace Selection",
+                ErrorMessages.FromException(ex, "workspace selection"),
                 "OK");
         }
     }

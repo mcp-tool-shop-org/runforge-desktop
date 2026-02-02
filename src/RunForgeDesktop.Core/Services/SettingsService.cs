@@ -18,16 +18,81 @@ public sealed class SettingsService : ISettingsService
     public string? PythonPathOverride
     {
         get => _settings.PythonPathOverride;
-        set
-        {
-            _settings.PythonPathOverride = value;
-            _ = SaveAsync();
-        }
+        set => _settings.PythonPathOverride = value;
     }
 
     /// <inheritdoc />
     public bool HasPythonPathOverride =>
         !string.IsNullOrWhiteSpace(_settings.PythonPathOverride);
+
+    /// <inheritdoc />
+    public string? CustomLogsDirectory
+    {
+        get => _settings.CustomLogsDirectory;
+        set => _settings.CustomLogsDirectory = value;
+    }
+
+    /// <inheritdoc />
+    public string? CustomArtifactsDirectory
+    {
+        get => _settings.CustomArtifactsDirectory;
+        set => _settings.CustomArtifactsDirectory = value;
+    }
+
+    /// <inheritdoc />
+    public bool AutoOpenOutputFolder
+    {
+        get => _settings.AutoOpenOutputFolder;
+        set => _settings.AutoOpenOutputFolder = value;
+    }
+
+    /// <inheritdoc />
+    public string DefaultDevice
+    {
+        get => _settings.DefaultDevice;
+        set => _settings.DefaultDevice = value;
+    }
+
+    /// <inheritdoc />
+    public int DefaultEpochs
+    {
+        get => _settings.DefaultEpochs;
+        set => _settings.DefaultEpochs = value;
+    }
+
+    /// <inheritdoc />
+    public int DefaultBatchSize
+    {
+        get => _settings.DefaultBatchSize;
+        set => _settings.DefaultBatchSize = value;
+    }
+
+    /// <inheritdoc />
+    public double DefaultLearningRate
+    {
+        get => _settings.DefaultLearningRate;
+        set => _settings.DefaultLearningRate = value;
+    }
+
+    /// <inheritdoc />
+    public bool VerboseLogging
+    {
+        get => _settings.VerboseLogging;
+        set => _settings.VerboseLogging = value;
+    }
+
+    /// <inheritdoc />
+    public string AppTheme
+    {
+        get => _settings.AppTheme;
+        set => _settings.AppTheme = value;
+    }
+
+    /// <inheritdoc />
+    public string SettingsFilePath => GetSettingsPath();
+
+    /// <inheritdoc />
+    public string AppDataDirectory => GetAppDataDirectory();
 
     /// <inheritdoc />
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -84,10 +149,22 @@ public sealed class SettingsService : ISettingsService
         _ = SaveAsync();
     }
 
-    private static string GetSettingsPath()
+    /// <inheritdoc />
+    public async Task ResetToDefaultsAsync(CancellationToken cancellationToken = default)
+    {
+        _settings = new SettingsData();
+        await SaveAsync(cancellationToken);
+    }
+
+    private static string GetAppDataDirectory()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.Combine(localAppData, AppFolderName, SettingsFileName);
+        return Path.Combine(localAppData, AppFolderName);
+    }
+
+    private static string GetSettingsPath()
+    {
+        return Path.Combine(GetAppDataDirectory(), SettingsFileName);
     }
 
     /// <summary>
@@ -96,5 +173,14 @@ public sealed class SettingsService : ISettingsService
     private sealed class SettingsData
     {
         public string? PythonPathOverride { get; set; }
+        public string? CustomLogsDirectory { get; set; }
+        public string? CustomArtifactsDirectory { get; set; }
+        public bool AutoOpenOutputFolder { get; set; } = false;
+        public string DefaultDevice { get; set; } = "GPU";
+        public int DefaultEpochs { get; set; } = 10;
+        public int DefaultBatchSize { get; set; } = 64;
+        public double DefaultLearningRate { get; set; } = 0.001;
+        public bool VerboseLogging { get; set; } = false;
+        public string AppTheme { get; set; } = "Dark";
     }
 }

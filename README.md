@@ -31,7 +31,7 @@ See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation options.
 
 1. **Launch** RunForge Desktop
 2. **Select Workspace** - Click "Select Workspace" and choose a folder for your ML experiments
-3. **Start Training** - Click "+ New Run" to configure and launch a training run
+3. **Start Training** - Click "Train" to configure and launch a training run
 4. **Monitor Live** - Watch training progress with real-time loss charts and logs
 5. **Browse Runs** - View all runs with filtering by status
 6. **Inspect Details** - Click any run to view metrics, artifacts, and outputs
@@ -41,10 +41,16 @@ See [docs/INSTALL.md](docs/INSTALL.md) for detailed installation options.
 ## Features
 
 ### Training Run Creation
-- Configure new training runs with presets (SLOAQ, ResNet, BERT, GPT2, etc.)
+- Configure training runs with epoch presets (Quick, Standard, Extended, Custom)
 - GPU/CPU device selection with automatic detection
+- Advanced settings: batch size, learning rate, optimizer, scheduler
 - Optional custom dataset path
-- One-click training launch
+
+### Hyperparameter Sweeps (MultiRun)
+- Run multiple experiments with different hyperparameter combinations
+- Configure learning rates, batch sizes, and optimizers as comma-separated lists
+- Automatic grid search across all combinations
+- Track best-performing configuration by final loss
 
 ### Live Monitoring
 - Real-time loss chart with automatic updates

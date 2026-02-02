@@ -10,8 +10,19 @@
     <Grid RowDefinitions="Auto,Auto,*,200,Auto" Padding="32,24" RowSpacing="20">
 
         <!-- Row 0: Header with status -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <VerticalStackLayout Grid.Column="0" Spacing="8">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+            <!-- Back Button -->
+            <Button Grid.Column="0"
+                    Text="← Back"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                    FontSize="14"
+                    Padding="0"
+                    Margin="0,0,16,0"
+                    Clicked="OnBackClicked"
+                    VerticalOptions="Start" />
+
+            <VerticalStackLayout Grid.Column="1" Spacing="8">
                 <HorizontalStackLayout Spacing="16">
                     <Label Text="{Binding RunName}"
                            FontSize="28"
@@ -182,28 +193,102 @@
 
         <!-- Row 4: Error + Action Buttons -->
         <VerticalStackLayout Grid.Row="4" Spacing="12">
-            <!-- Error Message (shown when failed) -->
+            <!-- Error Message (shown when failed) - Enhanced -->
             <Border IsVisible="{Binding ShowError}"
-                    BackgroundColor="#FEE2E2"
-                    Stroke="#EF4444"
+                    BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#1C1517}"
+                    Stroke="{AppThemeBinding Light=#FECACA, Dark=#7F1D1D}"
                     StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
-                    Padding="16,12"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16"
                     SemanticProperties.Description="{Binding ErrorMessage, StringFormat='Error: {0}'}">
-                <HorizontalStackLayout Spacing="8">
-                    <Label Text="✕"
-                           FontSize="14"
+                <VerticalStackLayout Spacing="12">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="⚠"
+                               FontSize="18"
+                               TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                               VerticalOptions="Start"
+                               SemanticProperties.Description="Error icon" />
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Training Failed"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}" />
+                            <Label Text="{Binding ErrorMessage}"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                    <!-- Error Action Buttons -->
+                    <HorizontalStackLayout Spacing="8" HorizontalOptions="End">
+                        <Button Text="View Logs"
+                                Command="{Binding OpenLogsCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#DC2626, Dark=#B91C1C}"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="12,6"
+                                FontSize="12"
+                                SemanticProperties.Description="View logs to diagnose the error" />
+                        <Button Text="Open Settings"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                BorderWidth="1"
+                                TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                CornerRadius="6"
+                                Padding="12,6"
+                                FontSize="12"
+                                Clicked="OnOpenSettingsClicked"
+                                SemanticProperties.Description="Open settings to check configuration" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Cancelled Message -->
+            <Border IsVisible="{Binding IsCancelled}"
+                    BackgroundColor="{AppThemeBinding Light=#FEF9C3, Dark=#1C1917}"
+                    Stroke="{AppThemeBinding Light=#FCD34D, Dark=#44403C}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <HorizontalStackLayout Spacing="10">
+                    <Label Text="⏹"
+                           FontSize="18"
+                           TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Training Cancelled"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
+                        <Label Text="You stopped the run. Start a new one when ready."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Completed Message -->
+            <Border IsVisible="{Binding IsCompleted}"
+                    BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#14532D}"
+                    Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <HorizontalStackLayout Spacing="10">
+                    <Label Text="✓"
+                           FontSize="18"
                            FontAttributes="Bold"
-                           TextColor="#DC2626"
-                           VerticalOptions="Center"
-                           SemanticProperties.Description="Error icon" />
-                    <Label Text="Error:"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="#DC2626" />
-                    <Label Text="{Binding ErrorMessage}"
-                           FontSize="13"
-                           TextColor="#7F1D1D" />
+                           TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}"
+                           VerticalOptions="Center" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Training Complete"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}" />
+                        <Label Text="Your model and artifacts are ready."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light=#15803D, Dark=#4ADE80}" />
+                    </VerticalStackLayout>
                 </HorizontalStackLayout>
             </Border>
 
@@ -235,7 +320,7 @@
 
                 <Button Text="Open Logs"
                         Command="{Binding OpenLogsCommand}"
-                        IsVisible="{Binding IsCompleted}"
+                        IsVisible="{Binding IsFinished}"
                         BackgroundColor="Transparent"
                         BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
                         BorderWidth="1"

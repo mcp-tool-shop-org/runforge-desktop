@@ -63,6 +63,7 @@ public static class MauiProgram
         builder.Services.AddTransient<MultiRunPage>();
         builder.Services.AddTransient<DiagnosticsPage>();
         builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<HelpPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

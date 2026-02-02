@@ -5,191 +5,504 @@
              x:Class="RunForgeDesktop.Views.SettingsPage"
              x:DataType="vm:SettingsViewModel"
              Title="Settings"
-             BackgroundColor="{StaticResource Gray950}">
+             BackgroundColor="{AppThemeBinding Light=#F5F7FA, Dark=#121317}">
 
-    <ScrollView Padding="24">
-        <VerticalStackLayout Spacing="24" MaximumWidthRequest="800">
+    <ScrollView Padding="32,24">
+        <VerticalStackLayout Spacing="24" MaximumWidthRequest="700">
 
-            <!-- Header -->
-            <Label Text="Settings"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="White" />
-
-            <!-- Python Configuration Section -->
-            <Frame BackgroundColor="{StaticResource Gray900}"
-                   BorderColor="{StaticResource Gray800}"
-                   CornerRadius="8"
-                   Padding="20">
-                <VerticalStackLayout Spacing="16">
-
-                    <Label Text="Python Configuration"
-                           FontSize="18"
+            <!-- Back Button + Header -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                <Button Grid.Column="0"
+                        Text="← Back"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                        FontSize="14"
+                        Padding="0"
+                        Clicked="OnBackClicked"
+                        VerticalOptions="Start" />
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Label Text="Settings"
+                           FontSize="28"
                            FontAttributes="Bold"
-                           TextColor="White" />
+                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                    <Label Text="Configure Python, output paths, and training defaults"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                </VerticalStackLayout>
+            </Grid>
 
-                    <Label Text="RunForge uses Python to execute ML training runs. Configure a custom Python path or use auto-discovery."
-                           TextColor="{StaticResource Gray400}"
-                           FontSize="13" />
+            <!-- ═══════════════════════════════════════════════════════════════════════════
+                 PYTHON CONFIGURATION
+                 ═══════════════════════════════════════════════════════════════════════════ -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="24">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="PYTHON CONFIGURATION"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
 
                     <!-- Current Python Status -->
-                    <Frame BackgroundColor="{StaticResource Gray800}"
-                           BorderColor="Transparent"
-                           CornerRadius="6"
-                           Padding="12">
+                    <Border BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="16">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                            <Label Text="●"
-                                   FontSize="16"
-                                   TextColor="{Binding IsPythonValid, Converter={StaticResource BoolToColorConverter}}"
-                                   VerticalOptions="Center" />
+                            <Ellipse WidthRequest="12"
+                                     HeightRequest="12"
+                                     Fill="{Binding IsPythonValid, Converter={StaticResource BoolToColorConverter}}"
+                                     VerticalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" Spacing="4">
                                 <Label Text="{Binding PythonVersion, StringFormat='Python {0}'}"
-                                       TextColor="White"
+                                       TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
                                        FontSize="14"
+                                       FontAttributes="Bold"
                                        IsVisible="{Binding IsPythonValid}" />
+                                <Label Text="Python not found"
+                                       TextColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       IsVisible="{Binding IsPythonValid, Converter={StaticResource InverseBoolConverter}}" />
                                 <Label Text="{Binding PythonDiscoveryInfo}"
-                                       TextColor="{StaticResource Gray400}"
+                                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
                                        FontSize="12" />
                             </VerticalStackLayout>
                         </Grid>
-                    </Frame>
+                    </Border>
 
                     <!-- Python Path Override -->
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="Python Path Override (optional)"
-                               TextColor="{StaticResource Gray300}"
-                               FontSize="13" />
+                        <Label Text="Custom Python Path (optional)"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
 
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                             <Entry Text="{Binding PythonPathOverride}"
                                    Placeholder="Leave empty for auto-discovery"
-                                   PlaceholderColor="{StaticResource Gray500}"
-                                   BackgroundColor="{StaticResource Gray800}"
-                                   TextColor="White"
+                                   PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
                                    FontSize="13" />
 
                             <Button Grid.Column="1"
                                     Text="Browse"
                                     Command="{Binding BrowsePythonPathCommand}"
-                                    BackgroundColor="{StaticResource Gray700}"
-                                    TextColor="White"
-                                    FontSize="12"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
                                     Padding="12,8"
-                                    CornerRadius="4" />
+                                    CornerRadius="6" />
 
                             <Button Grid.Column="2"
                                     Text="Clear"
                                     Command="{Binding ClearPythonPathCommand}"
-                                    BackgroundColor="{StaticResource Gray700}"
-                                    TextColor="White"
-                                    FontSize="12"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
                                     Padding="12,8"
-                                    CornerRadius="4" />
+                                    CornerRadius="6" />
                         </Grid>
-
-                        <Label Text="Example: C:\Python312\python.exe"
-                               TextColor="{StaticResource Gray500}"
-                               FontSize="11" />
                     </VerticalStackLayout>
 
-                    <!-- Action Buttons -->
+                    <!-- Python Actions -->
                     <HorizontalStackLayout Spacing="12">
-                        <Button Text="Save"
-                                Command="{Binding SavePythonPathCommand}"
-                                BackgroundColor="{StaticResource Primary}"
-                                TextColor="White"
-                                FontSize="13"
-                                Padding="16,10"
-                                CornerRadius="4" />
-
                         <Button Text="Validate"
                                 Command="{Binding ValidatePythonCommand}"
-                                BackgroundColor="{StaticResource Gray700}"
+                                BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
                                 TextColor="White"
-                                FontSize="13"
-                                Padding="16,10"
-                                CornerRadius="4" />
+                                FontSize="14"
+                                Padding="20,12"
+                                CornerRadius="8" />
 
                         <ActivityIndicator IsRunning="{Binding IsValidating}"
                                            IsVisible="{Binding IsValidating}"
-                                           Color="{StaticResource Primary}"
+                                           Color="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
                                            WidthRequest="20"
-                                           HeightRequest="20" />
+                                           HeightRequest="20"
+                                           VerticalOptions="Center" />
                     </HorizontalStackLayout>
 
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════════════════════
+                 OUTPUT DIRECTORIES
+                 ═══════════════════════════════════════════════════════════════════════════ -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="24">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="OUTPUT DIRECTORIES"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <Label Text="Override where logs and model artifacts are saved. Leave empty to use workspace defaults."
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                           FontSize="13" />
+
+                    <!-- Logs Directory -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Logs Directory"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <Entry Text="{Binding CustomLogsDirectory}"
+                                   Placeholder="Default: [workspace]/runs/[run_id]/logs"
+                                   PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
+                                   FontSize="13" />
+
+                            <Button Grid.Column="1"
+                                    Text="Browse"
+                                    Command="{Binding BrowseLogsDirectoryCommand}"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
+                                    Padding="12,8"
+                                    CornerRadius="6" />
+
+                            <Button Grid.Column="2"
+                                    Text="Clear"
+                                    Command="{Binding ClearLogsDirectoryCommand}"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
+                                    Padding="12,8"
+                                    CornerRadius="6" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Artifacts Directory -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Artifacts / Checkpoints Directory"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <Entry Text="{Binding CustomArtifactsDirectory}"
+                                   Placeholder="Default: [workspace]/runs/[run_id]/artifacts"
+                                   PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
+                                   FontSize="13" />
+
+                            <Button Grid.Column="1"
+                                    Text="Browse"
+                                    Command="{Binding BrowseArtifactsDirectoryCommand}"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
+                                    Padding="12,8"
+                                    CornerRadius="6" />
+
+                            <Button Grid.Column="2"
+                                    Text="Clear"
+                                    Command="{Binding ClearArtifactsDirectoryCommand}"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                    BorderWidth="1"
+                                    TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                    FontSize="13"
+                                    Padding="12,8"
+                                    CornerRadius="6" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════════════════════
+                 APPEARANCE
+                 ═══════════════════════════════════════════════════════════════════════════ -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="24">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="APPEARANCE"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Theme"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Label Text="Choose between dark, light, or follow system preference"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Picker ItemsSource="{Binding ThemeOptions}"
+                                SelectedItem="{Binding SelectedTheme}"
+                                FontSize="14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
+                                WidthRequest="200"
+                                HorizontalOptions="Start" />
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════════════════════
+                 TRAINING DEFAULTS
+                 ═══════════════════════════════════════════════════════════════════════════ -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="24">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="TRAINING DEFAULTS"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <Label Text="Default values for new training runs. These can be overridden per-run."
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                           FontSize="13" />
+
+                    <!-- Device + Epochs row -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Default Device"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Picker ItemsSource="{Binding DeviceOptions}"
+                                    SelectedItem="{Binding DefaultDevice}"
+                                    FontSize="14"
+                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Default Epochs"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Entry Text="{Binding DefaultEpochs}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Batch Size + Learning Rate row -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Default Batch Size"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Entry Text="{Binding DefaultBatchSize}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Default Learning Rate"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Entry Text="{Binding DefaultLearningRate}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Toggles -->
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="16">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Auto-open output folder"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Label Text="Open the run's output folder when training completes"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding AutoOpenOutputFolder}"
+                                OnColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                                VerticalOptions="Center" />
+
+                        <VerticalStackLayout Grid.Row="1" Spacing="2">
+                            <Label Text="Verbose logging"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Label Text="Include detailed debug information in training logs"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Row="1" Grid.Column="1"
+                                IsToggled="{Binding VerboseLogging}"
+                                OnColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                                VerticalOptions="Center" />
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════════════════════
+                 QUICK ACTIONS
+                 ═══════════════════════════════════════════════════════════════════════════ -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="24">
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="QUICK ACTIONS"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                        <Button Text="Open Workspace"
+                                Command="{Binding OpenWorkspaceFolderCommand}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                BorderWidth="1"
+                                TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                FontSize="13"
+                                Padding="12,12"
+                                CornerRadius="8" />
+
+                        <Button Grid.Column="1"
+                                Text="Open App Data"
+                                Command="{Binding OpenAppDataFolderCommand}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                BorderWidth="1"
+                                TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                FontSize="13"
+                                Padding="12,12"
+                                CornerRadius="8" />
+
+                        <Button Grid.Column="2"
+                                Text="Edit settings.json"
+                                Command="{Binding OpenSettingsFileCommand}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Light=#D1D5DB, Dark=#4B5563}"
+                                BorderWidth="1"
+                                TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                FontSize="13"
+                                Padding="12,12"
+                                CornerRadius="8" />
+                    </Grid>
+
+                    <!-- Paths Info -->
+                    <Border BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="16">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="120,*">
+                                <Label Text="Workspace:"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding CurrentWorkspace}"
+                                       FontSize="12"
+                                       FontFamily="Consolas"
+                                       TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                       LineBreakMode="TailTruncation" />
+                            </Grid>
+                            <Grid ColumnDefinitions="120,*">
+                                <Label Text="Settings file:"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding SettingsFilePath}"
+                                       FontSize="12"
+                                       FontFamily="Consolas"
+                                       TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                       LineBreakMode="TailTruncation" />
+                            </Grid>
+                            <Grid ColumnDefinitions="120,*">
+                                <Label Text="App data:"
+                                       FontSize="12"
+                                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding AppDataDirectory}"
+                                       FontSize="12"
+                                       FontFamily="Consolas"
+                                       TextColor="{AppThemeBinding Light=#374151, Dark=#D1D5DB}"
+                                       LineBreakMode="TailTruncation" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
 
             <!-- Status Message -->
             <Label Text="{Binding StatusMessage}"
-                   TextColor="{StaticResource Primary}"
+                   TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
                    FontSize="13"
                    IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotNullConverter}}" />
 
-            <!-- Help Section -->
-            <Frame BackgroundColor="{StaticResource Gray900}"
-                   BorderColor="{StaticResource Gray800}"
-                   CornerRadius="8"
-                   Padding="20">
-                <VerticalStackLayout Spacing="12">
+            <!-- Save + Reset Buttons -->
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <Button Text="Save All Settings"
+                        Command="{Binding SaveAllSettingsCommand}"
+                        BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                        TextColor="White"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        Padding="24,14"
+                        CornerRadius="8" />
 
-                    <Label Text="Python Discovery Order"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="White" />
-
-                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="1. " FontAttributes="Bold" />
-                                <Span Text="User-specified path (this setting)" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-
-                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="2. " FontAttributes="Bold" />
-                                <Span Text="py launcher (Windows Python Launcher)" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-
-                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="3. " FontAttributes="Bold" />
-                                <Span Text="python in PATH" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-
-                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="4. " FontAttributes="Bold" />
-                                <Span Text="Common installation paths" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-
-                    <Label TextColor="{StaticResource Gray400}" FontSize="13">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="5. " FontAttributes="Bold" />
-                                <Span Text="Windows Store Python" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-
-                    <Label Text="Requires Python 3.10 or higher."
-                           TextColor="{StaticResource Gray500}"
-                           FontSize="12"
-                           Margin="0,8,0,0" />
-
-                </VerticalStackLayout>
-            </Frame>
+                <Button Grid.Column="2"
+                        Text="Reset to Defaults"
+                        Command="{Binding ResetToDefaultsCommand}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                        FontSize="14"
+                        Padding="20,14"
+                        CornerRadius="8" />
+            </Grid>
 
         </VerticalStackLayout>
     </ScrollView>

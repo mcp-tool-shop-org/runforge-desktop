@@ -28,4 +28,14 @@ public partial class LiveRunPage : ContentPage
         _viewModel.ChartInvalidated -= OnChartInvalidated;
         _viewModel.Dispose();
     }
+
+    private async void OnBackClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
+    }
+
+    private async void OnOpenSettingsClicked(object? sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("settings");
+    }
 }

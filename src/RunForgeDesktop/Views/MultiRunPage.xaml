@@ -10,16 +10,26 @@
     <ScrollView Padding="32,24">
         <VerticalStackLayout Spacing="24" MaximumWidthRequest="700">
 
-            <!-- Header -->
-            <VerticalStackLayout Spacing="4">
-                <Label Text="MultiRun Sweep"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
-                <Label Text="Run multiple experiments with different hyperparameters"
-                       FontSize="14"
-                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
-            </VerticalStackLayout>
+            <!-- Back Button + Header -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                <Button Grid.Column="0"
+                        Text="← Back"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                        FontSize="14"
+                        Padding="0"
+                        Clicked="OnBackClicked"
+                        VerticalOptions="Start" />
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Label Text="MultiRun Sweep"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                    <Label Text="Run multiple experiments with different hyperparameters"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+                </VerticalStackLayout>
+            </Grid>
 
             <!-- No Workspace Warning -->
             <Border IsVisible="{Binding HasWorkspace, Converter={StaticResource InverseBoolConverter}}"
@@ -301,16 +311,36 @@
                        TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}" />
             </Border>
 
-            <!-- Error -->
+            <!-- Error - Enhanced -->
             <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
-                    BackgroundColor="#FEE2E2"
-                    Stroke="#FECACA"
+                    BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#1C1517}"
+                    Stroke="{AppThemeBinding Light=#FECACA, Dark=#7F1D1D}"
                     StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8"
-                    Padding="12">
-                <Label Text="{Binding ErrorMessage}"
-                       FontSize="13"
-                       TextColor="#DC2626" />
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="⚠"
+                               FontSize="18"
+                               TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                               VerticalOptions="Start" />
+                        <Label Text="{Binding ErrorMessage}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
+                               LineBreakMode="WordWrap" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="8" HorizontalOptions="End">
+                        <Button Text="Open Settings"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                BorderWidth="1"
+                                TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                CornerRadius="6"
+                                Padding="12,6"
+                                FontSize="12"
+                                Clicked="OnOpenSettingsClicked" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
             </Border>
 
             <!-- Actions -->

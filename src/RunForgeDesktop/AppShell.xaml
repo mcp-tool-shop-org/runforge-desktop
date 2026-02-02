@@ -24,6 +24,14 @@
                 ContentTemplate="{DataTemplate views:RunsDashboardPage}"
                 Route="runs" />
         </Tab>
+
+        <!-- Help Tab -->
+        <Tab Title="Help">
+            <ShellContent
+                Title="Help"
+                ContentTemplate="{DataTemplate views:HelpPage}"
+                Route="help" />
+        </Tab>
     </TabBar>
 
 </Shell>

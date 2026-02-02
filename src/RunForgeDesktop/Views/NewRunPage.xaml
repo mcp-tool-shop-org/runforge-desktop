@@ -10,18 +10,28 @@
     <ScrollView Padding="32,24">
         <VerticalStackLayout Spacing="24" MaximumWidthRequest="540">
 
-            <!-- Header -->
-            <VerticalStackLayout Spacing="4">
-                <Label Text="New Training Run"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}"
-                       SemanticProperties.HeadingLevel="Level1" />
-                <Label Text="Configure and start a new run"
-                       FontSize="14"
-                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
-                       SemanticProperties.Description="Form to configure a new training run" />
-            </VerticalStackLayout>
+            <!-- Back Button + Header -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                <Button Grid.Column="0"
+                        Text="← Back"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                        FontSize="14"
+                        Padding="0"
+                        Clicked="OnBackClicked"
+                        VerticalOptions="Start" />
+                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                    <Label Text="New Training Run"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}"
+                           SemanticProperties.HeadingLevel="Level1" />
+                    <Label Text="Configure and start a new run"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}"
+                           SemanticProperties.Description="Form to configure a new training run" />
+                </VerticalStackLayout>
+            </Grid>
 
             <!-- No Workspace Banner - blocks form until workspace selected -->
             <Border IsVisible="{Binding HasWorkspace, Converter={StaticResource InverseBoolConverter}}"
@@ -100,12 +110,12 @@
                                    TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}"
                                    x:Name="RunNameLabel" />
                             <Entry Text="{Binding RunName}"
-                                   Placeholder="e.g., sloaq_experiment_01"
+                                   Placeholder="e.g., lr_test_001"
                                    FontSize="14"
                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}"
                                    PlaceholderColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
-                                   SemanticProperties.Description="Run name input field. Example: sloaq_experiment_01" />
+                                   SemanticProperties.Description="Run name input field. Example: lr_test_001" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
@@ -397,26 +407,41 @@
                          ERROR + ACTION
                          ═══════════════════════════════════════════════════════════ -->
 
-                    <!-- Error Message -->
+                    <!-- Error Message - Enhanced with action buttons -->
                     <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
-                            BackgroundColor="#FEE2E2"
-                            Stroke="#FECACA"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#1C1517}"
+                            Stroke="{AppThemeBinding Light=#FECACA, Dark=#7F1D1D}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 8"
-                            Padding="12,10"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="16"
                             SemanticProperties.Description="{Binding ErrorMessage, StringFormat='Error: {0}'}">
-                        <HorizontalStackLayout Spacing="8">
-                            <Label Text="✕"
-                                   FontSize="14"
-                                   FontAttributes="Bold"
-                                   TextColor="#DC2626"
-                                   VerticalOptions="Center"
-                                   SemanticProperties.Description="Error icon" />
-                            <Label Text="{Binding ErrorMessage}"
-                                   TextColor="#DC2626"
-                                   FontSize="13"
-                                   VerticalOptions="Center" />
-                        </HorizontalStackLayout>
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="⚠"
+                                       FontSize="18"
+                                       TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                       VerticalOptions="Start"
+                                       SemanticProperties.Description="Error icon" />
+                                <Label Text="{Binding ErrorMessage}"
+                                       TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
+                                       FontSize="14"
+                                       LineBreakMode="WordWrap"
+                                       VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <!-- Action Buttons Row -->
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="End">
+                                <Button Text="Open Settings"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                        BorderWidth="1"
+                                        TextColor="{AppThemeBinding Light=#DC2626, Dark=#F87171}"
+                                        CornerRadius="6"
+                                        Padding="12,6"
+                                        FontSize="12"
+                                        Clicked="OnOpenSettingsClicked"
+                                        SemanticProperties.Description="Open Settings to fix configuration" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
                     </Border>
 
                     <!-- Start Button -->

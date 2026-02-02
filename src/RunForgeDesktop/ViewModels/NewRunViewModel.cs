@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RunForgeDesktop.Core;
 using RunForgeDesktop.Core.Models;
 using RunForgeDesktop.Core.Services;
 
@@ -36,14 +37,14 @@ public partial class NewRunViewModel : ObservableObject
             else
             {
                 GpuName = "";
-                GpuUnavailableReason = "GPU unavailable. Install NVIDIA drivers and CUDA toolkit, or use CPU.";
+                GpuUnavailableReason = ErrorMessages.Gpu.NotAvailable;
             }
         }
         catch
         {
             GpuAvailable = false;
             GpuName = "";
-            GpuUnavailableReason = "GPU detection failed. Using CPU instead.";
+            GpuUnavailableReason = ErrorMessages.Gpu.NotAvailable;
         }
 
         UseGpu = GpuAvailable;
@@ -181,20 +182,20 @@ public partial class NewRunViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RunName))
         {
-            ErrorMessage = "Run name required. Enter a name to identify this run.";
+            ErrorMessage = ErrorMessages.Validation.RunNameRequired;
             return;
         }
 
         if (!HasWorkspace)
         {
-            ErrorMessage = "No workspace selected. Go to Dashboard → Select Workspace.";
+            ErrorMessage = ErrorMessages.Workspace.NotSelected;
             return;
         }
 
         // Check for existing active run
         if (await _runnerService.HasActiveRunAsync())
         {
-            ErrorMessage = "A run is already active. Wait for it to complete or cancel it first.";
+            ErrorMessage = ErrorMessages.Runner.AlreadyRunning;
             return;
         }
 
@@ -233,7 +234,7 @@ public partial class NewRunViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
+            ErrorMessage = ErrorMessages.FromException(ex, "run creation");
             IsCreating = false;
         }
         // Note: Don't reset IsCreating on success - we've navigated away
