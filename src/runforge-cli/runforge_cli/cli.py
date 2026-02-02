@@ -5,6 +5,15 @@ Usage:
     runforge-cli run --run-dir <path> --dry-run
     runforge-cli run --run-dir <path> --dry-run --max-rows 200
     runforge-cli sweep --plan <path>
+    runforge-cli sweep --plan <path> --enqueue
+    runforge-cli daemon --workspace <path> [--max-parallel 2]
+    runforge-cli enqueue-run --run-id <id> --workspace <path>
+    runforge-cli enqueue-sweep --plan <path>
+    runforge-cli pause-group --group-id <id> --workspace <path>
+    runforge-cli resume-group --group-id <id> --workspace <path>
+    runforge-cli retry-failed --group-id <id> --workspace <path>
+    runforge-cli cancel-group --group-id <id> --workspace <path>
+    runforge-cli queue-status --workspace <path>
 
 Exit codes:
     0 - Success
@@ -22,7 +31,17 @@ import traceback
 from pathlib import Path
 
 from . import __version__
+from .daemon import daemon_command
 from .dry_run import run_dry
+from .enqueue import (
+    cancel_group_command,
+    enqueue_run_command,
+    enqueue_sweep_command,
+    pause_group_command,
+    queue_status_command,
+    resume_group_command,
+    retry_failed_command,
+)
 from .exit_codes import FAILED, INTERNAL_ERROR, INVALID_REQUEST, MISSING_FILES, SUCCESS
 from .logger import RunLogger
 from .request import RunRequest
@@ -197,6 +216,169 @@ def main() -> None:
         required=True,
         help="Path to the sweep_plan.json file",
     )
+    sweep_parser.add_argument(
+        "--enqueue",
+        action="store_true",
+        help="Enqueue runs to global queue instead of executing directly",
+    )
+
+    # daemon command
+    daemon_parser = subparsers.add_parser(
+        "daemon",
+        help="Run the execution daemon",
+        description="Long-running process that executes queued jobs",
+    )
+    daemon_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+    daemon_parser.add_argument(
+        "--max-parallel",
+        type=int,
+        default=2,
+        help="Maximum concurrent jobs (default: 2)",
+    )
+
+    # enqueue-run command
+    enqueue_run_parser = subparsers.add_parser(
+        "enqueue-run",
+        help="Enqueue a single run",
+        description="Add a run to the global execution queue",
+    )
+    enqueue_run_parser.add_argument(
+        "--run-id",
+        type=str,
+        required=True,
+        help="The run ID to enqueue",
+    )
+    enqueue_run_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+    enqueue_run_parser.add_argument(
+        "--group-id",
+        type=str,
+        default=None,
+        help="Optional group ID",
+    )
+    enqueue_run_parser.add_argument(
+        "--priority",
+        type=int,
+        default=0,
+        help="Job priority (higher = first, default: 0)",
+    )
+
+    # enqueue-sweep command
+    enqueue_sweep_parser = subparsers.add_parser(
+        "enqueue-sweep",
+        help="Enqueue all runs from a sweep plan",
+        description="Expand sweep plan and add all runs to the global queue",
+    )
+    enqueue_sweep_parser.add_argument(
+        "--plan",
+        type=Path,
+        required=True,
+        help="Path to the sweep_plan.json file",
+    )
+    enqueue_sweep_parser.add_argument(
+        "--workspace",
+        type=Path,
+        default=None,
+        help="Workspace override (default: from plan)",
+    )
+
+    # pause-group command
+    pause_group_parser = subparsers.add_parser(
+        "pause-group",
+        help="Pause a group",
+        description="Prevent new jobs from starting in a group",
+    )
+    pause_group_parser.add_argument(
+        "--group-id",
+        type=str,
+        required=True,
+        help="The group ID to pause",
+    )
+    pause_group_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+
+    # resume-group command
+    resume_group_parser = subparsers.add_parser(
+        "resume-group",
+        help="Resume a paused group",
+        description="Allow jobs to start again in a paused group",
+    )
+    resume_group_parser.add_argument(
+        "--group-id",
+        type=str,
+        required=True,
+        help="The group ID to resume",
+    )
+    resume_group_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+
+    # retry-failed command
+    retry_failed_parser = subparsers.add_parser(
+        "retry-failed",
+        help="Re-enqueue failed runs in a group",
+        description="Add failed runs back to the queue for retry",
+    )
+    retry_failed_parser.add_argument(
+        "--group-id",
+        type=str,
+        required=True,
+        help="The group ID",
+    )
+    retry_failed_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+
+    # cancel-group command
+    cancel_group_parser = subparsers.add_parser(
+        "cancel-group",
+        help="Cancel queued runs in a group",
+        description="Mark queued runs in a group as canceled",
+    )
+    cancel_group_parser.add_argument(
+        "--group-id",
+        type=str,
+        required=True,
+        help="The group ID",
+    )
+    cancel_group_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
+
+    # queue-status command
+    queue_status_parser = subparsers.add_parser(
+        "queue-status",
+        help="Show queue status",
+        description="Display current queue and daemon status",
+    )
+    queue_status_parser.add_argument(
+        "--workspace",
+        type=Path,
+        required=True,
+        help="Workspace root path",
+    )
 
     args = parser.parse_args()
 
@@ -209,7 +391,39 @@ def main() -> None:
         )
         sys.exit(exit_code)
     elif args.command == "sweep":
-        exit_code = sweep_command(args.plan)
+        if args.enqueue:
+            exit_code = enqueue_sweep_command(args.plan)
+        else:
+            exit_code = sweep_command(args.plan)
+        sys.exit(exit_code)
+    elif args.command == "daemon":
+        exit_code = daemon_command(args.workspace, args.max_parallel)
+        sys.exit(exit_code)
+    elif args.command == "enqueue-run":
+        exit_code = enqueue_run_command(
+            args.run_id,
+            args.workspace,
+            args.group_id,
+            args.priority,
+        )
+        sys.exit(exit_code)
+    elif args.command == "enqueue-sweep":
+        exit_code = enqueue_sweep_command(args.plan, args.workspace)
+        sys.exit(exit_code)
+    elif args.command == "pause-group":
+        exit_code = pause_group_command(args.group_id, args.workspace)
+        sys.exit(exit_code)
+    elif args.command == "resume-group":
+        exit_code = resume_group_command(args.group_id, args.workspace)
+        sys.exit(exit_code)
+    elif args.command == "retry-failed":
+        exit_code = retry_failed_command(args.group_id, args.workspace)
+        sys.exit(exit_code)
+    elif args.command == "cancel-group":
+        exit_code = cancel_group_command(args.group_id, args.workspace)
+        sys.exit(exit_code)
+    elif args.command == "queue-status":
+        exit_code = queue_status_command(args.workspace)
         sys.exit(exit_code)
 
 

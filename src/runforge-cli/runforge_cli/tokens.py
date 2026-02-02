@@ -59,3 +59,39 @@ def group_complete(group_id: str, succeeded: int, failed: int, canceled: int) ->
 def group_canceled(group_id: str) -> str:
     """Emit group canceled token."""
     return f"[RF:GROUP=CANCELED {group_id}]"
+
+
+def group_enqueued(group_id: str, run_count: int) -> str:
+    """Emit group enqueued token (queued mode)."""
+    return f"[RF:GROUP=ENQUEUED {group_id} runs={run_count}]"
+
+
+def group_paused(group_id: str) -> str:
+    """Emit group paused token."""
+    return f"[RF:GROUP=PAUSED {group_id}]"
+
+
+def group_resumed(group_id: str) -> str:
+    """Emit group resumed token."""
+    return f"[RF:GROUP=RESUMED {group_id}]"
+
+
+# Daemon tokens
+def daemon_started(pid: int, max_parallel: int) -> str:
+    """Emit daemon started token."""
+    return f"[RF:DAEMON=STARTED pid={pid} max_parallel={max_parallel}]"
+
+
+def daemon_stopped(pid: int) -> str:
+    """Emit daemon stopped token."""
+    return f"[RF:DAEMON=STOPPED pid={pid}]"
+
+
+def queue_job_started(job_id: str, run_id: str) -> str:
+    """Emit queue job started token."""
+    return f"[RF:QUEUE=JOB_STARTED {job_id} run_id={run_id}]"
+
+
+def queue_job_completed(job_id: str, run_id: str, status: str) -> str:
+    """Emit queue job completed token."""
+    return f"[RF:QUEUE=JOB_DONE {job_id} run_id={run_id} status={status}]"

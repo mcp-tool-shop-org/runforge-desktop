@@ -35,6 +35,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRunRequestComparer, RunRequestComparer>();
         builder.Services.AddSingleton<IRunComparisonService, RunComparisonService>();
         builder.Services.AddSingleton<ISweepService, SweepService>();
+        builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
 
         // Register view models
         // RunsListViewModel is singleton so filter/search state persists across navigation

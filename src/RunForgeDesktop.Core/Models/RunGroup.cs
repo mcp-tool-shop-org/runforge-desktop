@@ -81,6 +81,12 @@ public sealed record RunGroup
     public required GroupSummary Summary { get; init; }
 
     /// <summary>
+    /// Whether the group is paused (queue mode only).
+    /// </summary>
+    [JsonPropertyName("paused")]
+    public bool Paused { get; init; }
+
+    /// <summary>
     /// Whether the group has completed (successfully or not).
     /// </summary>
     [JsonIgnore]
@@ -91,6 +97,12 @@ public sealed record RunGroup
     /// </summary>
     [JsonIgnore]
     public bool IsRunning => Status == "running";
+
+    /// <summary>
+    /// Whether the group is paused.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsPaused => Paused;
 }
 
 /// <summary>
