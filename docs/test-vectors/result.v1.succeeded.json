@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "status": "succeeded",
+  "started_at": "2026-02-01T12:00:00Z",
+  "finished_at": "2026-02-01T12:05:00Z",
+  "duration_ms": 300000,
+  "summary": {
+    "primary_metric": {
+      "name": "accuracy",
+      "value": 0.8532
+    },
+    "metrics": {
+      "accuracy": 0.8532,
+      "f1_score": 0.8345,
+      "precision": 0.8621,
+      "recall": 0.8456,
+      "auc_roc": 0.9123
+    }
+  },
+  "effective_config": {
+    "preset": "balanced",
+    "model": {
+      "family": "logistic_regression",
+      "hyperparameters": {
+        "C": 1.0,
+        "max_iter": 1000,
+        "solver": "lbfgs"
+      }
+    },
+    "device": {
+      "type": "cpu",
+      "gpu_id": null
+    },
+    "dataset": {
+      "path": "data/train.csv",
+      "label_column": "target",
+      "test_size": 0.2
+    }
+  },
+  "artifacts": [
+    {
+      "path": "model.pkl",
+      "type": "model",
+      "bytes": 102400
+    },
+    {
+      "path": "metrics.json",
+      "type": "metrics",
+      "bytes": 256
+    },
+    {
+      "path": "feature_importance.json",
+      "type": "feature_importance",
+      "bytes": 1024
+    },
+    {
+      "path": "label_encoder.pkl",
+      "type": "encoder",
+      "bytes": 512
+    }
+  ],
+  "error": null
+}

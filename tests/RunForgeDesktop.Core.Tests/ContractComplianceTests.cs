@@ -226,4 +226,243 @@ public class ContractComplianceTests
     }
 
     #endregion
+
+    #region Result V1 Contract Compliance Tests
+
+    /// <summary>
+    /// Result V1 Contract: Minimal test vector contains only required fields.
+    /// </summary>
+    [Fact]
+    public void Result_MinimalTestVector_MapsRequiredFields()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.minimal.json"));
+
+        // Act
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert - all required fields are present
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Version);
+        Assert.Equal("succeeded", result.Status);
+        Assert.Equal(12345, result.DurationMs);
+
+        // Optional fields are null
+        Assert.Null(result.Summary);
+        Assert.Null(result.EffectiveConfig);
+        Assert.Null(result.Artifacts);
+        Assert.Null(result.Error);
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Succeeded test vector with all optional fields.
+    /// </summary>
+    [Fact]
+    public void Result_SucceededTestVector_MapsAllFields()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.succeeded.json"));
+
+        // Act
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert - required fields
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Version);
+        Assert.Equal("succeeded", result.Status);
+        Assert.Equal(300000, result.DurationMs);
+        Assert.True(result.IsSucceeded);
+
+        // Summary
+        Assert.NotNull(result.Summary);
+        Assert.NotNull(result.Summary.PrimaryMetric);
+        Assert.Equal("accuracy", result.Summary.PrimaryMetric.Name);
+        Assert.Equal(0.8532, result.Summary.PrimaryMetric.Value);
+        Assert.NotNull(result.Summary.Metrics);
+        Assert.Equal(5, result.Summary.Metrics.Count);
+        Assert.Contains("f1_score", result.Summary.Metrics.Keys);
+
+        // Effective config
+        Assert.NotNull(result.EffectiveConfig);
+        Assert.Equal("balanced", result.EffectiveConfig.Preset);
+        Assert.NotNull(result.EffectiveConfig.Model);
+        Assert.Equal("logistic_regression", result.EffectiveConfig.Model.Family);
+        Assert.NotNull(result.EffectiveConfig.Device);
+        Assert.Equal("cpu", result.EffectiveConfig.Device.Type);
+
+        // Artifacts
+        Assert.NotNull(result.Artifacts);
+        Assert.Equal(4, result.Artifacts.Count);
+        Assert.Contains(result.Artifacts, a => a.Path == "model.pkl" && a.Type == "model");
+        Assert.Contains(result.Artifacts, a => a.Path == "metrics.json" && a.Type == "metrics");
+
+        // No error
+        Assert.Null(result.Error);
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Failed test vector with error object.
+    /// </summary>
+    [Fact]
+    public void Result_FailedTestVector_MapsErrorObject()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.failed.json"));
+
+        // Act
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert - required fields
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Version);
+        Assert.Equal("failed", result.Status);
+        Assert.Equal(5000, result.DurationMs);
+        Assert.False(result.IsSucceeded);
+
+        // Error object
+        Assert.NotNull(result.Error);
+        Assert.Contains("Unable to parse CSV file", result.Error.Message);
+        Assert.Equal("ValueError", result.Error.Type);
+        Assert.NotNull(result.Error.Traceback);
+        Assert.Contains("Traceback", result.Error.Traceback);
+
+        // No summary for failed run
+        Assert.Null(result.Summary);
+
+        // Empty artifacts
+        Assert.NotNull(result.Artifacts);
+        Assert.Empty(result.Artifacts);
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Status values are valid.
+    /// </summary>
+    [Theory]
+    [InlineData("result.v1.succeeded.json", "succeeded")]
+    [InlineData("result.v1.failed.json", "failed")]
+    public void Result_Status_HasValidValue(string filename, string expectedStatus)
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath(filename));
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedStatus, result.Status);
+        Assert.Contains(result.Status, new[] { "succeeded", "failed", "cancelled" });
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Duration formatting.
+    /// </summary>
+    [Fact]
+    public void Result_Duration_IsTimeSpan()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.succeeded.json"));
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(TimeSpan.FromMilliseconds(300000), result.Duration);
+        Assert.Equal(5, result.Duration.TotalMinutes);
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Unknown fields are ignored gracefully.
+    /// </summary>
+    [Fact]
+    public void Result_UnknownFields_AreIgnoredGracefully()
+    {
+        // Arrange - add unknown fields to a valid result
+        var json = """
+        {
+          "version": 1,
+          "status": "succeeded",
+          "duration_ms": 1000,
+          "future_field": "should be ignored",
+          "nested_future": { "value": 42 },
+          "summary": {
+            "metrics": { "accuracy": 0.9 },
+            "future_summary_field": true
+          }
+        }
+        """;
+
+        // Act - should not throw
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert - known fields are parsed
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Version);
+        Assert.Equal("succeeded", result.Status);
+        Assert.Equal(1000, result.DurationMs);
+        Assert.NotNull(result.Summary);
+        Assert.NotNull(result.Summary.Metrics);
+        Assert.Equal(0.9, result.Summary.Metrics["accuracy"]);
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Artifact types are valid.
+    /// </summary>
+    [Fact]
+    public void Result_ArtifactTypes_AreValid()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.succeeded.json"));
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Artifacts);
+
+        var validTypes = new[] { "model", "metrics", "feature_importance", "linear_coefficients", "encoder", "log", "checkpoint", "other" };
+        foreach (var artifact in result.Artifacts)
+        {
+            Assert.Contains(artifact.Type, validTypes);
+        }
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Artifact bytes are positive.
+    /// </summary>
+    [Fact]
+    public void Result_ArtifactBytes_ArePositive()
+    {
+        // Arrange
+        var json = File.ReadAllText(GetTestVectorPath("result.v1.succeeded.json"));
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Artifacts);
+        Assert.All(result.Artifacts, a => Assert.True(a.Bytes > 0));
+    }
+
+    /// <summary>
+    /// Result V1 Contract: Version mismatch should not cause parse failure.
+    /// </summary>
+    [Fact]
+    public void Result_FutureVersion_ParsesWithWarning()
+    {
+        // Arrange - version 2 from future
+        var json = """
+        {
+          "version": 2,
+          "status": "succeeded",
+          "duration_ms": 1000,
+          "new_v2_field": "future field"
+        }
+        """;
+
+        // Act - should not throw
+        var result = JsonSerializer.Deserialize<RunResult>(json, JsonOptions.Default);
+
+        // Assert - should still parse
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Version);
+        Assert.Equal("succeeded", result.Status);
+    }
+
+    #endregion
 }

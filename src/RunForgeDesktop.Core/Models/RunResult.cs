@@ -269,4 +269,10 @@ public sealed record ResultError
     /// </summary>
     [JsonPropertyName("type")]
     public string? Type { get; init; }
+
+    /// <summary>
+    /// Full stack trace (optional).
+    /// </summary>
+    [JsonPropertyName("traceback")]
+    public string? Traceback { get; init; }
 }

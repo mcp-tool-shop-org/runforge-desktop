@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "status": "failed",
+  "started_at": "2026-02-01T14:00:00Z",
+  "finished_at": "2026-02-01T14:00:05Z",
+  "duration_ms": 5000,
+  "summary": null,
+  "effective_config": {
+    "preset": "balanced",
+    "model": {
+      "family": "random_forest",
+      "hyperparameters": {
+        "n_estimators": 100,
+        "max_depth": null
+      }
+    },
+    "device": {
+      "type": "cpu"
+    },
+    "dataset": {
+      "path": "data/corrupted.csv",
+      "label_column": "target"
+    }
+  },
+  "artifacts": [],
+  "error": {
+    "message": "Unable to parse CSV file: invalid literal for int() with base 10: 'N/A'",
+    "type": "ValueError",
+    "traceback": "Traceback (most recent call last):\n  File \"runforge/core/data.py\", line 42, in load_dataset\n    df = pd.read_csv(path)\n  ...\nValueError: invalid literal for int() with base 10: 'N/A'"
+  }
+}
