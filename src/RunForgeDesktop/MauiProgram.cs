@@ -47,6 +47,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<RunsDashboardViewModel>();
         builder.Services.AddTransient<NewRunViewModel>();
         builder.Services.AddTransient<LiveRunViewModel>();
+        builder.Services.AddTransient<MultiRunViewModel>();
         builder.Services.AddTransient<DiagnosticsViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
         builder.Services.AddSingleton<ActivityStripViewModel>();
@@ -59,6 +60,7 @@ public static class MauiProgram
         builder.Services.AddTransient<RunsDashboardPage>();
         builder.Services.AddTransient<NewRunPage>();
         builder.Services.AddTransient<LiveRunPage>();
+        builder.Services.AddTransient<MultiRunPage>();
         builder.Services.AddTransient<DiagnosticsPage>();
         builder.Services.AddTransient<SettingsPage>();
 

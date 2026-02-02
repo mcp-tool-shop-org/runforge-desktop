@@ -52,6 +52,7 @@
             <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
             <converters:ColorToBackgroundConverter x:Key="ColorToBackgroundConverter" />
             <converters:LossToHeightConverter x:Key="LossToHeightConverter" />
+            <converters:IntToProgressConverter x:Key="IntToProgressConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

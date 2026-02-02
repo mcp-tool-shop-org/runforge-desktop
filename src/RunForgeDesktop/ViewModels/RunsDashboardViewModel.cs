@@ -121,6 +121,12 @@ public partial class RunsDashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private async Task MultiRun()
+    {
+        await Shell.Current.GoToAsync("multirun");
+    }
+
+    [RelayCommand]
     private async Task OpenRun(RunDisplayItem? run)
     {
         if (run == null) return;

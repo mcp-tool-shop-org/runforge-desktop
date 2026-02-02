@@ -21,17 +21,29 @@
                        TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
             </VerticalStackLayout>
 
-            <Button Grid.Column="1"
-                    Text="+ New Run"
-                    Command="{Binding NewRunCommand}"
-                    IsEnabled="{Binding HasWorkspace}"
-                    BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
-                    TextColor="White"
-                    CornerRadius="8"
-                    Padding="20,12"
-                    FontSize="14"
-                    FontAttributes="Bold"
-                    VerticalOptions="Center" />
+            <HorizontalStackLayout Grid.Column="1" Spacing="12">
+                <Button Text="MultiRun"
+                        Command="{Binding MultiRunCommand}"
+                        IsEnabled="{Binding HasWorkspace}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}"
+                        CornerRadius="8"
+                        Padding="16,12"
+                        FontSize="14"
+                        VerticalOptions="Center" />
+                <Button Text="+ New Run"
+                        Command="{Binding NewRunCommand}"
+                        IsEnabled="{Binding HasWorkspace}"
+                        BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="20,12"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        VerticalOptions="Center" />
+            </HorizontalStackLayout>
         </Grid>
 
         <!-- No Workspace Banner - shown when no workspace selected -->

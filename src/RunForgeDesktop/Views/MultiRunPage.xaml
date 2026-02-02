@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
+             x:Class="RunForgeDesktop.Views.MultiRunPage"
+             x:DataType="vm:MultiRunViewModel"
+             Title="MultiRun"
+             BackgroundColor="{AppThemeBinding Light=#F5F7FA, Dark=#121317}">
+
+    <ScrollView Padding="32,24">
+        <VerticalStackLayout Spacing="24" MaximumWidthRequest="700">
+
+            <!-- Header -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="MultiRun Sweep"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#1A1A2E, Dark=#FFFFFF}" />
+                <Label Text="Run multiple experiments with different hyperparameters"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light=#64748B, Dark=#94A3B8}" />
+            </VerticalStackLayout>
+
+            <!-- No Workspace Warning -->
+            <Border IsVisible="{Binding HasWorkspace, Converter={StaticResource InverseBoolConverter}}"
+                    BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#1C1917}"
+                    Stroke="{AppThemeBinding Light=#FCD34D, Dark=#44403C}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="20">
+                <HorizontalStackLayout Spacing="12">
+                    <Label Text="!" FontSize="20" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#92400E, Dark=#FCD34D}" />
+                    <Label Text="Select a workspace first (Dashboard > Select Workspace)"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light=#B45309, Dark=#F59E0B}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Configuration Card -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="28">
+
+                <VerticalStackLayout Spacing="24">
+
+                    <!-- Sweep Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Sweep Name"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <Entry Text="{Binding SweepName}"
+                               Placeholder="e.g., lr_search"
+                               FontSize="14"
+                               BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        <Label Text="Runs will be named: sweep_01, sweep_02, etc."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                    </VerticalStackLayout>
+
+                    <!-- Divider -->
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E5E7EB, Dark=#2D3748}" />
+
+                    <!-- HYPERPARAMETER GRID -->
+                    <Label Text="HYPERPARAMETER GRID"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <!-- Learning Rates -->
+                    <Grid ColumnDefinitions="*,200" ColumnSpacing="16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Learning Rates"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Label Text="Comma-separated values (e.g., 0.001, 0.0001)"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                        </VerticalStackLayout>
+                        <Entry Grid.Column="1"
+                               Text="{Binding LearningRates}"
+                               FontSize="14"
+                               BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    </Grid>
+
+                    <!-- Batch Sizes -->
+                    <Grid ColumnDefinitions="*,200" ColumnSpacing="16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Batch Sizes"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Label Text="Comma-separated values (e.g., 32, 64, 128)"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                        </VerticalStackLayout>
+                        <Entry Grid.Column="1"
+                               Text="{Binding BatchSizes}"
+                               FontSize="14"
+                               BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    </Grid>
+
+                    <!-- Optimizers -->
+                    <Grid ColumnDefinitions="*,200" ColumnSpacing="16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Optimizers"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Label Text="Comma-separated (Adam, AdamW, SGD, RMSprop)"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+                        </VerticalStackLayout>
+                        <Entry Grid.Column="1"
+                               Text="{Binding Optimizers}"
+                               FontSize="14"
+                               BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                               TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                    </Grid>
+
+                    <!-- Divider -->
+                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#E5E7EB, Dark=#2D3748}" />
+
+                    <!-- FIXED SETTINGS -->
+                    <Label Text="FIXED FOR ALL RUNS"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                           CharacterSpacing="1" />
+
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
+                        <!-- Epochs -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Epochs"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Entry Text="{Binding EpochsPerRun}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+
+                        <!-- Samples -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Samples"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Entry Text="{Binding SamplesPerRun}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"
+                                   BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                   TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+
+                        <!-- Scheduler -->
+                        <VerticalStackLayout Grid.Column="2" Spacing="4">
+                            <Label Text="Scheduler"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                            <Picker ItemsSource="{Binding AvailableSchedulers}"
+                                    SelectedItem="{Binding SelectedScheduler}"
+                                    FontSize="14"
+                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                    TextColor="{AppThemeBinding Light=#1F2937, Dark=#F3F4F6}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Device -->
+                    <HorizontalStackLayout Spacing="16">
+                        <Label Text="Device:"
+                               FontSize="14"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox IsChecked="{Binding UseGpu}" IsEnabled="{Binding GpuAvailable}" />
+                            <Label Text="Use GPU"
+                                   FontSize="14"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}" />
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding GpuName}"
+                               FontSize="12"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
+                               IsVisible="{Binding GpuAvailable}" />
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Run Preview Card -->
+            <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E2028}"
+                    Stroke="{AppThemeBinding Light=#E2E8F0, Dark=#2D3748}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="28">
+
+                <VerticalStackLayout Spacing="16">
+
+                    <HorizontalStackLayout Spacing="12">
+                        <Label Text="RUN PREVIEW"
+                               FontSize="11"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}"
+                               CharacterSpacing="1"
+                               VerticalOptions="Center" />
+                        <Border BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#312E81}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="8,4">
+                            <Label Text="{Binding TotalRuns, StringFormat='{0} runs'}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light=#4F46E5, Dark=#A5B4FC}" />
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <!-- Run List -->
+                    <CollectionView ItemsSource="{Binding RunPreviews}"
+                                    HeightRequest="200">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RunPreviewItem">
+                                <Border Margin="0,2"
+                                        Padding="12,8"
+                                        BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#0F172A}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 6">
+                                    <Grid ColumnDefinitions="40,*,80">
+                                        <Label Text="{Binding RunNumber, StringFormat='#{0}'}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#6366F1, Dark=#818CF8}"
+                                               VerticalOptions="Center" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding DisplayName}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light=#374151, Dark=#E5E7EB}"
+                                               VerticalOptions="Center" />
+                                        <Label Grid.Column="2"
+                                               Text="{Binding Status}"
+                                               FontSize="12"
+                                               HorizontalOptions="End"
+                                               VerticalOptions="Center"
+                                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Status & Progress -->
+            <Border IsVisible="{Binding IsRunning}"
+                    BackgroundColor="{AppThemeBinding Light=#EEF2FF, Dark=#1E1B4B}"
+                    Stroke="{AppThemeBinding Light=#C7D2FE, Dark=#3730A3}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <HorizontalStackLayout Spacing="8">
+                        <ActivityIndicator IsRunning="True"
+                                           HeightRequest="16"
+                                           WidthRequest="16"
+                                           Color="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}" />
+                        <Label Text="{Binding StatusMessage}"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#4338CA, Dark=#A5B4FC}" />
+                    </HorizontalStackLayout>
+                    <ProgressBar Progress="{Binding CurrentRunIndex, Converter={StaticResource IntToProgressConverter}}"
+                                 ProgressColor="{AppThemeBinding Light=#4F46E5, Dark=#818CF8}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Completed Status -->
+            <Border IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"
+                    BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#14532D}"
+                    Stroke="{AppThemeBinding Light=#86EFAC, Dark=#166534}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="16">
+                <Label Text="{Binding StatusMessage}"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light=#166534, Dark=#86EFAC}" />
+            </Border>
+
+            <!-- Error -->
+            <Border IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                    BackgroundColor="#FEE2E2"
+                    Stroke="#FECACA"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    Padding="12">
+                <Label Text="{Binding ErrorMessage}"
+                       FontSize="13"
+                       TextColor="#DC2626" />
+            </Border>
+
+            <!-- Actions -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Button Text="{Binding IsRunning, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Running...|Start Sweep'}"
+                        Command="{Binding StartSweepCommand}"
+                        IsEnabled="{Binding CanStart}"
+                        BackgroundColor="{AppThemeBinding Light=#4F46E5, Dark=#6366F1}"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="24,16"
+                        FontSize="16"
+                        FontAttributes="Bold" />
+                <Button Grid.Column="1"
+                        Text="Cancel"
+                        Command="{Binding CancelSweepCommand}"
+                        IsVisible="{Binding IsRunning}"
+                        BackgroundColor="Transparent"
+                        BorderColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                        BorderWidth="1"
+                        TextColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
+                        CornerRadius="8"
+                        Padding="24,16"
+                        FontSize="16" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

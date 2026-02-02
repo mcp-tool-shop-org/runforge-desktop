@@ -679,3 +679,25 @@ public class LossToHeightConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Converts an int to a progress value (0.0-1.0) based on TotalRuns binding.
+/// Used in MultiRun sweep progress bar.
+/// </summary>
+public class IntToProgressConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        // For now, just normalize to 0-1 assuming max 20 runs
+        if (value is int current)
+        {
+            return Math.Min(1.0, current / 20.0);
+        }
+        return 0.0;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

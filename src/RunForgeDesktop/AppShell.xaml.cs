@@ -16,6 +16,7 @@ public partial class AppShell : Shell
         // Task flows
         Routing.RegisterRoute("newrun", typeof(NewRunPage));
         Routing.RegisterRoute("rundetail", typeof(LiveRunPage));
+        Routing.RegisterRoute("multirun", typeof(MultiRunPage));
 
         // Utility pages (accessible from Dashboard)
         Routing.RegisterRoute("diagnostics", typeof(DiagnosticsPage));

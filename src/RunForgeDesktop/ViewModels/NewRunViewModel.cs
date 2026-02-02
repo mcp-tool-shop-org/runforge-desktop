@@ -53,7 +53,7 @@ public partial class NewRunViewModel : ObservableObject
     private string _runName = "";
 
     [ObservableProperty]
-    private string _selectedPreset = "SLOAQ (Adaptive)";
+    private string _selectedPreset = "Quick Test (10 epochs)";
 
     [ObservableProperty]
     private string _datasetPath = "";
@@ -136,12 +136,9 @@ public partial class NewRunViewModel : ObservableObject
 
     public string[] AvailablePresets { get; } =
     [
-        "SLOAQ (Adaptive)",
-        "ResNet50",
-        "ResNet18",
-        "VGG16",
-        "BERT-base",
-        "GPT2-small",
+        "Quick Test (10 epochs)",
+        "Standard (50 epochs)",
+        "Extended (100 epochs)",
         "Custom"
     ];
 

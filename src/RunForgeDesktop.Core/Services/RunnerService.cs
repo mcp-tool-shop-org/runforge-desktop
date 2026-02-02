@@ -501,9 +501,9 @@ public class RunnerService : IRunnerService
 
                 metrics_path = os.path.join(run_folder, "metrics.jsonl")
 
-                print(f"═══════════════════════════════════════════════")
-                print(f"RunForge Training Session")
-                print(f"═══════════════════════════════════════════════")
+                print("=" * 50)
+                print("RunForge Training Session")
+                print("=" * 50)
                 print(f"Run folder: {run_folder}")
                 print(f"Epochs: {total_epochs}")
                 print(f"Batch size: {batch_size}")
@@ -511,7 +511,7 @@ public class RunnerService : IRunnerService
                 print(f"Samples: {num_samples}")
                 print(f"Optimizer: {optimizer_name}")
                 print(f"Scheduler: {scheduler_name}")
-                print(f"═══════════════════════════════════════════════")
+                print("=" * 50)
 
                 # Simple CNN for image classification
                 class SimpleCNN(nn.Module):
@@ -614,11 +614,11 @@ public class RunnerService : IRunnerService
                     print(f">>> Epoch {epoch} complete - avg loss: {avg_loss:.4f}")
                     print()
 
-                print("═══════════════════════════════════════════════")
+                print("=" * 50)
                 print("Training complete!")
                 print(f"Final loss: {avg_loss:.4f}")
                 print(f"Total steps: {step}")
-                print("═══════════════════════════════════════════════")
+                print("=" * 50)
 
             if __name__ == "__main__":
                 main()
