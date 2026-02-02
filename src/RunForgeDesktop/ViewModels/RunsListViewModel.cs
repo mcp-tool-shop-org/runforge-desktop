@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RunForgeDesktop.Core.Models;
@@ -14,6 +15,7 @@ public partial class RunsListViewModel : ObservableObject
 {
     private readonly IRunIndexService _runIndexService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IActivityMonitorService _activityMonitor;
 
     /// <summary>
     /// Debounce delay for search/filter operations (milliseconds).
@@ -77,12 +79,62 @@ public partial class RunsListViewModel : ObservableObject
     /// </summary>
     public bool ShowActionBar => IsMultiSelectMode && SelectedCount > 0;
 
-    public RunsListViewModel(IRunIndexService runIndexService, IWorkspaceService workspaceService)
+    // === Activity System Properties (for SystemStatusPanel and GpuQueueCard) ===
+
+    /// <summary>
+    /// Current system-wide activity state.
+    /// </summary>
+    public ActivitySystemState SystemState => _activityMonitor.SystemState;
+
+    /// <summary>
+    /// Reason for stalled/error state.
+    /// </summary>
+    public string? StatusReason => _activityMonitor.StatusReason;
+
+    /// <summary>
+    /// Number of jobs currently running (CPU + GPU).
+    /// </summary>
+    public int RunningCount => _activityMonitor.ActiveCpuSlots + _activityMonitor.ActiveGpuSlots;
+
+    /// <summary>
+    /// Number of jobs queued.
+    /// </summary>
+    public int ActivityQueuedCount => _activityMonitor.QueuedCount;
+
+    /// <summary>
+    /// Number of GPU jobs currently running.
+    /// </summary>
+    public int GpuRunningCount => _activityMonitor.ActiveGpuSlots;
+
+    /// <summary>
+    /// Number of GPU slots configured.
+    /// </summary>
+    public int TotalGpuSlots => _activityMonitor.TotalGpuSlots;
+
+    /// <summary>
+    /// Number of jobs waiting for GPU.
+    /// </summary>
+    public int QueuedGpuCount => _activityMonitor.QueuedGpuCount;
+
+    /// <summary>
+    /// Whether to show the GPU queue card.
+    /// </summary>
+    public bool ShowGpuQueueCard => _activityMonitor.HasGpuSlots &&
+        (_activityMonitor.ActiveGpuSlots > 0 || _activityMonitor.QueuedGpuCount > 0);
+
+    public RunsListViewModel(
+        IRunIndexService runIndexService,
+        IWorkspaceService workspaceService,
+        IActivityMonitorService activityMonitor)
     {
         _runIndexService = runIndexService;
         _workspaceService = workspaceService;
+        _activityMonitor = activityMonitor;
 
         _workspaceService.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Forward activity monitor property changes
+        _activityMonitor.PropertyChanged += OnActivityMonitorPropertyChanged;
 
         // Track selection changes
         SelectedRuns.CollectionChanged += (s, e) =>
@@ -92,6 +144,22 @@ public partial class RunsListViewModel : ObservableObject
             OnPropertyChanged(nameof(CanCompareSelected));
             OnPropertyChanged(nameof(ShowActionBar));
         };
+    }
+
+    private void OnActivityMonitorPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Forward relevant property changes to the UI
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(SystemState));
+            OnPropertyChanged(nameof(StatusReason));
+            OnPropertyChanged(nameof(RunningCount));
+            OnPropertyChanged(nameof(ActivityQueuedCount));
+            OnPropertyChanged(nameof(GpuRunningCount));
+            OnPropertyChanged(nameof(TotalGpuSlots));
+            OnPropertyChanged(nameof(QueuedGpuCount));
+            OnPropertyChanged(nameof(ShowGpuQueueCard));
+        });
     }
 
     partial void OnSelectedRunChanged(RunIndexEntry? value)

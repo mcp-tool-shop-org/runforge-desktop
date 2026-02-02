@@ -3,11 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:RunForgeDesktop.ViewModels"
              xmlns:models="clr-namespace:RunForgeDesktop.Core.Models;assembly=RunForgeDesktop.Core"
+             xmlns:controls="clr-namespace:RunForgeDesktop.Controls"
              x:Class="RunForgeDesktop.Views.RunsListPage"
              x:DataType="vm:RunsListViewModel"
              Title="Browse Runs">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="16">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Padding="16">
 
         <!-- Header with workspace path -->
         <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,16">
@@ -60,8 +61,23 @@
                     ToolTipProperties.Text="Reload runs from disk, bypassing cache" />
         </Grid>
 
+        <!-- System Status Panel (Visual Activity System) -->
+        <controls:SystemStatusPanel Grid.Row="2"
+                                     SystemState="{Binding SystemState}"
+                                     StatusReason="{Binding StatusReason}"
+                                     RunningCount="{Binding RunningCount}"
+                                     QueuedCount="{Binding ActivityQueuedCount}"
+                                     GpuRunningCount="{Binding GpuRunningCount}" />
+
+        <!-- GPU Queue Card (Visual Activity System) -->
+        <controls:GpuQueueCard Grid.Row="3"
+                               IsVisible="{Binding ShowGpuQueueCard}"
+                               ActiveGpuSlots="{Binding GpuRunningCount}"
+                               TotalGpuSlots="{Binding TotalGpuSlots}"
+                               QueuedGpuCount="{Binding QueuedGpuCount}" />
+
         <!-- Multi-select action bar -->
-        <Frame Grid.Row="2"
+        <Frame Grid.Row="4"
                IsVisible="{Binding ShowActionBar}"
                BackgroundColor="{AppThemeBinding Light=#E3F2FD, Dark=#1A237E}"
                BorderColor="{AppThemeBinding Light=#90CAF9, Dark=#3F51B5}"
@@ -121,7 +137,7 @@
         </Frame>
 
         <!-- Runs list -->
-        <Frame Grid.Row="3"
+        <Frame Grid.Row="5"
                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
                BorderColor="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
                CornerRadius="8"
@@ -319,7 +335,7 @@
         </Frame>
 
         <!-- Footer with counts -->
-        <HorizontalStackLayout Grid.Row="4"
+        <HorizontalStackLayout Grid.Row="6"
                                Margin="0,8,0,0"
                                HorizontalOptions="Center"
                                Spacing="12">
