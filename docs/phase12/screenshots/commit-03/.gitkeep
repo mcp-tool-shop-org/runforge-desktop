@@ -1,0 +1,24 @@
+# Screenshots for Commit 3 - Cold Machine Install Certification
+
+Required screenshots (to be captured during VM testing):
+
+## Fresh Install
+- pre-install-check.png
+- install-dialog.png
+- first-launch.png
+- functionality-check.png
+- post-install-check.png
+
+## Upgrade
+- pre-upgrade-state.png
+- upgrade-dialog.png
+- post-upgrade-launch.png
+- post-upgrade-check.png
+- upgrade-functionality.png
+
+## Uninstall
+- pre-uninstall-appdata.png
+- uninstall-dialog.png
+- post-uninstall-check.png
+- start-menu-clean.png
+- post-uninstall-appdata.png
