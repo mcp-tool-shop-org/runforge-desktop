@@ -1,0 +1,8 @@
+# Screenshots for Commit 1 - Project Hygiene
+
+Required screenshots (to be captured manually):
+1. repo-homepage.png - GitHub repository homepage showing all files
+2. issue-templates.png - GitHub "New Issue" screen showing template options
+3. branch-protection.png - Branch protection rules settings page
+
+Note: Branch protection must be configured manually through GitHub web interface.

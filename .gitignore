@@ -151,4 +151,5 @@ wheels/
 .runforge/
 runs/
 screenshots/
+!docs/phase12/screenshots/
 store_screenshot.png
