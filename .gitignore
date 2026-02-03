@@ -152,4 +152,5 @@ wheels/
 runs/
 screenshots/
 !docs/phase12/screenshots/
+!docs/phase11/screenshots/
 store_screenshot.png

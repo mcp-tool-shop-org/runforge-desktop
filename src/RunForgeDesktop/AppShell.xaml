@@ -32,6 +32,14 @@
                 ContentTemplate="{DataTemplate views:HelpPage}"
                 Route="help" />
         </Tab>
+
+        <!-- Settings Tab -->
+        <Tab Title="Settings">
+            <ShellContent
+                Title="Settings"
+                ContentTemplate="{DataTemplate views:SettingsPage}"
+                Route="settings" />
+        </Tab>
     </TabBar>
 
 </Shell>
