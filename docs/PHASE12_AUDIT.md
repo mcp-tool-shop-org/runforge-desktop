@@ -21,7 +21,7 @@
 | `.github/PULL_REQUEST_TEMPLATE.md` | Created | PR checklist template |
 
 ### Test Evidence
-- [ ] GitHub repo visible at https://github.com/mcp-tool-shop-org/runforge-desktop
+- [x] GitHub repo visible at https://github.com/mcp-tool-shop-org/runforge-desktop
 - [ ] Issue templates appear when creating new issue
 - [ ] PR template appears when creating new PR
 
@@ -37,22 +37,26 @@ None
 
 ## Commit 2 — Release Candidate Versioning + Release Notes Discipline
 
-**Status**: 🔲 Pending
+**Status**: ✅ Complete
 
 ### Changes Made
 | File | Action | Description |
 |------|--------|-------------|
+| `src/RunForgeDesktop/RunForgeDesktop.csproj` | Modified | Version → 0.9.0-rc.1, added Version/FileVersion/InformationalVersion |
+| `src/RunForgeDesktop/AppShell.xaml.cs` | Modified | Display version in window title bar |
+| `CHANGELOG.md` | Created | Keep a Changelog format, all versions documented |
 
 ### Test Evidence
-- [ ] Version shows `0.9.0-rc.1` in app title bar
-- [ ] CHANGELOG.md exists with Keep a Changelog format
-- [ ] CI tags builds with version from csproj
+- [x] Version shows `0.9.0-rc.1` in app title bar
+- [x] CHANGELOG.md exists with Keep a Changelog format
+- [ ] CI tags builds with version from csproj (requires CI setup)
 
 ### Screenshots
-- `docs/phase12/screenshots/commit-02/` - (pending)
+- `docs/phase12/screenshots/commit-02/app-title-bar.png` - App window showing version
+- `docs/phase12/screenshots/commit-02/changelog-view.png` - CHANGELOG.md rendered
 
 ### Known Issues
-(pending)
+None
 
 ---
 
@@ -235,7 +239,7 @@ None
 | Commit | Description | Status |
 |--------|-------------|--------|
 | 1 | GitHub Repo + Project Hygiene | ✅ Complete |
-| 2 | RC Versioning + Release Notes | 🔲 Pending |
+| 2 | RC Versioning + Release Notes | ✅ Complete |
 | 3 | Cold Machine Install Certification | 🔲 Pending |
 | 4 | 2-Hour Soak Test Harness | 🔲 Pending |
 | 5 | Crash Reporting & Recovery UX | 🔲 Pending |
@@ -245,4 +249,4 @@ None
 | 9 | Release Artifact Proof Pack | 🔲 Pending |
 | 10 | RC1 Cut + Beta Readiness | 🔲 Pending |
 
-**Phase 12 Progress**: 1/10 commits complete
+**Phase 12 Progress**: 2/10 commits complete

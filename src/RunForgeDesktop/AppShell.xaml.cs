@@ -1,5 +1,6 @@
 using RunForgeDesktop.Core.Services;
 using RunForgeDesktop.Views;
+using System.Reflection;
 
 namespace RunForgeDesktop;
 
@@ -8,6 +9,12 @@ public partial class AppShell : Shell
     public AppShell(IActivityMonitorService activityMonitor, IWorkspaceService workspaceService)
     {
         InitializeComponent();
+
+        // Display version in title bar
+        var version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion ?? "0.9.0-rc.1";
+        Title = $"RunForge Desktop v{version}";
 
         // ═══════════════════════════════════════════════════════════════════
         // v1.0.0 Routes - These are the only routes accessible from the UI
