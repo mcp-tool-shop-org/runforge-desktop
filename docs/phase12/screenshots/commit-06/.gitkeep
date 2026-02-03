@@ -1,0 +1,5 @@
+# Screenshots for Commit 6 - Button Coverage Tests
+
+Required screenshots (to be captured):
+1. test-results.png - Test runner output showing all tests pass
+2. coverage-report.png - Test coverage report (if generated)
