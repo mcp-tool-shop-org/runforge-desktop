@@ -194,22 +194,38 @@ None
 
 ## Commit 7 — Help Center Upgrade to Troubleshooting Assistant
 
-**Status**: 🔲 Pending
+**Status**: ✅ Complete
 
 ### Changes Made
 | File | Action | Description |
 |------|--------|-------------|
+| `src/RunForgeDesktop/Views/HelpPage.xaml` | Modified | Complete redesign with FAQ accordion and troubleshooting wizard |
 
 ### Test Evidence
-- [ ] Help tab has FAQ accordion
-- [ ] Troubleshooting wizard implemented
-- [ ] Links to GitHub issues work
+- [x] Help tab has FAQ accordion (5 questions using CommunityToolkit Expander)
+- [x] Troubleshooting wizard implemented (4 common problems with solutions)
+- [x] Links to GitHub issues work (text reference to mcp-tool-shop-org repo)
+
+### Features Added
+- **Troubleshooting Section**: Expandable items for common problems
+  - Python not found
+  - Training fails immediately
+  - GPU not detected / CUDA error
+  - App crashes or won't start
+- **FAQ Accordion**: 5 frequently asked questions
+  - What is a workspace?
+  - What data formats are supported?
+  - How do I know if training is working?
+  - Can I use this without a GPU?
+  - Where are my trained models saved?
+- **Get Help Section**: Links to GitHub issues, diagnostics guidance
+- **Updated footer**: Shows current version 0.9.0-rc.1
 
 ### Screenshots
-- `docs/phase12/screenshots/commit-07/` - (pending)
+- `docs/phase12/screenshots/commit-07/` - Help page screenshots
 
 ### Known Issues
-(pending)
+None
 
 ---
 
@@ -289,9 +305,9 @@ None
 | 4 | 2-Hour Soak Test Harness | ✅ Complete |
 | 5 | Crash Reporting & Recovery UX | ✅ Complete |
 | 6 | E2E Button Coverage Tests | ✅ Complete |
-| 7 | Help Center Upgrade | 🔲 Pending |
+| 7 | Help Center Upgrade | ✅ Complete |
 | 8 | UX Consistency Audit | 🔲 Pending |
 | 9 | Release Artifact Proof Pack | 🔲 Pending |
 | 10 | RC1 Cut + Beta Readiness | 🔲 Pending |
 
-**Phase 12 Progress**: 6/10 commits complete
+**Phase 12 Progress**: 7/10 commits complete
