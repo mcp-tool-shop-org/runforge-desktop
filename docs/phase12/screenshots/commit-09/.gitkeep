@@ -1,0 +1,7 @@
+# Screenshots for Commit 9 - Release Artifact Proof Pack
+
+Required screenshots (to be captured during release build):
+1. release-bundle-output.png - Terminal output showing successful bundle creation
+2. artifacts-directory.png - Contents of the release directory
+3. checksums-file.png - SHA256SUMS.txt content
+4. release-manifest.png - RELEASE_MANIFEST.md content
