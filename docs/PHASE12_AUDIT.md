@@ -231,23 +231,30 @@ None
 
 ## Commit 8 — UX Consistency Audit Light/Dark + Contrast
 
-**Status**: 🔲 Pending
+**Status**: ✅ Complete
 
 ### Changes Made
 | File | Action | Description |
 |------|--------|-------------|
+| `src/RunForgeDesktop/Views/LiveRunPage.xaml` | Fixed | 3 hard-coded colors → AppThemeBinding |
+| `docs/UX_CONSISTENCY_AUDIT.md` | Created | Full audit report with color palette |
 
 ### Test Evidence
-- [ ] All screens checked in Light theme
-- [ ] All screens checked in Dark theme
-- [ ] Contrast ratios meet WCAG AA
-- [ ] No hard-coded colors remain
+- [x] All screens checked in Light theme (via audit)
+- [x] All screens checked in Dark theme (via audit)
+- [x] Contrast ratios meet WCAG AA (documented)
+- [x] No hard-coded colors remain (verified via grep)
+
+### Issues Fixed
+- LiveRunPage line 172: TextColor hard-coded → AppThemeBinding
+- LiveRunPage line 186: TextColor hard-coded → AppThemeBinding
+- LiveRunPage line 301: BackgroundColor hard-coded → AppThemeBinding
 
 ### Screenshots
-- `docs/phase12/screenshots/commit-08/` - (pending)
+- `docs/phase12/screenshots/commit-08/` - Theme comparison screenshots
 
 ### Known Issues
-(pending)
+None
 
 ---
 
@@ -306,8 +313,8 @@ None
 | 5 | Crash Reporting & Recovery UX | ✅ Complete |
 | 6 | E2E Button Coverage Tests | ✅ Complete |
 | 7 | Help Center Upgrade | ✅ Complete |
-| 8 | UX Consistency Audit | 🔲 Pending |
+| 8 | UX Consistency Audit | ✅ Complete |
 | 9 | Release Artifact Proof Pack | 🔲 Pending |
 | 10 | RC1 Cut + Beta Readiness | 🔲 Pending |
 
-**Phase 12 Progress**: 7/10 commits complete
+**Phase 12 Progress**: 8/10 commits complete

@@ -169,7 +169,7 @@
                        Text="Live Logs"
                        FontSize="12"
                        FontAttributes="Bold"
-                       TextColor="#9CA3AF"
+                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}"
                        Padding="16,12"
                        SemanticProperties.HeadingLevel="Level2" />
 
@@ -183,7 +183,7 @@
                             <Label Text="{Binding}"
                                    FontSize="11"
                                    FontFamily="Consolas"
-                                   TextColor="#D1D5DB"
+                                   TextColor="{AppThemeBinding Light=#4B5563, Dark=#D1D5DB}"
                                    Padding="16,2" />
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
@@ -298,7 +298,7 @@
                 <Button Text="Cancel Run"
                         Command="{Binding CancelCommand}"
                         IsVisible="{Binding CanCancel}"
-                        BackgroundColor="#EF4444"
+                        BackgroundColor="{AppThemeBinding Light=#DC2626, Dark=#EF4444}"
                         TextColor="White"
                         CornerRadius="8"
                         Padding="20,12"
