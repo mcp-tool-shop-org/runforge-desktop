@@ -1,0 +1,6 @@
+# Screenshots for Commit 10 - RC1 Cut + Public Beta Readiness
+
+Required screenshots (to be captured during release):
+1. github-release-page.png - GitHub release page showing v0.9.0-rc.1
+2. release-assets.png - Release assets attached to the GitHub release
+3. phase12-audit-complete.png - Final PHASE12_AUDIT.md showing all commits complete
