@@ -28,6 +28,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISettingsService, SettingsService>();
         builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
         builder.Services.AddSingleton<IStorageService, StorageService>();
+        builder.Services.AddSingleton<ICrashRecoveryService, CrashRecoveryService>();
 
         // Python/training
         builder.Services.AddSingleton<IPythonDiscoveryService, PythonDiscoveryService>();

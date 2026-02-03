@@ -1,0 +1,6 @@
+# Screenshots for Commit 5 - Crash Recovery UX
+
+Required screenshots (to be captured during testing):
+1. recovery-dialog.png - Session recovery dialog after simulated crash
+2. crash-log.png - Sample crash log file contents
+3. session-restored.png - App after successful session restoration

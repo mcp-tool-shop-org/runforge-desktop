@@ -123,23 +123,35 @@ Manual execution required to complete stability verification
 
 ## Commit 5 — Crash Reporting & Last Session Recovery UX
 
-**Status**: 🔲 Pending
+**Status**: ✅ Complete
 
 ### Changes Made
 | File | Action | Description |
 |------|--------|-------------|
+| `src/RunForgeDesktop.Core/Services/ICrashRecoveryService.cs` | Created | Interface for crash recovery service |
+| `src/RunForgeDesktop.Core/Services/CrashRecoveryService.cs` | Created | Implementation with session state persistence |
+| `src/RunForgeDesktop/App.xaml.cs` | Modified | Integrate crash recovery, exception handlers |
+| `src/RunForgeDesktop/MauiProgram.cs` | Modified | Register crash recovery service |
 
 ### Test Evidence
-- [ ] App saves state before crash
-- [ ] Recovery dialog appears on restart
-- [ ] User can restore or discard session
-- [ ] Crash logs captured
+- [x] App saves state before crash (session.json in %LOCALAPPDATA%\RunForge)
+- [x] Recovery dialog appears on restart (DisplayAlert with Restore/Discard options)
+- [x] User can restore or discard session
+- [x] Crash logs captured (CrashLogs folder with timestamped .log files)
+
+### Features
+- Session heartbeat for crash detection
+- Unhandled exception logging
+- Current route/workspace/run tracking
+- Clean shutdown detection
+- Atomic file writes for crash safety
+- Old crash log cleanup (keeps last 10)
 
 ### Screenshots
-- `docs/phase12/screenshots/commit-05/` - (pending)
+- `docs/phase12/screenshots/commit-05/` - Screenshots of recovery dialog and crash logs
 
 ### Known Issues
-(pending)
+None
 
 ---
 
@@ -259,11 +271,11 @@ Manual execution required to complete stability verification
 | 2 | RC Versioning + Release Notes | ✅ Complete |
 | 3 | Cold Machine Install Certification | ✅ Complete |
 | 4 | 2-Hour Soak Test Harness | ✅ Complete |
-| 5 | Crash Reporting & Recovery UX | 🔲 Pending |
+| 5 | Crash Reporting & Recovery UX | ✅ Complete |
 | 6 | E2E Button Coverage Tests | 🔲 Pending |
 | 7 | Help Center Upgrade | 🔲 Pending |
 | 8 | UX Consistency Audit | 🔲 Pending |
 | 9 | Release Artifact Proof Pack | 🔲 Pending |
 | 10 | RC1 Cut + Beta Readiness | 🔲 Pending |
 
-**Phase 12 Progress**: 4/10 commits complete
+**Phase 12 Progress**: 5/10 commits complete
