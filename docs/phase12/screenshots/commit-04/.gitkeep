@@ -1,0 +1,8 @@
+# Screenshots for Commit 4 - Soak Test Harness
+
+Required screenshots (to be captured during soak test):
+1. soak-test-start.png - Script starting with initial metrics
+2. soak-test-running.png - Mid-test progress display
+3. soak-test-complete.png - Final summary output
+4. soak-test-report.png - Generated report.md
+5. memory-graph.png - Memory trend visualization (optional)
