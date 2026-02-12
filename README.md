@@ -221,6 +221,16 @@ runforge-desktop/
 
 ---
 
+## NuGet Packages
+
+| Package | Description |
+|---------|-------------|
+| [RunForgeDesktop.Core](https://www.nuget.org/packages/RunForgeDesktop.Core) | Core domain models and services for ML training run management — run lifecycle, hyperparameter sweeps, live monitoring, and artifact inspection. |
+
+```bash
+dotnet add package RunForgeDesktop.Core
+```
+
 ## Relationship to RunForge Core
 
 All schemas, guarantees, and artifact formats are defined and frozen in:

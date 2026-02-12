@@ -5,17 +5,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <!-- Assembly info -->
+    <!-- NuGet package metadata -->
+    <PackageId>RunForgeDesktop.Core</PackageId>
+    <Version>1.0.0</Version>
     <Authors>mcp-tool-shop</Authors>
-    <Company>mcp-tool-shop</Company>
-    <Product>RunForge Desktop Core</Product>
-    <Description>Core domain models and services for RunForge Desktop</Description>
-    <Copyright>Copyright (c) 2025 mcp-tool-shop</Copyright>
+    <Company>MCP Tool Shop</Company>
+    <Description>Core domain models and services for ML training run management. Includes run lifecycle, hyperparameter sweeps, live monitoring models, and artifact inspection types.</Description>
+    <Copyright>Copyright (c) 2025-2026 MCP Tool Shop</Copyright>
+    <PackageProjectUrl>https://github.com/mcp-tool-shop-org/runforge-desktop</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mcp-tool-shop-org/runforge-desktop</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ml;training;runs;hyperparameters;domain;models</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
